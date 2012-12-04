@@ -6,4 +6,5 @@
     <string name="login">Login</string>
     <string name="hint">email@server.com</string>
     <string name="save_pw">Save Password</string>
+    <string name="world_offline">World offline</string>
 </resources>

@@ -14,5 +14,6 @@
             </intent-filter>
         </activity>
         <activity android:name="louLogin"></activity>
+        <activity android:name="LouSessionMain"></activity>
     </application>
 </manifest>
