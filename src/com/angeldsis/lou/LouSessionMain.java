@@ -8,12 +8,14 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.ViewGroup;
 
 public class LouSessionMain extends Activity {
 	static final String TAG = "LouSessionMain";
 	Account acct;
 	RPC rpc;
 	LouState state;
+	LouStructure mTest;
 	public void onCreate(Bundle sis) {
 		super.onCreate(sis);
 		Intent msg = getIntent();
@@ -23,11 +25,9 @@ public class LouSessionMain extends Activity {
 		rpc = new RPC(acct,state);
 		rpc.OpenSession(true,rpc.new RPCDone() {
 			public void requestDone(JSONObject reply) {
-				// TODO Auto-generated method stub
 				Log.v(TAG,"session opened");
 				rpc.GetServerInfo(rpc.new RPCDone() {
 					public void requestDone(JSONObject reply) {
-						// TODO Auto-generated method stub
 						rpc.GetPlayerInfo(rpc.new RPCDone() {
 							@Override
 							public void requestDone(JSONObject reply) {
@@ -39,5 +39,9 @@ public class LouSessionMain extends Activity {
 				});
 			}
 		});
+		setContentView(R.layout.city_layout);
+		ViewGroup vg = (ViewGroup) this.findViewById(R.id.test);
+		mTest = new LouStructure(this);
+		vg.addView(mTest);
 	}
 }
