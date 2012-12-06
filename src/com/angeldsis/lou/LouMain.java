@@ -180,6 +180,8 @@ public class LouMain extends FragmentActivity {
 	private class result {
     	boolean logged_in;
     	ArrayList<Account> servers;
+		IOException exception;
+		boolean error;
     }
 	private class checkCookie extends AsyncTask<String,Integer,result> {
 		LouMain parent;
@@ -300,6 +302,10 @@ public class LouMain extends FragmentActivity {
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+				result output = new result();
+				output.error = true;
+				output.exception = e;
+				return output;
 			} catch (SAXException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -327,6 +333,9 @@ public class LouMain extends FragmentActivity {
 			accounts = r.servers;
 			state = 3;
 			stateEngine();
+		} else if (r.error) {
+			Log.e(TAG,"error doing request",r.exception);
+			finish();
 		} else {
 			SharedPreferences.Editor trans = getSharedPreferences("main",MODE_PRIVATE).edit();
 			trans.putString("cookie", null);

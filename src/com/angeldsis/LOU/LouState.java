@@ -9,7 +9,11 @@ public class LouState {
 	int AllianceId;
 	String AllianceName,Name;
 	ArrayList<City> cities;
+	public ArrayList<LouVisData> visData;
 	City currentCity;
+	public LouState() {
+		visData = new ArrayList<LouVisData>();
+	}
 	public void processPlayerInfo(JSONObject obj) throws JSONException {
 		JSONArray cities = obj.getJSONArray("Cities");
 		int x;
@@ -29,5 +33,8 @@ public class LouState {
 	class City {
 		String name;
 		long cityid;
+	}
+	public void addVisObj(LouVisData parsed) {
+		visData.add(parsed);
 	}
 }

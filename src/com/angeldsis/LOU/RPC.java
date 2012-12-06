@@ -16,33 +16,43 @@ import org.json.JSONTokener;
 import android.os.AsyncTask;
 import android.util.Log;
 
-public class RPC {
+public class RPC extends Thread {
 	static String TAG = "lou.RPC";
 	private Account account;
 	String instanceid;
 	String urlbase;
-	LouState state;
+	public LouState state;
 	int requestid;
+	boolean cont;
+	Callbacks callbacks;
 
-	public RPC(Account acct, LouState state) {
+	public RPC(Account acct, LouState state,Callbacks callbacks) {
 		this.account = acct;
 		this.state = state;
 		requestid = 0;
+		this.callbacks = callbacks;
 		urlbase = "http://prodgame"+acct.serverid+".lordofultima.com/"+acct.pathid+"/Presentation/Service.svc/ajaxEndpoint/";
 	}
-	public void OpenSession(boolean reset,final RPCDone callback2) {
+	public void OpenSession(final boolean reset,final RPCDone callback2, final int retry_count) {
+		if (retry_count > 10) {
+			Log.e(TAG,"too many retrys");
+			return;
+		}
 		JSONObject obj = new JSONObject();
 		try {
 			obj.put("reset", reset);
-			Log.v(TAG,obj.toString());
 			doRPC("OpenSession",obj,this,new RPCCallback() {
 				@Override
 				void requestDone(rpcreply reply) throws JSONException,Exception {
 					Log.v(TAG,"http code:"+reply.http_code);
 					int r = reply.reply.getInt("r");
-					if (r != 1) {
+					/*if (r == 0) {
+						Thread.sleep(1000);
+						OpenSession(reset,callback2,retry_count+1);
+						return;
+					} else if (r != 1) {
 						throw new Exception("r was "+r);
-					}
+					}*/
 					instanceid = reply.reply.getString("i");
 					callback2.requestDone(null);
 				}
@@ -58,8 +68,7 @@ public class RPC {
 			obj.put("time", System.currentTimeMillis());
 			doRPC("GetServerInfo",obj,this,new RPCCallback() {
 				void requestDone(rpcreply reply) throws JSONException {
-					Log.v(TAG,"http code:"+reply.http_code);
-					Log.v(TAG,reply.reply.toString(1));
+					Log.v(TAG+".GetServerInfo",reply.reply.toString(1));
 					rpcDone.requestDone(reply.reply);
 				}
 			});
@@ -122,14 +131,18 @@ public class RPC {
 				}
 				String json = buf.toString();
 				Log.v("louRPCREPLY",json);
-				try {
-					Object t = new JSONTokener(json).nextValue();
-					if (req.function.equals("Poll")) reply.replyArray = (JSONArray) t;
-					else reply.reply = (JSONObject) t;
-				} catch (JSONException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-					reply.raw_reply = json;
+				if (json.length() == 0) {
+					reply.raw_reply = "";
+				} else {
+					try {
+						Object t = new JSONTokener(json).nextValue();
+						if (req.function.equals("Poll")) reply.replyArray = (JSONArray) t;
+						else reply.reply = (JSONObject) t;
+					} catch (JSONException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+						reply.raw_reply = json;
+					}
 				}
 			} catch (MalformedURLException e) {
 				// TODO Auto-generated catch block
@@ -165,7 +178,7 @@ public class RPC {
 				@Override
 				void requestDone(rpcreply r) throws JSONException, Exception {
 					state.processPlayerInfo(r.reply);
-					Log.v(TAG,r.reply.toString(1));
+					Log.v(TAG+".GetPlayerInfo",r.reply.toString(1));
 					rpcDone.requestDone(r.reply);
 				}
 			});
@@ -179,18 +192,16 @@ public class RPC {
 			JSONObject obj = new JSONObject();
 			obj.put("requestid", requestid);
 			requestid++;
-			String requests = "CITY:"+state.currentCity.cityid+
-					"\fVIS:c:"+state.currentCity.cityid+":0:-1085:-638:775:565:1"; // FIXME
+			String requests = "CITY:"+state.currentCity.cityid;
+			if (state.visData.size() == 0) requests = requests + "\fVIS:c:"+state.currentCity.cityid+":0:-1085:-638:775:565:1"; // FIXME
 			obj.put("requests",requests);
 			doRPC("Poll",obj,this,new RPCCallback() {
 				void requestDone(rpcreply r) throws JSONException {
 					int x;
+					if (r.replyArray == null) return;
 					for (x = 0; x < r.replyArray.length(); x++) {
 						JSONObject obj = (JSONObject) r.replyArray.get(x);
-						String C = obj.getString("C");
-						JSONObject D = obj.getJSONObject("D");
-						Log.v(TAG,"Poll packet "+C);
-						Log.v(TAG,D.toString(1));
+						handlePollPacket(obj);
 					}
 				}
 			});
@@ -198,5 +209,68 @@ public class RPC {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	void handlePollPacket(JSONObject p) throws JSONException {
+		String C = p.getString("C");
+		Log.v(TAG,"Poll packet "+C);
+		if (C.equals("VIS")) {
+			JSONObject D = p.getJSONObject("D");
+			parseVIS(D);
+		} else {
+			Log.v(TAG,"unexpected Poll data "+C);
+		}
+	}
+	void parseVIS(JSONObject D) throws JSONException {
+		JSONArray u = D.getJSONArray("u");
+		int x;
+		for (x = 0; x < u.length(); x++) {
+			JSONObject structure = u.getJSONObject(x);
+			LouVisData parsed = null;
+			int type = structure.getInt("t");
+			switch (type) {
+			case 3: // CityObject
+				break;
+			case 4:
+				parsed = new CityBuilding(structure,CityBuilding.BUILDING);
+				break;
+			case 5: // CityBuildingPlace
+				break;
+			case 9: // CityResField
+				break;
+			case 10: // CityFortification
+				parsed = new CityBuilding(structure,CityBuilding.WALL);
+				break;
+			default:
+				Log.v(TAG,"unhandled VIS type "+type);
+			}
+			if (parsed != null) {
+				parsed.type = type;
+				state.addVisObj(parsed);
+			}
+		}
+		callbacks.visDataReset();
+	}
+	public void run() {
+		while (cont) {
+			// FIXME, may cause multiple parallel requests if they take over 10sec
+			this.Poll();
+			try {
+				Thread.sleep(10000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+	public void startPolling() {
+		cont = true;
+		this.start();
+	}
+	public void stopPolling() {
+		cont = false;
+		interrupt();
+	}
+	public interface Callbacks {
+		void visDataReset();
 	}
 }
