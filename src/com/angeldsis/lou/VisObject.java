@@ -1,13 +1,14 @@
 package com.angeldsis.lou;
 
-import android.content.Context;
-import android.view.ViewGroup;
+import android.graphics.RectF;
+import android.graphics.drawable.Drawable;
 
-public abstract class VisObject extends ViewGroup {
-	public int x,y;
-	int width,height;
-	public VisObject(Context context) {
-		super(context);
-		// TODO Auto-generated constructor stub
+public abstract class VisObject {
+	public RectF rect;
+	public Drawable bg;
+	public VisObject() {
+	}
+	abstract void addViews(CityLayout l);
+	public void layout(int x, int y, float zoom){
 	}
 }

@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 public class LouSessionMain extends Activity implements RPC.Callbacks {
 	static final String TAG = "LouSessionMain";
@@ -63,7 +64,8 @@ public class LouSessionMain extends Activity implements RPC.Callbacks {
 	void gotVisDataInit() {
 		vis_data_loaded = true;
 		ViewGroup vg = (ViewGroup) this.findViewById(R.id.test);
-		mTest = new CityLayout(this,state);
+		TextView stats = (TextView) this.findViewById(R.id.stats);
+		mTest = new CityLayout(this,state,stats);
 		vg.addView(mTest);
 	}
 	public void visDataReset() {

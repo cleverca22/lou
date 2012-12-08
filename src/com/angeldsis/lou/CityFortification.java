@@ -1,6 +1,7 @@
 package com.angeldsis.lou;
 
 import android.content.Context;
+import android.graphics.RectF;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
@@ -11,9 +12,7 @@ import com.angeldsis.LOU.CityBuilding;
 public class CityFortification extends VisObject {
 	int id2;
 	public CityFortification(Context context, CityBuilding base) {
-		super(context);
-		x = base.x;
-		y = base.y;
+		int width,height;
 		int res = -1;
 		id2 = base.typeid;
 		switch (base.typeid) {
@@ -41,6 +40,7 @@ public class CityFortification extends VisObject {
 			width = 128;
 			height = 128;
 		}
+		rect = new RectF(base.x,base.y,base.x+width,base.y+height);
 		switch (base.typeid) {
 		case 50:
 			res = R.drawable.gatehouse_bl;
@@ -103,18 +103,19 @@ public class CityFortification extends VisObject {
 			res = R.drawable.wall_tjunction_r_outside;
 			break;
 		}
-		if (res != -1) setBackgroundResource(res);
+		if (res != -1) {
+			bg = context.getResources().getDrawable(res);
+			bg.setBounds(0, 0, width, height);
+		}
 		else Log.v("CityFortification","made "+base.typeid);
 	}
 	public boolean onTouchEvent(MotionEvent event) {
 		Log.v("Wall","Touch! "+id2);
-		this.invalidate();
 		return false;
 	}
-	protected void onLayout(boolean changed, int l, int t, int r, int b) {
+	@Override
+	void addViews(CityLayout l) {
 		// TODO Auto-generated method stub
-	}
-	protected void onMeasure (int widthMeasureSpec, int heightMeasureSpec) {
-		 setMeasuredDimension(width, height);
+		
 	}
 }

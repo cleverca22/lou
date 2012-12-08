@@ -6,7 +6,6 @@ import org.json.JSONObject;
 import android.util.Log;
 
 public class CityBuilding extends LouVisData {
-
 	public int typeid, x, y;
 	public int level;
 	private int visId;

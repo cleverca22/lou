@@ -7,29 +7,41 @@ import com.angeldsis.LOU.LouState;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Canvas;
+import android.graphics.RectF;
+import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 public class CityLayout extends ViewGroup {
 	String TAG = "CityLayout";
 	ArrayList<VisObject> buildings;
-	public CityLayout(Context context, LouState state) {
+	float zoom;
+	Drawable dirt;
+	long lastRunTime;
+	int skipped;
+	TextView mStats;
+	public CityLayout(Context context, LouState state, TextView stats) {
 		super(context);
-		this.setBackgroundResource(R.drawable.texture_bg_tile_big_city);
+		zoom = 1;
+		mStats = stats;
+		dirt = context.getResources().getDrawable(R.drawable.texture_bg_tile_big_city);
+		dirt.setBounds(0, 0, dirt.getIntrinsicWidth(), dirt.getIntrinsicHeight());
 		buildings = new ArrayList<VisObject>();
 		int x;
 		for (x = 0; x < state.visData.size(); x++) {
 			switch (state.visData.get(x).type) {
 			case 4:
 				LouStructure vg = new LouStructure(context,(CityBuilding)state.visData.get(x));
-				addView(vg);
+				vg.addViews(this);
 				buildings.add(vg);
 				vg.setLevel(((CityBuilding)state.visData.get(x)).level);
 				break;
 			case 10:
 				CityFortification vg2 = new CityFortification(context,(CityBuilding)state.visData.get(x));
-				addView(vg2);
+				vg2.addViews(this);
 				buildings.add(vg2);
 				break;
 			}
@@ -44,15 +56,10 @@ public class CityLayout extends ViewGroup {
 	}
 	protected void onLayout(boolean changed, int l, int t, int r, int b) {
 		// FIXME, internal scroll!
-		int xoffset = 0;
-		int yoffset = 0;
 		int x;
 		for (x = 0; x < buildings.size(); x++) {
 			VisObject y = buildings.get(x);
-			//Log.v("CityLayout","building #"+x+" is at "+y.x+","+y.y);
-			int realx = y.x - xoffset;
-			int realy = y.y - yoffset;
-			y.layout(realx, realy, realx+y.width, realy+y.height);
+			y.layout(getScrollX(),getScrollY(),zoom);
 		}
 	}
 	protected void onMeasure (int widthMeasureSpec, int heightMeasureSpec) {
@@ -87,7 +94,40 @@ public class CityLayout extends ViewGroup {
 		return 2650;
 	}
 	protected int computeVerticalScrollRange() {
-		Log.v(TAG,"x "+getScrollX()+" y "+getScrollY());
 		return 1600;
+	}
+	protected int computeHorizontalScrollExtent() {
+		return (int) (getWidth() / zoom);
+	}
+	protected int computeVerticalScrollExtent() {
+		return (int) (getWidth() / zoom);
+	}
+	protected void onDraw(Canvas c) {
+		long start = System.currentTimeMillis();
+		int i,z=0;
+		c.save();
+		c.scale(zoom, zoom);
+		dirt.draw(c);
+		for (i = 0; i < buildings.size(); i++) {
+			VisObject b = buildings.get(i);
+			if (c.quickReject(b.rect, Canvas.EdgeType.BW)) {
+				Log.v(TAG,"skipping structure #"+i);
+				z++;
+				continue;
+			}
+			c.save();
+			c.translate(b.rect.left,b.rect.top);
+			b.bg.draw(c);
+			c.restore();
+		}
+		c.restore();
+		long end = System.currentTimeMillis();
+		lastRunTime = end - start;
+		skipped = z;
+		//mStats.setText(getStats());
+	}
+	String getStats() {
+		float fps = 1 / (((float)lastRunTime) / 1000);
+		return "fps:" + fps+" skip:"+skipped;
 	}
 }
