@@ -89,6 +89,8 @@ public class LouStructure extends VisObject {
 	protected void onLayout(boolean changed, int l, int t, int r, int b) {
 		// TODO Auto-generated method stub
 		level.layout(52, 100, 76, 128);
+		//String crash = null;
+		//Log.v(TAG,""+crash.length());
 	}
 	void setLevel(int level) {
 		this.level.setText(""+level);

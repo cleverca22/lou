@@ -107,6 +107,10 @@ public class LouMain extends FragmentActivity {
     		mAdapter = new MyAdapter(getSupportFragmentManager(),accounts);
     		mPager = (ViewPager)findViewById(R.id.pager);
     		mPager.setAdapter(mAdapter);
+		state = 4;
+		break;
+	case 4:
+		Log.v(TAG,"state 4, already settled");
     	}
     }
     class MyAdapter extends FragmentPagerAdapter {

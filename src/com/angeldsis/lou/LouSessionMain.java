@@ -8,6 +8,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.view.ViewGroup;
 
 public class LouSessionMain extends Activity implements RPC.Callbacks {
@@ -46,6 +47,18 @@ public class LouSessionMain extends Activity implements RPC.Callbacks {
 	protected void onStop() {
 		super.onStop();
 		rpc.stopPolling();
+	}
+	public void up(View v) {
+		mTest.up();
+	}
+	public void down(View v) {
+		mTest.down();
+	}
+	public void left(View v) {
+		mTest.left();
+	}
+	public void right(View v) {
+		mTest.right();
 	}
 	void gotVisDataInit() {
 		vis_data_loaded = true;

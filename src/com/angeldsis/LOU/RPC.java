@@ -46,13 +46,11 @@ public class RPC extends Thread {
 				void requestDone(rpcreply reply) throws JSONException,Exception {
 					Log.v(TAG,"http code:"+reply.http_code);
 					int r = reply.reply.getInt("r");
-					/*if (r == 0) {
+					if (r < 0) {
 						Thread.sleep(1000);
 						OpenSession(reset,callback2,retry_count+1);
 						return;
-					} else if (r != 1) {
-						throw new Exception("r was "+r);
-					}*/
+					}
 					instanceid = reply.reply.getString("i");
 					callback2.requestDone(null);
 				}

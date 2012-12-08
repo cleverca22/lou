@@ -2,15 +2,20 @@ package com.angeldsis.lou;
 
 import android.content.Context;
 import android.util.Log;
+import android.view.MotionEvent;
+import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.angeldsis.LOU.CityBuilding;
 
 public class CityFortification extends VisObject {
+	int id2;
 	public CityFortification(Context context, CityBuilding base) {
 		super(context);
 		x = base.x;
 		y = base.y;
 		int res = -1;
+		id2 = base.typeid;
 		switch (base.typeid) {
 		case 50:
 		case 51:
@@ -18,6 +23,19 @@ public class CityFortification extends VisObject {
 		case 53:
 			width = 384;
 			height = 240;
+			break;
+		case 57:
+		case 68:
+			width = 128;
+			height = 80;
+			break;
+		case 69:
+		case 70:
+		case 71:
+		case 72:
+		case 73:
+			width = 192;
+			height = 80;
 			break;
 		default:
 			width = 128;
@@ -87,6 +105,11 @@ public class CityFortification extends VisObject {
 		}
 		if (res != -1) setBackgroundResource(res);
 		else Log.v("CityFortification","made "+base.typeid);
+	}
+	public boolean onTouchEvent(MotionEvent event) {
+		Log.v("Wall","Touch! "+id2);
+		this.invalidate();
+		return false;
 	}
 	protected void onLayout(boolean changed, int l, int t, int r, int b) {
 		// TODO Auto-generated method stub

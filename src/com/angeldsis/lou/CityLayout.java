@@ -6,7 +6,9 @@ import com.angeldsis.LOU.CityBuilding;
 import com.angeldsis.LOU.LouState;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.ViewGroup;
 
 public class CityLayout extends ViewGroup {
@@ -32,6 +34,13 @@ public class CityLayout extends ViewGroup {
 				break;
 			}
 		}
+		setHorizontalScrollBarEnabled(true);
+		setVerticalScrollBarEnabled(true);
+		//setScrollbarFadingEnabled(true);
+		TypedArray a = context.obtainStyledAttributes(R.styleable.View);
+		initializeScrollbars(a);
+		a.recycle();
+		setWillNotDraw(false);
 	}
 	protected void onLayout(boolean changed, int l, int t, int r, int b) {
 		// FIXME, internal scroll!
@@ -48,5 +57,37 @@ public class CityLayout extends ViewGroup {
 	}
 	protected void onMeasure (int widthMeasureSpec, int heightMeasureSpec) {
 		setMeasuredDimension(MeasureSpec.getSize(widthMeasureSpec),MeasureSpec.getSize(heightMeasureSpec));
+	}
+	public void up() {
+		scrollBy(0,-50);
+		awakenScrollBars();
+	}
+	public void down() {
+		scrollBy(0,50);
+		awakenScrollBars();
+	}
+	public void left() {
+		scrollBy(-50,0);
+		awakenScrollBars();
+	}
+	public void right () {
+		scrollBy(50,0);
+		awakenScrollBars();
+	}
+	public void scrollTo(int x,int y) {
+		if (x > 2650) x = 2650;
+		if (y > 1600) y = 1600;
+		super.scrollTo(x, y);
+	}
+	public boolean onTouchEvent(MotionEvent event) {
+		Log.v(TAG,"motion "+event.getAction());
+		return false;
+	}
+	protected int computeHorizontalScrollRange() {
+		return 2650;
+	}
+	protected int computeVerticalScrollRange() {
+		Log.v(TAG,"x "+getScrollX()+" y "+getScrollY());
+		return 1600;
 	}
 }
