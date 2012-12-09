@@ -4,9 +4,6 @@ import android.content.Context;
 import android.graphics.RectF;
 import android.util.Log;
 import android.view.MotionEvent;
-import android.view.ViewGroup;
-import android.widget.TextView;
-
 import com.angeldsis.LOU.CityBuilding;
 
 public class CityFortification extends VisObject {

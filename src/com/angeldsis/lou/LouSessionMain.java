@@ -10,9 +10,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
+import android.widget.RadioGroup;
 
-public class LouSessionMain extends Activity implements RPC.Callbacks {
+public class LouSessionMain extends Activity implements RPC.Callbacks, RadioGroup.OnCheckedChangeListener {
 	static final String TAG = "LouSessionMain";
 	Account acct;
 	RPC rpc;
@@ -23,6 +23,9 @@ public class LouSessionMain extends Activity implements RPC.Callbacks {
 		super.onCreate(sis);
 		Intent msg = getIntent();
 		Bundle args = msg.getExtras();
+		setContentView(R.layout.city_layout);
+		RadioGroup rg = (RadioGroup)findViewById(R.id.zoom);
+		rg.setOnCheckedChangeListener(this);
 		vis_data_loaded = false;
 		acct = new Account(args);
 		state = new LouState();
@@ -43,7 +46,6 @@ public class LouSessionMain extends Activity implements RPC.Callbacks {
 				});
 			}
 		}, 0);
-		setContentView(R.layout.city_layout);
 	}
 	protected void onStop() {
 		super.onStop();
@@ -64,12 +66,25 @@ public class LouSessionMain extends Activity implements RPC.Callbacks {
 	void gotVisDataInit() {
 		vis_data_loaded = true;
 		ViewGroup vg = (ViewGroup) this.findViewById(R.id.test);
-		TextView stats = (TextView) this.findViewById(R.id.stats);
-		mTest = new CityLayout(this,state,stats);
+		mTest = new CityLayout(this,state);
 		vg.addView(mTest);
 	}
 	public void visDataReset() {
 		Log.v(TAG,"vis count "+rpc.state.visData.size());
 		if (!vis_data_loaded) gotVisDataInit();
+	}
+	@Override
+	public void onCheckedChanged(RadioGroup arg0, int arg1) {
+		switch (arg0.getCheckedRadioButtonId()) {
+		case R.id.one:
+			mTest.setZoom(1);
+			break;
+		case R.id.two:
+			mTest.setZoom(0.5f);
+			break;
+		case R.id.three:
+			mTest.setZoom(0.25f);
+			break;
+		}
 	}
 }

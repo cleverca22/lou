@@ -7,7 +7,6 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.Log;
 import android.view.MotionEvent;
-import android.view.ViewGroup;
 import android.widget.TextView;
 
 public class LouStructure extends VisObject {
@@ -18,7 +17,7 @@ public class LouStructure extends VisObject {
 		//setFocusable(true);
 		//setFocusableInTouchMode(true);
 		level = new TextView(context,null,android.R.attr.textAppearanceMedium);
-		ViewGroup.LayoutParams layout = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT);
+		//ViewGroup.LayoutParams layout = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT);
 		//addView(level,layout);
 		level.setText("?");
 		level.setBackgroundResource(R.drawable.building_level_display_bgr);
@@ -103,7 +102,6 @@ public class LouStructure extends VisObject {
 	}
 	@Override
 	void addViews(CityLayout l) {
-		// TODO Auto-generated method stub
 		l.addView(level);
 	}
 }

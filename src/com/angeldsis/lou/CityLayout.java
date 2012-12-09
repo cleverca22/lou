@@ -8,12 +8,10 @@ import com.angeldsis.LOU.LouState;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
-import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 public class CityLayout extends ViewGroup {
 	String TAG = "CityLayout";
@@ -22,11 +20,9 @@ public class CityLayout extends ViewGroup {
 	Drawable dirt;
 	long lastRunTime;
 	int skipped;
-	TextView mStats;
-	public CityLayout(Context context, LouState state, TextView stats) {
+	public CityLayout(Context context, LouState state) {
 		super(context);
 		zoom = 1;
-		mStats = stats;
 		dirt = context.getResources().getDrawable(R.drawable.texture_bg_tile_big_city);
 		dirt.setBounds(0, 0, dirt.getIntrinsicWidth(), dirt.getIntrinsicHeight());
 		buildings = new ArrayList<VisObject>();
@@ -67,19 +63,19 @@ public class CityLayout extends ViewGroup {
 	}
 	public void up() {
 		scrollBy(0,-50);
-		awakenScrollBars();
+		awakenScrollBars(1000);
 	}
 	public void down() {
 		scrollBy(0,50);
-		awakenScrollBars();
+		awakenScrollBars(1000);
 	}
 	public void left() {
 		scrollBy(-50,0);
-		awakenScrollBars();
+		awakenScrollBars(1000);
 	}
 	public void right () {
 		scrollBy(50,0);
-		awakenScrollBars();
+		awakenScrollBars(1000);
 	}
 	public void scrollTo(int x,int y) {
 		if (x > 2650) x = 2650;
@@ -107,11 +103,15 @@ public class CityLayout extends ViewGroup {
 		int i,z=0;
 		c.save();
 		c.scale(zoom, zoom);
+		
+		c.save();
+		c.scale(1.5f,1.5f);
 		dirt.draw(c);
+		c.restore();
+		
 		for (i = 0; i < buildings.size(); i++) {
 			VisObject b = buildings.get(i);
 			if (c.quickReject(b.rect, Canvas.EdgeType.BW)) {
-				Log.v(TAG,"skipping structure #"+i);
 				z++;
 				continue;
 			}
@@ -125,9 +125,15 @@ public class CityLayout extends ViewGroup {
 		lastRunTime = end - start;
 		skipped = z;
 		//mStats.setText(getStats());
+		Log.v(TAG,"stats: "+getStats());
 	}
 	String getStats() {
 		float fps = 1 / (((float)lastRunTime) / 1000);
 		return "fps:" + fps+" skip:"+skipped;
+	}
+	public void setZoom(float f) {
+		zoom = f;
+		this.invalidate();
+		this.onLayout(false, 0, 0, 0, 0);
 	}
 }
