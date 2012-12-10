@@ -234,6 +234,7 @@ public class RPC extends Thread {
 			case 5: // CityBuildingPlace
 				break;
 			case 9: // CityResField
+				parsed = new CityResField(structure);
 				break;
 			case 10: // CityFortification
 				parsed = new CityBuilding(structure,CityBuilding.WALL);

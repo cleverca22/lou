@@ -6,17 +6,14 @@ import org.json.JSONObject;
 import android.util.Log;
 
 public class CityBuilding extends LouVisData {
-	public int typeid, x, y;
 	public int level;
-	private int visId;
+	//private int visId;
 	public final static int BUILDING = 1;
 	public final static int WALL = 2;
 
 	public CityBuilding(JSONObject structure, int subtype) throws JSONException {
-		typeid = structure.getInt("v");
-		x = structure.getInt("x");
-		y = structure.getInt("y");
-		visId = structure.getInt("i");
+		super(structure);
+		//visId = structure.getInt("i");
 		switch (subtype) {
 		case BUILDING:
 			level = structure.getInt("l");
@@ -26,12 +23,12 @@ public class CityBuilding extends LouVisData {
 			break;
 		case WALL:
 			int c = structure.getInt("c");
-			Log.v("CityBuilding","c "+c+" typeid "+typeid);
+			//Log.v("CityBuilding","c "+c+" typeid "+typeid);
 			break;
 		}
 		
 		// state data
-		Log.v("CityBuilding","type id is "+typeid);
+		//Log.v("CityBuilding","type id is "+typeid);
 	}
 
 }

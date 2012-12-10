@@ -56,6 +56,7 @@ public class LouSessionMain extends Activity implements RPC.Callbacks, RadioGrou
 		ViewGroup vg = (ViewGroup) this.findViewById(R.id.test);
 		mTest = new CityLayout(this,state);
 		vg.addView(mTest);
+		Log.v(TAG,"added view");
 	}
 	public void visDataReset() {
 		Log.v(TAG,"vis count "+rpc.state.visData.size());

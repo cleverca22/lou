@@ -11,4 +11,6 @@ public abstract class VisObject {
 	abstract void addViews(CityLayout l);
 	public void layout(int x, int y, float zoom){
 	}
+	abstract void dumpInfo();
+	abstract String getType();
 }

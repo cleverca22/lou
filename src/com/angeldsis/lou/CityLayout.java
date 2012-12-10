@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import com.angeldsis.LOU.CityBuilding;
 import com.angeldsis.LOU.LouState;
+import com.angeldsis.LOU.CityResField;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -35,6 +36,10 @@ public class CityLayout extends ViewGroup {
 				buildings.add(vg);
 				vg.setLevel(((CityBuilding)state.visData.get(x)).level);
 				break;
+			case 9:
+				ResFieldUI vg3 = new ResFieldUI(context,(CityResField)state.visData.get(x));
+				buildings.add(vg3);
+				break;
 			case 10:
 				CityFortification vg2 = new CityFortification(context,(CityBuilding)state.visData.get(x));
 				vg2.addViews(this);
@@ -49,6 +54,7 @@ public class CityLayout extends ViewGroup {
 		initializeScrollbars(a);
 		a.recycle();
 		setWillNotDraw(false);
+		Log.v(TAG,"constructed");
 	}
 	protected void onLayout(boolean changed, int l, int t, int r, int b) {
 		// FIXME, internal scroll!
@@ -71,14 +77,11 @@ public class CityLayout extends ViewGroup {
 		Log.v(TAG,"motion "+event.getAction());
 		switch (event.getAction()) {
 		case 0: // down
-			Log.v(TAG,"x "+event.getX());
 			lastx = event.getX();
 			lasty = event.getY();
 			break;
 		case 1: // up
-			Log.v(TAG,"x "+event.getX());
 		case 2: // move
-			Log.v(TAG,"x "+event.getX());
 			this.scrollBy((int) (lastx - event.getX()), (int) (lasty - event.getY()));
 			awakenScrollBars(1000);
 			lastx = event.getX();
@@ -112,13 +115,19 @@ public class CityLayout extends ViewGroup {
 		
 		for (i = 0; i < buildings.size(); i++) {
 			VisObject b = buildings.get(i);
+			//Log.v(TAG,"i = "+i+" type "+b.getType());
+			if (b.rect == null) Log.e(TAG,"rect isnt set on an instance of "+b.getType());
 			if (c.quickReject(b.rect, Canvas.EdgeType.BW)) {
 				z++;
 				continue;
 			}
 			c.save();
 			c.translate(b.rect.left,b.rect.top);
-			b.bg.draw(c);
+			if (b.bg == null) {
+				b.dumpInfo();
+			} else {
+				b.bg.draw(c);
+			}
 			c.restore();
 		}
 		c.restore();

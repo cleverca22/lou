@@ -8,10 +8,12 @@ import com.angeldsis.LOU.CityBuilding;
 
 public class CityFortification extends VisObject {
 	int id2;
+	String TAG = "CirtFortification";
 	public CityFortification(Context context, CityBuilding base) {
 		int width,height;
 		int res = -1;
 		id2 = base.typeid;
+		//Log.v(TAG,"typeid is "+base.typeid);
 		switch (base.typeid) {
 		case 50:
 		case 51:
@@ -110,9 +112,13 @@ public class CityFortification extends VisObject {
 		Log.v("Wall","Touch! "+id2);
 		return false;
 	}
-	@Override
 	void addViews(CityLayout l) {
 		// TODO Auto-generated method stub
-		
+	}
+	void dumpInfo() {
+		// TODO Auto-generated method stub
+	}
+	String getType() {
+		return "wall";
 	}
 }

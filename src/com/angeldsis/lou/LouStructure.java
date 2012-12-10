@@ -104,4 +104,12 @@ public class LouStructure extends VisObject {
 	void addViews(CityLayout l) {
 		l.addView(level);
 	}
+	@Override
+	void dumpInfo() {
+		// TODO Auto-generated method stub
+		
+	}
+	String getType() {
+		return "building";
+	}
 }
