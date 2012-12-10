@@ -61,30 +61,31 @@ public class CityLayout extends ViewGroup {
 	protected void onMeasure (int widthMeasureSpec, int heightMeasureSpec) {
 		setMeasuredDimension(MeasureSpec.getSize(widthMeasureSpec),MeasureSpec.getSize(heightMeasureSpec));
 	}
-	public void up() {
-		scrollBy(0,-50);
-		awakenScrollBars(1000);
-	}
-	public void down() {
-		scrollBy(0,50);
-		awakenScrollBars(1000);
-	}
-	public void left() {
-		scrollBy(-50,0);
-		awakenScrollBars(1000);
-	}
-	public void right () {
-		scrollBy(50,0);
-		awakenScrollBars(1000);
-	}
 	public void scrollTo(int x,int y) {
 		if (x > 2650) x = 2650;
 		if (y > 1600) y = 1600;
 		super.scrollTo(x, y);
 	}
+	float lastx,lasty;
 	public boolean onTouchEvent(MotionEvent event) {
 		Log.v(TAG,"motion "+event.getAction());
-		return false;
+		switch (event.getAction()) {
+		case 0: // down
+			Log.v(TAG,"x "+event.getX());
+			lastx = event.getX();
+			lasty = event.getY();
+			break;
+		case 1: // up
+			Log.v(TAG,"x "+event.getX());
+		case 2: // move
+			Log.v(TAG,"x "+event.getX());
+			this.scrollBy((int) (lastx - event.getX()), (int) (lasty - event.getY()));
+			awakenScrollBars(1000);
+			lastx = event.getX();
+			lasty = event.getY();
+			break;
+		}
+		return true;
 	}
 	protected int computeHorizontalScrollRange() {
 		return 2650;

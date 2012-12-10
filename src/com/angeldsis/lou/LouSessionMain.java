@@ -51,18 +51,6 @@ public class LouSessionMain extends Activity implements RPC.Callbacks, RadioGrou
 		super.onStop();
 		rpc.stopPolling();
 	}
-	public void up(View v) {
-		mTest.up();
-	}
-	public void down(View v) {
-		mTest.down();
-	}
-	public void left(View v) {
-		mTest.left();
-	}
-	public void right(View v) {
-		mTest.right();
-	}
 	void gotVisDataInit() {
 		vis_data_loaded = true;
 		ViewGroup vg = (ViewGroup) this.findViewById(R.id.test);
