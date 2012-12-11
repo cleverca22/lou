@@ -5,7 +5,7 @@ import android.graphics.drawable.Drawable;
 
 public abstract class VisObject {
 	public RectF rect;
-	public Drawable bg;
+	public LouImage[] images;
 	public VisObject() {
 	}
 	abstract void addViews(CityLayout l);

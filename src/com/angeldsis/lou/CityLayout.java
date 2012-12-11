@@ -1,6 +1,7 @@
 package com.angeldsis.lou;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import com.angeldsis.LOU.CityBuilding;
 import com.angeldsis.LOU.LouState;
@@ -15,17 +16,16 @@ import android.view.MotionEvent;
 import android.view.ViewGroup;
 
 public class CityLayout extends ViewGroup {
-	String TAG = "CityLayout";
+	static final String TAG = "CityLayout";
 	ArrayList<VisObject> buildings;
 	float zoom;
 	Drawable dirt;
-	long lastRunTime;
 	int skipped;
 	public CityLayout(Context context, LouState state) {
 		super(context);
 		zoom = 1;
 		dirt = context.getResources().getDrawable(R.drawable.texture_bg_tile_big_city);
-		dirt.setBounds(0, 0, dirt.getIntrinsicWidth(), dirt.getIntrinsicHeight());
+		dirt.setBounds(0, 0, 1280, 800);
 		buildings = new ArrayList<VisObject>();
 		int x;
 		for (x = 0; x < state.visData.size(); x++) {
@@ -74,7 +74,7 @@ public class CityLayout extends ViewGroup {
 	}
 	float lastx,lasty;
 	public boolean onTouchEvent(MotionEvent event) {
-		Log.v(TAG,"motion "+event.getAction());
+		//Log.v(TAG,"motion "+event.getAction());
 		switch (event.getAction()) {
 		case 0: // down
 			lastx = event.getX();
@@ -104,7 +104,7 @@ public class CityLayout extends ViewGroup {
 	}
 	protected void onDraw(Canvas c) {
 		long start = System.currentTimeMillis();
-		int i,z=0;
+		int z=0;
 		c.save();
 		c.scale(zoom, zoom);
 		
@@ -113,9 +113,9 @@ public class CityLayout extends ViewGroup {
 		dirt.draw(c);
 		c.restore();
 		
-		for (i = 0; i < buildings.size(); i++) {
-			VisObject b = buildings.get(i);
-			//Log.v(TAG,"i = "+i+" type "+b.getType());
+		Iterator<VisObject> i = buildings.iterator();
+		while (i.hasNext()) {
+			VisObject b = i.next();
 			if (b.rect == null) Log.e(TAG,"rect isnt set on an instance of "+b.getType());
 			if (c.quickReject(b.rect, Canvas.EdgeType.BW)) {
 				z++;
@@ -123,22 +123,22 @@ public class CityLayout extends ViewGroup {
 			}
 			c.save();
 			c.translate(b.rect.left,b.rect.top);
-			if (b.bg == null) {
-				b.dumpInfo();
-			} else {
-				b.bg.draw(c);
+			int j;
+			for (j = 0; j < b.images.length; j++ ) {
+				b.images[j].draw(c);
 			}
+//			if (b.bg == null) {
+//				b.dumpInfo();
 			c.restore();
 		}
 		c.restore();
 		long end = System.currentTimeMillis();
-		lastRunTime = end - start;
 		skipped = z;
 		//mStats.setText(getStats());
-		Log.v(TAG,"stats: "+getStats());
+		Log.v(TAG,"stats: "+getStats(end-start));
 	}
-	String getStats() {
-		float fps = 1 / (((float)lastRunTime) / 1000);
+	String getStats(float lastRunTime) {
+		float fps = 1 / (lastRunTime / 1000);
 		return "fps:" + fps+" skip:"+skipped;
 	}
 	public void setZoom(float f) {

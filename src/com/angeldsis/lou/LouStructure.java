@@ -62,13 +62,12 @@ public class LouStructure extends VisObject {
 			break;
 		}
 		if (res == -1) {
-			bg = context.getResources().getDrawable(R.drawable.building_stonecutter);
+			res = R.drawable.building_stonecutter;
 			Log.v(TAG,"unknown structure "+base.typeid);
 			//level.setText(""+base.typeid);
-		} else {
-			bg = context.getResources().getDrawable(res);
 		}
-		bg.setBounds(0,0,128,128);
+		images = new LouImage[1];
+		images[0] = new LouImage(context,res,128,128);
 	}
 /*	protected void onDraw(Canvas canvas){
 		Log.v(TAG,"onDraw");

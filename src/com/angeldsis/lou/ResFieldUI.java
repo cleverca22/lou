@@ -62,16 +62,17 @@ public class ResFieldUI extends VisObject {
 			}
 			break;
 		}
-		bg = context.getResources().getDrawable(imageid);
+		images = new LouImage[1];
 		switch (base.subid) {
 		case 0:
 		case 1:
 		case 2:
-			bg.setBounds(0,0,150,128);
+			images[0] = new LouImage(context,imageid,150,128);
 			break;
 		case 3:
 			// FIXME ignores animation
-			bg.setBounds(0,0,128,90);
+			// FIXME android tries to render all 15 frames at once
+			images[0] = new LouAnimation(context,imageid,128,90,15);
 			break;
 		}
 	}

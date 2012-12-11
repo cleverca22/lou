@@ -103,8 +103,8 @@ public class CityFortification extends VisObject {
 			break;
 		}
 		if (res != -1) {
-			bg = context.getResources().getDrawable(res);
-			bg.setBounds(0, 0, width, height);
+			images = new LouImage[1];
+			images[0] = new LouImage(context,res,width,height);
 		}
 		else Log.v("CityFortification","made "+base.typeid);
 	}
