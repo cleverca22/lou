@@ -7,17 +7,18 @@ import com.angeldsis.LOU.RPC;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RadioGroup;
 
-public class LouSessionMain extends Activity implements RPC.Callbacks, RadioGroup.OnCheckedChangeListener {
+public class LouSessionMain extends FragmentActivity implements RPC.Callbacks, RadioGroup.OnCheckedChangeListener {
 	static final String TAG = "LouSessionMain";
 	Account acct;
 	RPC rpc;
 	LouState state;
-	CityLayout mTest;
+	CityUI mTest;
 	boolean vis_data_loaded;
 	public void onCreate(Bundle sis) {
 		super.onCreate(sis);
@@ -29,6 +30,9 @@ public class LouSessionMain extends Activity implements RPC.Callbacks, RadioGrou
 		vis_data_loaded = false;
 		acct = new Account(args);
 		state = new LouState();
+		mTest = new CityUI(this,state);
+		ViewGroup vg = (ViewGroup) this.findViewById(R.id.test);
+		vg.addView(mTest);
 		rpc = new RPC(acct,state,this);
 		rpc.OpenSession(true,rpc.new RPCDone() {
 			public void requestDone(JSONObject reply) {
@@ -53,9 +57,7 @@ public class LouSessionMain extends Activity implements RPC.Callbacks, RadioGrou
 	}
 	void gotVisDataInit() {
 		vis_data_loaded = true;
-		ViewGroup vg = (ViewGroup) this.findViewById(R.id.test);
-		mTest = new CityLayout(this,state);
-		vg.addView(mTest);
+		mTest.gotVisData();
 		Log.v(TAG,"added view");
 	}
 	public void visDataReset() {

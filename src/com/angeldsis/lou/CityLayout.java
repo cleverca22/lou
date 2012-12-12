@@ -6,6 +6,8 @@ import java.util.Iterator;
 import com.angeldsis.LOU.CityBuilding;
 import com.angeldsis.LOU.LouState;
 import com.angeldsis.LOU.CityResField;
+import com.angeldsis.LOU.LouVisData;
+import com.angeldsis.lou.fragments.ResourceBar;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -21,32 +23,20 @@ public class CityLayout extends ViewGroup {
 	float zoom;
 	Drawable dirt;
 	int skipped;
+	LouState state;
+	Context context;
+	ResourceBar resource_bar;
 	public CityLayout(Context context, LouState state) {
 		super(context);
+		this.state = state;
+		this.context = context;
+		resource_bar = new ResourceBar();
 		zoom = 1;
 		dirt = context.getResources().getDrawable(R.drawable.texture_bg_tile_big_city);
-		dirt.setBounds(0, 0, 1280, 800);
+		dirt.setBounds(0, 0, 2944, 1840);
+		// water.setBounds(0,0,896,560);
 		buildings = new ArrayList<VisObject>();
-		int x;
-		for (x = 0; x < state.visData.size(); x++) {
-			switch (state.visData.get(x).type) {
-			case 4:
-				LouStructure vg = new LouStructure(context,(CityBuilding)state.visData.get(x));
-				vg.addViews(this);
-				buildings.add(vg);
-				vg.setLevel(((CityBuilding)state.visData.get(x)).level);
-				break;
-			case 9:
-				ResFieldUI vg3 = new ResFieldUI(context,(CityResField)state.visData.get(x));
-				buildings.add(vg3);
-				break;
-			case 10:
-				CityFortification vg2 = new CityFortification(context,(CityBuilding)state.visData.get(x));
-				vg2.addViews(this);
-				buildings.add(vg2);
-				break;
-			}
-		}
+
 		setHorizontalScrollBarEnabled(true);
 		setVerticalScrollBarEnabled(true);
 		//setScrollbarFadingEnabled(true);
@@ -103,7 +93,7 @@ public class CityLayout extends ViewGroup {
 		return (int) (getWidth() / zoom);
 	}
 	protected void onDraw(Canvas c) {
-		long start = System.currentTimeMillis();
+		//long start = System.currentTimeMillis();
 		int z=0;
 		c.save();
 		c.scale(zoom, zoom);
@@ -124,18 +114,20 @@ public class CityLayout extends ViewGroup {
 			c.save();
 			c.translate(b.rect.left,b.rect.top);
 			int j;
-			for (j = 0; j < b.images.length; j++ ) {
-				b.images[j].draw(c);
+			if (b.images == null) {
+				b.dumpInfo();
+			} else {
+				for (j = 0; j < b.images.length; j++ ) {
+					b.images[j].draw(c);
+				}
 			}
-//			if (b.bg == null) {
-//				b.dumpInfo();
 			c.restore();
 		}
 		c.restore();
-		long end = System.currentTimeMillis();
+		//long end = System.currentTimeMillis();
 		skipped = z;
 		//mStats.setText(getStats());
-		Log.v(TAG,"stats: "+getStats(end-start));
+		//Log.v(TAG,"stats: "+getStats(end-start));
 	}
 	String getStats(float lastRunTime) {
 		float fps = 1 / (lastRunTime / 1000);
@@ -145,5 +137,29 @@ public class CityLayout extends ViewGroup {
 		zoom = f;
 		this.invalidate();
 		this.onLayout(false, 0, 0, 0, 0);
+	}
+	public void gotVisData() {
+		resource_bar.setLevels(12, 34, 56, 78);
+		int x;
+		for (x = 0; x < state.visData.size(); x++) {
+			LouVisData current = state.visData.get(x);
+			switch (current.type) {
+			case 4:
+				LouStructure vg = new LouStructure(context,(CityBuilding)current);
+				vg.addViews(this);
+				buildings.add(vg);
+				vg.setLevel(((CityBuilding)current).level);
+				break;
+			case 9:
+				ResFieldUI vg3 = new ResFieldUI(context,(CityResField)current);
+				buildings.add(vg3);
+				break;
+			case 10:
+				CityFortification vg2 = new CityFortification(context,(CityBuilding)current);
+				vg2.addViews(this);
+				buildings.add(vg2);
+				break;
+			}
+		}
 	}
 }

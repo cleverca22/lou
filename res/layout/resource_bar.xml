@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal" >
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/icons_ressource_wood" />
+
+    <TextView
+        android:id="@+id/woodC"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="W"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/icons_ressource_stone" />
+
+    <TextView
+        android:id="@+id/stoneC"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="S"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/icons_ressource_iron" />
+
+    <TextView
+        android:id="@+id/ironC"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="I"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/icons_ressource_grain" />
+
+    <TextView
+        android:id="@+id/foodC"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="F"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+</LinearLayout>
