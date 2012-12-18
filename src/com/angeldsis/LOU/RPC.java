@@ -214,6 +214,20 @@ public class RPC extends Thread {
 		if (C.equals("VIS")) {
 			JSONObject D = p.getJSONObject("D");
 			parseVIS(D);
+		} else if (C.equals("CITY")) {
+			JSONObject D = p.getJSONObject("D");
+			JSONArray r = D.getJSONArray("r");
+			int x;
+			for (x = 0; x < r.length(); x++) {
+				JSONObject item = r.getJSONObject(x);
+				int i = item.getInt("i"); // id
+				int m = item.getInt("m"); // max
+				double b = item.getDouble("b"); // last value
+				double d = item.getDouble("d"); // gain per sec
+				Log.v(TAG,"resource "+i+" count "+b+"/"+m);
+				state.resources[i-1].set(d,b,m);
+			}
+			callbacks.gotCityData();
 		} else {
 			Log.v(TAG,"unexpected Poll data "+C);
 		}
@@ -251,6 +265,7 @@ public class RPC extends Thread {
 	}
 	public void run() {
 		while (cont) {
+			callbacks.tick();
 			// FIXME, may cause multiple parallel requests if they take over 10sec
 			this.Poll();
 			try {
@@ -271,5 +286,7 @@ public class RPC extends Thread {
 	}
 	public interface Callbacks {
 		void visDataReset();
+		void tick();
+		void gotCityData();
 	}
 }

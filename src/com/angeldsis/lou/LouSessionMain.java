@@ -78,4 +78,18 @@ public class LouSessionMain extends FragmentActivity implements RPC.Callbacks, R
 			break;
 		}
 	}
+	@Override
+	public void gotCityData() {
+		mTest.gotCityData();
+	}
+	@Override
+	public void tick() {
+		// called from the network thread, needs to re-dir to main one
+		Runnable resync = new Runnable() {
+			public void run() {
+				mTest.tick();
+			}
+		};
+		this.runOnUiThread(resync);
+	}
 }

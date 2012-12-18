@@ -36,8 +36,11 @@ import org.xml.sax.helpers.XMLReaderFactory;
 import com.angeldsis.LOU.Account;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.media.AudioManager;
+import android.media.AudioTrack;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Debug;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -62,6 +65,7 @@ public class LouMain extends FragmentActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Debug.startMethodTracing();
         setContentView(R.layout.loading);
 		mCookieManager = new CookieManager();
 		CookieHandler.setDefault(mCookieManager);
@@ -107,6 +111,7 @@ public class LouMain extends FragmentActivity {
     		mAdapter = new MyAdapter(getSupportFragmentManager(),accounts);
     		mPager = (ViewPager)findViewById(R.id.pager);
     		mPager.setAdapter(mAdapter);
+    		Debug.stopMethodTracing();
 		state = 4;
 		break;
 	case 4:
@@ -176,9 +181,12 @@ public class LouMain extends FragmentActivity {
     	stateEngine();
     }
 	public void world_login(Account account) {
-	Intent login = new Intent(this,LouSessionMain.class);
-	login.putExtras(account.toBundle());
-	startActivity(login);
+		Intent login = new Intent(this,LouSessionMain.class);
+		AudioTrack click = new AudioTrack(AudioManager.STREAM_MUSIC,44100,AudioTrack.CHANNEL_OUT_MONO,ENCODING_PCM_16BIT,20096,MODE_STATIC);
+		byte[] data;
+		click.write(data,0,20096);
+		login.putExtras(account.toBundle());
+		startActivity(login);
 		Log.v(TAG,"doing login on world "+account.world);
 	}
 	private class result {

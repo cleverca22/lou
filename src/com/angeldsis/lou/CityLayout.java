@@ -22,10 +22,10 @@ public class CityLayout extends ViewGroup {
 	ArrayList<VisObject> buildings;
 	float zoom;
 	Drawable dirt;
-	int skipped;
 	LouState state;
 	Context context;
 	ResourceBar resource_bar;
+	int maxx,maxy;
 	public CityLayout(Context context, LouState state) {
 		super(context);
 		this.state = state;
@@ -34,6 +34,9 @@ public class CityLayout extends ViewGroup {
 		zoom = 1;
 		dirt = context.getResources().getDrawable(R.drawable.texture_bg_tile_big_city);
 		dirt.setBounds(0, 0, 2944, 1840);
+		maxx = 2944 - 600;
+		maxy = 1840 - 1000;
+		Log.v(TAG,"width: "+dirt.getIntrinsicWidth()+" height "+dirt.getIntrinsicHeight());
 		// water.setBounds(0,0,896,560);
 		buildings = new ArrayList<VisObject>();
 
@@ -49,6 +52,8 @@ public class CityLayout extends ViewGroup {
 	protected void onLayout(boolean changed, int l, int t, int r, int b) {
 		// FIXME, internal scroll!
 		int x;
+		//maxx = 2944;
+		//maxy = 1840;
 		for (x = 0; x < buildings.size(); x++) {
 			VisObject y = buildings.get(x);
 			y.layout(getScrollX(),getScrollY(),zoom);
@@ -58,8 +63,11 @@ public class CityLayout extends ViewGroup {
 		setMeasuredDimension(MeasureSpec.getSize(widthMeasureSpec),MeasureSpec.getSize(heightMeasureSpec));
 	}
 	public void scrollTo(int x,int y) {
-		if (x > 2650) x = 2650;
-		if (y > 1600) y = 1600;
+		Log.v(TAG,"maxx "+maxx+" x "+x);
+		if (x > maxx) x = maxx;
+		else if (x < 0) x = 0;
+		if (y > maxy) y = maxy;
+		else if (y < 0) y = 0;
 		super.scrollTo(x, y);
 	}
 	float lastx,lasty;
@@ -81,10 +89,10 @@ public class CityLayout extends ViewGroup {
 		return true;
 	}
 	protected int computeHorizontalScrollRange() {
-		return 2650;
+		return 2944;
 	}
 	protected int computeVerticalScrollRange() {
-		return 1600;
+		return 1840;
 	}
 	protected int computeHorizontalScrollExtent() {
 		return (int) (getWidth() / zoom);
@@ -94,26 +102,25 @@ public class CityLayout extends ViewGroup {
 	}
 	protected void onDraw(Canvas c) {
 		//long start = System.currentTimeMillis();
-		int z=0;
+		//int skipped = 0;
 		c.save();
 		c.scale(zoom, zoom);
 		
-		c.save();
-		c.scale(1.5f,1.5f);
 		dirt.draw(c);
-		c.restore();
 		
-		Iterator<VisObject> i = buildings.iterator();
-		while (i.hasNext()) {
-			VisObject b = i.next();
+		int i,j;
+		for (i = buildings.size() - 1; i >= 0; i--) {
+			VisObject b = buildings.get(i);
 			if (b.rect == null) Log.e(TAG,"rect isnt set on an instance of "+b.getType());
 			if (c.quickReject(b.rect, Canvas.EdgeType.BW)) {
-				z++;
+				//skipped++;
+				for (j = 0; j < b.images.length; j++ ) {
+					b.images[j].expire();
+				}
 				continue;
 			}
 			c.save();
 			c.translate(b.rect.left,b.rect.top);
-			int j;
 			if (b.images == null) {
 				b.dumpInfo();
 			} else {
@@ -125,13 +132,13 @@ public class CityLayout extends ViewGroup {
 		}
 		c.restore();
 		//long end = System.currentTimeMillis();
-		skipped = z;
+		//skipped = z;
 		//mStats.setText(getStats());
-		//Log.v(TAG,"stats: "+getStats(end-start));
+		//Log.v(TAG,"stats: "+getStats(end-start,skipped));
 	}
-	String getStats(float lastRunTime) {
+	String getStats(float lastRunTime, int skipped) {
 		float fps = 1 / (lastRunTime / 1000);
-		return "fps:" + fps+" skip:"+skipped;
+		return "render time: "+lastRunTime+" fps:" + fps+" skip:"+skipped;
 	}
 	public void setZoom(float f) {
 		zoom = f;
@@ -139,7 +146,7 @@ public class CityLayout extends ViewGroup {
 		this.onLayout(false, 0, 0, 0, 0);
 	}
 	public void gotVisData() {
-		resource_bar.setLevels(12, 34, 56, 78);
+		//resource_bar.setLevels(12, 34, 56, 78);
 		int x;
 		for (x = 0; x < state.visData.size(); x++) {
 			LouVisData current = state.visData.get(x);

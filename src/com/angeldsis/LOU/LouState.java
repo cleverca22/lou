@@ -11,8 +11,12 @@ public class LouState {
 	ArrayList<City> cities;
 	public ArrayList<LouVisData> visData;
 	City currentCity;
+	public Resource[] resources;
 	public LouState() {
 		visData = new ArrayList<LouVisData>();
+		resources = new Resource[4];
+		int i;
+		for (i = 0; i < 4; i++) resources[i] = new Resource();
 	}
 	public void processPlayerInfo(JSONObject obj) throws JSONException {
 		JSONArray cities = obj.getJSONArray("Cities");

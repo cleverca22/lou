@@ -26,4 +26,10 @@ public class CityUI extends ViewGroup {
 	public void setZoom(float f) {
 		mTest.setZoom(f);
 	}
+	public void gotCityData() {
+		mTest.resource_bar.update(mTest.state);
+	}
+	public void tick() {
+		mTest.resource_bar.update(mTest.state);
+	}
 }

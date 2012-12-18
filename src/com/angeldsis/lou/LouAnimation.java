@@ -16,7 +16,7 @@ public class LouAnimation extends LouImage {
 		int offset = 0;
 		c.clipRect(0, 0, width, height);
 		c.translate(-offset, 0);
-		img.draw(c);
+		getImage().draw(c);
 		c.restore();
 	}
 }
