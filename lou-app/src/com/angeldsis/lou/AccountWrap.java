@@ -1,16 +1,15 @@
-package com.angeldsis.LOU;
+package com.angeldsis.lou;
 
 import android.os.Bundle;
 
-public class Account {
-	public String world, pathid, serverid, sessionid;
-	public boolean offline;
-	public Account(Bundle args) {
+import com.angeldsis.LOU.Account;
+
+// helper methods to send an Account thru a Bundle
+public class AccountWrap extends Account {
+	public AccountWrap(Bundle args) {
 		this.pathid = args.getString("pathid");
 		this.serverid = args.getString("serverid");
 		this.sessionid = args.getString("sessionid");
-	}
-	public Account() {
 	}
 	public Bundle toBundle() {
     	Bundle args = new Bundle();

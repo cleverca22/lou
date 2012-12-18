@@ -3,8 +3,6 @@ package com.angeldsis.LOU;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.util.Log;
-
 public class CityBuilding extends LouVisData {
 	public int level;
 	//private int visId;

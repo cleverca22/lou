@@ -3,8 +3,6 @@ package com.angeldsis.LOU;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.util.Log;
-
 public class CityResField extends LouVisData {
 	String TAG = "CityResField";
 	public int c,visId;

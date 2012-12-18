@@ -182,10 +182,10 @@ public class LouMain extends FragmentActivity {
     }
 	public void world_login(Account account) {
 		Intent login = new Intent(this,LouSessionMain.class);
-		AudioTrack click = new AudioTrack(AudioManager.STREAM_MUSIC,44100,AudioTrack.CHANNEL_OUT_MONO,ENCODING_PCM_16BIT,20096,MODE_STATIC);
-		byte[] data;
-		click.write(data,0,20096);
-		login.putExtras(account.toBundle());
+//		AudioTrack click = new AudioTrack(AudioManager.STREAM_MUSIC,44100,AudioTrack.CHANNEL_OUT_MONO,ENCODING_PCM_16BIT,20096,MODE_STATIC);
+//		byte[] data;
+//		click.write(data,0,20096);
+//		login.putExtras(account.toBundle());
 		startActivity(login);
 		Log.v(TAG,"doing login on world "+account.world);
 	}
