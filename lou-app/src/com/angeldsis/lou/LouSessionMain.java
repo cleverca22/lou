@@ -28,12 +28,12 @@ public class LouSessionMain extends FragmentActivity implements RPC.Callbacks, R
 		RadioGroup rg = (RadioGroup)findViewById(R.id.zoom);
 		rg.setOnCheckedChangeListener(this);
 		vis_data_loaded = false;
-		acct = new Account(args);
+		acct = new AccountWrap(args);
 		state = new LouState();
 		mTest = new CityUI(this,state);
 		ViewGroup vg = (ViewGroup) this.findViewById(R.id.test);
 		vg.addView(mTest);
-		rpc = new RPC(acct,state,this);
+		rpc = new RPCWrap(acct,state,this);
 		rpc.OpenSession(true,rpc.new RPCDone() {
 			public void requestDone(JSONObject reply) {
 				Log.v(TAG,"session opened");

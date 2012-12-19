@@ -13,10 +13,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
-import android.os.AsyncTask;
-import android.util.Log;
+import com.angeldsis.LOU.HttpRequest.HttpReply;
 
-public class RPC extends Thread {
+public abstract class RPC extends Thread {
 	static String TAG = "lou.RPC";
 	private Account account;
 	String instanceid;
@@ -74,15 +73,49 @@ public class RPC extends Thread {
 			e.printStackTrace();
 		}
 	}
-	private InputStream doRPC(String function,JSONObject request, RPC parent, RPCCallback rpcCallback) throws JSONException {
+	private InputStream doRPC(final String function,JSONObject request, RPC parent, final RPCCallback rpcCallback) throws JSONException {
 		rpcreq req = new rpcreq();
 		req.function = function;
 		req.request = request;
 		if (function == "OpenSession") req.request.put("session", parent.account.sessionid);
 		else req.request.put("session", parent.instanceid);
-		doRPCasync desync = (doRPCasync) new doRPCasync(rpcCallback,urlbase).execute(req);
+		HttpRequest req2 = newHttpRequest();
+		HttpRequest.Callback cb = new HttpRequest.Callback() {
+			public void done(HttpReply reply) {
+				rpcreply reply2 = new rpcreply();
+				reply2.http_code = reply.code;
+
+				String json = reply.body;
+				Log.v("louRPCREPLY",json);
+				if (json.length() == 0) {
+					reply2.raw_reply = "";
+				} else {
+					try {
+						Object t = new JSONTokener(json).nextValue();
+						if (function.equals("Poll")) reply2.replyArray = (JSONArray) t;
+						else reply2.reply = (JSONObject) t;
+					} catch (JSONException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+						reply2.raw_reply = json;
+					}
+				}
+				try {
+					rpcCallback.requestDone(reply2);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		};
+		req2.PostURL(urlbase + req.function, req.request.toString(), cb);
+		//doRPCasync desync = (doRPCasync) new doRPCasync(rpcCallback,urlbase).execute(req);
 		return null;
 	}
+	public abstract HttpRequest newHttpRequest();
 	class rpcreply {
 		public JSONObject reply;
 		public int http_code;
@@ -92,76 +125,6 @@ public class RPC extends Thread {
 	class rpcreq {
 		String function;
 		JSONObject request;
-	}
-	private class doRPCasync extends AsyncTask<rpcreq,Integer,rpcreply> {
-		RPCCallback callback;
-		String urlbase;
-		public doRPCasync(RPCCallback rpcCallback, String urlbase) {
-			callback = rpcCallback;
-			this.urlbase = urlbase;
-		}
-		@Override
-		protected rpcreply doInBackground(rpcreq... params) {
-			rpcreply reply = new rpcreply();
-			try {
-				rpcreq req = params[0];
-				URL url = new URL(urlbase + req.function);
-				HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-				conn.setReadTimeout(30000);
-				conn.setConnectTimeout(15000);
-				conn.setRequestMethod("POST");
-				HttpURLConnection.setFollowRedirects(false);
-				String data = req.request.toString();
-				conn.setFixedLengthStreamingMode(data.getBytes().length);
-				conn.setRequestProperty("Content-Type", "application/json");
-				PrintWriter out = new PrintWriter(conn.getOutputStream());
-				out.print(data);
-				out.close();
-				conn.connect();
-				reply.http_code = conn.getResponseCode();
-				Log.v(TAG,"response code "+reply.http_code);
-				char[] buffer = new char[1024];
-				int size;
-				StringBuilder buf = new StringBuilder();
-				InputStreamReader reply1 = new InputStreamReader(conn.getInputStream()); // FIXME, change char encoding?
-				while ((size = reply1.read(buffer, 0, 1024)) != -1) {
-					buf.append(buffer,0,size);
-				}
-				String json = buf.toString();
-				Log.v("louRPCREPLY",json);
-				if (json.length() == 0) {
-					reply.raw_reply = "";
-				} else {
-					try {
-						Object t = new JSONTokener(json).nextValue();
-						if (req.function.equals("Poll")) reply.replyArray = (JSONArray) t;
-						else reply.reply = (JSONObject) t;
-					} catch (JSONException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-						reply.raw_reply = json;
-					}
-				}
-			} catch (MalformedURLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			return reply;
-		}
-		protected void onPostExecute(rpcreply r) {
-			try {
-				callback.requestDone(r);
-			} catch (JSONException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
 	}
 	private abstract class RPCCallback {
 		abstract void requestDone(rpcreply r) throws JSONException, Exception;

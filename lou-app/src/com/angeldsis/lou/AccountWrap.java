@@ -6,6 +6,8 @@ import com.angeldsis.LOU.Account;
 
 // helper methods to send an Account thru a Bundle
 public class AccountWrap extends Account {
+	public AccountWrap() {
+	}
 	public AccountWrap(Bundle args) {
 		this.pathid = args.getString("pathid");
 		this.serverid = args.getString("serverid");

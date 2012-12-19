@@ -33,14 +33,12 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
-import com.angeldsis.LOU.Account;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Debug;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -58,14 +56,14 @@ public class LouMain extends FragmentActivity {
 	MyAdapter mAdapter;
 	ViewPager mPager;
 	String cookie = null;
-	protected ArrayList<Account> accounts;
+	protected ArrayList<AccountWrap> accounts;
 	int state;
 	public CookieManager mCookieManager;
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Debug.startMethodTracing();
+		//Debug.startMethodTracing();
         setContentView(R.layout.loading);
 		mCookieManager = new CookieManager();
 		CookieHandler.setDefault(mCookieManager);
@@ -111,7 +109,7 @@ public class LouMain extends FragmentActivity {
     		mAdapter = new MyAdapter(getSupportFragmentManager(),accounts);
     		mPager = (ViewPager)findViewById(R.id.pager);
     		mPager.setAdapter(mAdapter);
-    		Debug.stopMethodTracing();
+			//Debug.stopMethodTracing();
 		state = 4;
 		break;
 	case 4:
@@ -119,8 +117,8 @@ public class LouMain extends FragmentActivity {
     	}
     }
     class MyAdapter extends FragmentPagerAdapter {
-    	ArrayList<Account> accounts;
-		public MyAdapter(FragmentManager fm,ArrayList<Account> accounts2) {
+    	ArrayList<AccountWrap> accounts;
+		public MyAdapter(FragmentManager fm,ArrayList<AccountWrap> accounts2) {
 			super(fm);
 			this.accounts = accounts2;
 			Display dsp = getWindowManager().getDefaultDisplay();
@@ -140,7 +138,7 @@ public class LouMain extends FragmentActivity {
 		}
     };
     public static class ArrayListFragment extends Fragment implements View.OnClickListener {
-    	private Account account;
+    	private AccountWrap account;
     	static Fragment newInstance(int acctOffset) {
     		ArrayListFragment frag = new ArrayListFragment();
     		Bundle args = new Bundle();
@@ -180,18 +178,18 @@ public class LouMain extends FragmentActivity {
     	Log.v(TAG,"onStart");
     	stateEngine();
     }
-	public void world_login(Account account) {
+	public void world_login(AccountWrap account) {
 		Intent login = new Intent(this,LouSessionMain.class);
 //		AudioTrack click = new AudioTrack(AudioManager.STREAM_MUSIC,44100,AudioTrack.CHANNEL_OUT_MONO,ENCODING_PCM_16BIT,20096,MODE_STATIC);
 //		byte[] data;
 //		click.write(data,0,20096);
-//		login.putExtras(account.toBundle());
+		login.putExtras(account.toBundle());
 		startActivity(login);
 		Log.v(TAG,"doing login on world "+account.world);
 	}
 	private class result {
     	boolean logged_in;
-    	ArrayList<Account> servers;
+    	ArrayList<AccountWrap> servers;
 		IOException exception;
 		boolean error;
     }
@@ -236,10 +234,10 @@ public class LouMain extends FragmentActivity {
 				final result output = new result();
 				output.logged_in = false;
 				XMLReader xmlReader = XMLReaderFactory.createXMLReader ("org.ccil.cowan.tagsoup.Parser");
-				final ArrayList<Account> servers = new ArrayList<Account>();
+				final ArrayList<AccountWrap> servers = new ArrayList<AccountWrap>();
 				final Pattern actioncheck = Pattern.compile("^http://prodgame(\\d+).lordofultima.com/(\\d+)/index.aspx$");
 				ContentHandler handler = new DefaultHandler() {
-					Account acct;
+					AccountWrap acct;
 					boolean in_server_list = false;
 					public void startElement(String uri,String localName,String qName,
 							Attributes attributes) throws SAXException {
@@ -260,7 +258,7 @@ public class LouMain extends FragmentActivity {
 							if (localName.equals("li")) {
 								String id = attributes.getValue("id");
 								Log.v(TAG,"class:"+classVal+" id:"+id);
-								acct = new Account();
+								acct = new AccountWrap();
 								acct.world = id; // FIXME
 								if (classVal.equals("offline menu_bubble")) {
 									acct.offline = true;
