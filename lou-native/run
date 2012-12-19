@@ -1,0 +1,3 @@
+#!/bin/bash
+cd bin
+CLASSPATH=.:../../lou-api/bin/:../tagsoup-1.2.1.jar:../../lou-api/json-org.jar java com.angeldsis.lounative.LouMain
