@@ -11,6 +11,6 @@ public class RPCWrap extends RPC {
 		// TODO Auto-generated constructor stub
 	}
 	public HttpRequest newHttpRequest() {
-		return null;
+		return new HttpRequestWrap();
 	}
 }
