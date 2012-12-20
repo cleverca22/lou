@@ -1,6 +1,8 @@
 package com.angeldsis.LOU;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -16,12 +18,14 @@ public abstract class RPC extends Thread {
 	public LouState state;
 	int requestid;
 	boolean cont;
+	private ArrayList<String> chat_queue;
 
 	public RPC(Account acct, LouState state) {
 		this.account = acct;
 		this.state = state;
 		requestid = 0;
 		urlbase = "http://prodgame"+acct.serverid+".lordofultima.com/"+acct.pathid+"/Presentation/Service.svc/ajaxEndpoint/";
+		chat_queue = new ArrayList<String>();
 	}
 	public void OpenSession(final boolean reset,final RPCDone callback2, final int retry_count) {
 		if (retry_count > 10) {
@@ -139,6 +143,10 @@ public abstract class RPC extends Thread {
 			requestid++;
 			String requests = "CITY:"+state.currentCity.cityid;
 			if (state.visData.size() == 0) requests = requests + "\fVIS:c:"+state.currentCity.cityid+":0:-1085:-638:775:565:1"; // FIXME
+			if (chat_queue.size() > 0) {
+				String msg = chat_queue.remove(0);
+				requests = requests + "\fCHAT:"+msg;
+			} else requests = requests + "\fCHAT:";
 			obj.put("requests",requests);
 			doRPC("Poll",obj,this,new RPCCallback() {
 				void requestDone(rpcreply r) throws JSONException {
@@ -175,9 +183,17 @@ public abstract class RPC extends Thread {
 				state.resources[i-1].set(d,b,m);
 			}
 			gotCityData();
+		} else if (C.equals("CHAT")) {
+			JSONArray D = p.getJSONArray("D");
+			Log.v(TAG,D.toString(1));
 		} else {
 			Log.v(TAG,"unexpected Poll data "+C);
 		}
+	}
+	/** queues a chat message like /a hello\n **/
+	public void QueueChat(String message) {
+		chat_queue.add(message);
+		interrupt();
 	}
 	void parseVIS(JSONObject D) throws JSONException {
 		JSONArray u = D.getJSONArray("u");

@@ -70,5 +70,10 @@ public class LouMain {
 				});
 			}
 		}, 0);
+		while (true) {
+			String message = in.nextLine();
+			System.out.println(message);
+			rpc.QueueChat(message+"\n");
+		}
 	}
 }
