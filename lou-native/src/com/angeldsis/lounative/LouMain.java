@@ -1,5 +1,8 @@
 package com.angeldsis.lounative;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.Scanner;
 
@@ -29,7 +32,7 @@ public class LouMain {
 	private void init(boolean cli2) throws Exception {
 		cli = cli2;
 		String username = "cleverca22@gmail.com";
-		String password = "FIXME";
+		String password = new Scanner(new FileInputStream(new File("password.txt"))).nextLine();
 		session = new LouSession();
 		System.out.println("starting login");
 		result reply = session.startLogin(username,password);
