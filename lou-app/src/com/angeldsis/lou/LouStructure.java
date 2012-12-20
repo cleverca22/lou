@@ -1,7 +1,6 @@
 package com.angeldsis.lou;
 
 import com.angeldsis.LOU.CityBuilding;
-
 import android.content.Context;
 import android.graphics.Rect;
 import android.graphics.RectF;
@@ -24,7 +23,7 @@ public class LouStructure extends VisObject {
 		
 		int res = -1;
 		switch (base.typeid) {
-		case 4:
+		case CityBuilding.COTTAGE:
 			res = R.drawable.building_cottage;
 			break;
 		case 5:
