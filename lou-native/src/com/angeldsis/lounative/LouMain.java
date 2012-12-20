@@ -1,7 +1,7 @@
 package com.angeldsis.lounative;
 
-import java.io.DataInputStream;
 import java.util.Iterator;
+import java.util.Scanner;
 
 import org.json.JSONObject;
 
@@ -9,9 +9,8 @@ import com.angeldsis.LOU.Account;
 import com.angeldsis.LOU.LouSession;
 import com.angeldsis.LOU.LouState;
 import com.angeldsis.LOU.LouSession.result;
-import com.angeldsis.LOU.RPC.Callbacks;
 
-public class LouMain implements Callbacks {
+public class LouMain {
 	boolean cli;
 	RPCWrap rpc;
 	LouSession session;
@@ -49,12 +48,12 @@ public class LouMain implements Callbacks {
 			j++;
 		}
 		System.out.println("please pick one");
-		DataInputStream in = new DataInputStream(System.in);
-		int number = Integer.parseInt(in.readLine());
+		Scanner in = new Scanner(System.in);
+		int number = in.nextInt();
 		Account a = session.servers.get(number);
 		System.out.println("you picked "+a.world);
 		state = new LouState();
-		rpc = new RPCWrap(a,state,this);
+		rpc = new RPCWrap(a,state);
 		rpc.OpenSession(true,rpc.new RPCDone() {
 			public void requestDone(JSONObject reply) {
 				System.out.println("session opened");
@@ -71,20 +70,5 @@ public class LouMain implements Callbacks {
 				});
 			}
 		}, 0);
-	}
-	@Override
-	public void visDataReset() {
-		// TODO Auto-generated method stub
-		
-	}
-	@Override
-	public void tick() {
-		// TODO Auto-generated method stub
-		
-	}
-	@Override
-	public void gotCityData() {
-		// TODO Auto-generated method stub
-		
 	}
 }

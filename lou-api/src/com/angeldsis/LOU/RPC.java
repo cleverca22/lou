@@ -1,13 +1,6 @@
 package com.angeldsis.LOU;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,13 +16,11 @@ public abstract class RPC extends Thread {
 	public LouState state;
 	int requestid;
 	boolean cont;
-	Callbacks callbacks;
 
-	public RPC(Account acct, LouState state,Callbacks callbacks) {
+	public RPC(Account acct, LouState state) {
 		this.account = acct;
 		this.state = state;
 		requestid = 0;
-		this.callbacks = callbacks;
 		urlbase = "http://prodgame"+acct.serverid+".lordofultima.com/"+acct.pathid+"/Presentation/Service.svc/ajaxEndpoint/";
 	}
 	public void OpenSession(final boolean reset,final RPCDone callback2, final int retry_count) {
@@ -74,11 +65,8 @@ public abstract class RPC extends Thread {
 		}
 	}
 	private InputStream doRPC(final String function,JSONObject request, RPC parent, final RPCCallback rpcCallback) throws JSONException {
-		rpcreq req = new rpcreq();
-		req.function = function;
-		req.request = request;
-		if (function == "OpenSession") req.request.put("session", parent.account.sessionid);
-		else req.request.put("session", parent.instanceid);
+		if (function == "OpenSession") request.put("session", parent.account.sessionid);
+		else request.put("session", parent.instanceid);
 		HttpRequest req2 = newHttpRequest();
 		HttpRequest.Callback cb = new HttpRequest.Callback() {
 			public void done(HttpReply reply) {
@@ -86,7 +74,7 @@ public abstract class RPC extends Thread {
 				reply2.http_code = reply.code;
 
 				String json = reply.body;
-				Log.v("louRPCREPLY",json);
+				//Log.v("louRPCREPLY",json);
 				if (json.length() == 0) {
 					reply2.raw_reply = "";
 				} else {
@@ -111,20 +99,16 @@ public abstract class RPC extends Thread {
 				}
 			}
 		};
-		req2.PostURL(urlbase + req.function, req.request.toString(), cb);
-		//doRPCasync desync = (doRPCasync) new doRPCasync(rpcCallback,urlbase).execute(req);
+		req2.PostURL(urlbase + function, request.toString(), cb);
 		return null;
 	}
+	/** creates an instance of a class implementing HttpRequest */
 	public abstract HttpRequest newHttpRequest();
 	class rpcreply {
 		public JSONObject reply;
 		public int http_code;
 		public String raw_reply;
 		public JSONArray replyArray;
-	}
-	class rpcreq {
-		String function;
-		JSONObject request;
 	}
 	private abstract class RPCCallback {
 		abstract void requestDone(rpcreply r) throws JSONException, Exception;
@@ -190,7 +174,7 @@ public abstract class RPC extends Thread {
 				Log.v(TAG,"resource "+i+" count "+b+"/"+m);
 				state.resources[i-1].set(d,b,m);
 			}
-			callbacks.gotCityData();
+			gotCityData();
 		} else {
 			Log.v(TAG,"unexpected Poll data "+C);
 		}
@@ -224,11 +208,11 @@ public abstract class RPC extends Thread {
 				state.addVisObj(parsed);
 			}
 		}
-		callbacks.visDataReset();
+		visDataReset();
 	}
 	public void run() {
 		while (cont) {
-			callbacks.tick();
+			tick();
 			// FIXME, may cause multiple parallel requests if they take over 10sec
 			this.Poll();
 			try {
@@ -247,9 +231,10 @@ public abstract class RPC extends Thread {
 		cont = false;
 		interrupt();
 	}
-	public interface Callbacks {
-		void visDataReset();
-		void tick();
-		void gotCityData();
-	}
+	/** called when all state.visData has been reloaded */
+	public abstract void visDataReset();
+	/** called when Poll happens */
+	public abstract void tick();
+	/** called when state.resources has been updated */
+	public abstract void gotCityData();
 }

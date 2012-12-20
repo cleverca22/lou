@@ -8,10 +8,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import com.angeldsis.LOU.HttpRequest;
-import com.angeldsis.LOU.HttpRequest.HttpReply;
 
 public class HttpRequestWrap implements HttpRequest {
-	@Override
 	public void PostURL(String urlIN, String data, Callback cb) {
 		HttpReply reply = new HttpReply();
 		try {

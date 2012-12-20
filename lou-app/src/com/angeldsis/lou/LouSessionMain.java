@@ -4,16 +4,14 @@ import org.json.JSONObject;
 import com.angeldsis.LOU.Account;
 import com.angeldsis.LOU.LouState;
 import com.angeldsis.LOU.RPC;
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RadioGroup;
 
-public class LouSessionMain extends FragmentActivity implements RPC.Callbacks, RadioGroup.OnCheckedChangeListener {
+public class LouSessionMain extends FragmentActivity implements RadioGroup.OnCheckedChangeListener {
 	static final String TAG = "LouSessionMain";
 	Account acct;
 	RPC rpc;
@@ -78,11 +76,9 @@ public class LouSessionMain extends FragmentActivity implements RPC.Callbacks, R
 			break;
 		}
 	}
-	@Override
 	public void gotCityData() {
 		mTest.gotCityData();
 	}
-	@Override
 	public void tick() {
 		// called from the network thread, needs to re-dir to main one
 		Runnable resync = new Runnable() {
