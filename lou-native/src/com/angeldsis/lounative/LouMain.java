@@ -2,16 +2,20 @@ package com.angeldsis.lounative;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.Scanner;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
 import org.json.JSONObject;
 
 import com.angeldsis.LOU.Account;
 import com.angeldsis.LOU.LouSession;
 import com.angeldsis.LOU.LouState;
-import com.angeldsis.LOU.LouSession.result;
 
 public class LouMain {
 	boolean cli;
@@ -19,7 +23,6 @@ public class LouMain {
 	LouSession session;
 	LouState state;
 	public static void main(String[] args) throws Exception {
-		// TODO Auto-generated method stub
 		int i;
 		boolean cli = true;
 		for (i = 0; i < args.length; i++) {
@@ -30,18 +33,16 @@ public class LouMain {
 		start.init(cli);
 	}
 	private void init(boolean cli2) throws Exception {
+		Config.init();
+		Display display = new Display();
 		cli = cli2;
-		String username = "cleverca22@gmail.com";
-		String password = new Scanner(new FileInputStream(new File("password.txt"))).nextLine();
 		session = new LouSession();
-		System.out.println("starting login");
-		result reply = session.startLogin(username,password);
-		if (reply.error) {
-			System.out.println(reply.errmsg);
-			throw reply.e;
+		if (true) {
+			DoLogin login = new DoLogin(display,session);
 		}
-		if (reply.worked) System.out.println("worked");
-		else return;
+		System.out.println("done?");
+		return;
+		/*
 		System.out.println("found "+session.servers.size());
 		Iterator<Account> i = session.servers.iterator();
 		int j = 0;
@@ -77,6 +78,6 @@ public class LouMain {
 			String message = in.nextLine();
 			System.out.println(message);
 			rpc.QueueChat(message+"\n");
-		}
+		}*/
 	}
 }
