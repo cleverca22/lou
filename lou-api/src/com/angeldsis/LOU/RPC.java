@@ -185,7 +185,8 @@ public abstract class RPC extends Thread {
 			gotCityData();
 		} else if (C.equals("CHAT")) {
 			JSONArray D = p.getJSONArray("D");
-			Log.v(TAG,D.toString(1));
+			onChat(D);
+			//Log.v(TAG,D.toString(1));
 		} else {
 			Log.v(TAG,"unexpected Poll data "+C);
 		}
@@ -195,6 +196,7 @@ public abstract class RPC extends Thread {
 		chat_queue.add(message);
 		interrupt();
 	}
+	public abstract void onChat(JSONArray d) throws JSONException;
 	void parseVIS(JSONObject D) throws JSONException {
 		JSONArray u = D.getJSONArray("u");
 		int x;

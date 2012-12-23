@@ -1,9 +1,5 @@
 package com.angeldsis.lounative;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.util.Scanner;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
@@ -21,9 +17,11 @@ public class DoLogin extends Shell implements MouseListener {
 	Text user,pass;
 	Button btnSavePw;
 	LouSession session;
+	Display display;
 	DoLogin(Display display, LouSession session) throws Exception {
 		super(display);
 		this.session = session;
+		this.display = display;
 		setSize(473, 325);
 		setLayout(new GridLayout(2, false));
 		Label label = new Label(this, 0);
@@ -48,6 +46,8 @@ public class DoLogin extends Shell implements MouseListener {
 		button.setText("login!");
 		this.setText("login screen");
 		this.open();
+	}
+	private void eventloop() {
 		while (!this.isDisposed()) {
 			if (!display.readAndDispatch()) display.sleep();
 		}
@@ -83,11 +83,17 @@ public class DoLogin extends Shell implements MouseListener {
 		}
 		if (reply.worked) {
 			System.out.println("worked");
+			close();
 			dispose();
 		}
 		else return;
 	}
 	protected void checkSubclass() {
-		// Disable the check that prevents subclassing of SWT components
+	}
+	public static boolean login(Display display, LouSession session2) throws Exception {
+		DoLogin self = new DoLogin(display,session2);
+		self.eventloop();
+		if (self.session.servers == null) return false;
+		else return true;
 	}
 }
