@@ -147,6 +147,7 @@ public abstract class RPC extends Thread {
 				String msg = chat_queue.remove(0);
 				requests = requests + "\fCHAT:"+msg;
 			} else requests = requests + "\fCHAT:";
+			requests += "\fPLAYER:";
 			obj.put("requests",requests);
 			doRPC("Poll",obj,this,new RPCCallback() {
 				void requestDone(rpcreply r) throws JSONException {
@@ -170,6 +171,7 @@ public abstract class RPC extends Thread {
 			JSONObject D = p.getJSONObject("D");
 			parseVIS(D);
 		} else if (C.equals("CITY")) {
+			// refer to webfrontend.data.City.js dispatchResults for more info
 			JSONObject D = p.getJSONObject("D");
 			Log.v(TAG,D.toString(1));
 			JSONArray r = D.getJSONArray("r");
@@ -184,8 +186,30 @@ public abstract class RPC extends Thread {
 				state.resources[i-1].set(d,b,m);
 			}
 			if (D.has("iuo")) {
-				Object iuo = D.get("iuo");
-				if (iuo != JSONObject.NULL) Log.v(TAG, ((JSONObject)iuo).toString(1));
+				Object iuo2 = D.get("iuo");
+				if (iuo2 != JSONObject.NULL) {
+					JSONArray iuo = (JSONArray) iuo2;
+					//Log.v(TAG, iuo.toString(1));
+					for (x = 0; x < iuo.length(); x++) {
+						// incoming attacks on current city
+						JSONObject X = iuo.getJSONObject(x);
+						int city = X.getInt("c");
+						int alliance = X.getInt("a");
+						int stepMoongate = X.getInt("ms");
+						boolean isMoongate = X.getBoolean("m");
+						int id = X.getInt("i");
+						int type = X.getInt("t");
+						int state = X.getInt("s");
+						String cityName = X.getString("cn"); // source city
+						int player = X.getInt("p");
+						String allianceName = X.getString("an"); // source alliance
+						int start = X.getInt("ss");
+						String playerName = X.getString("pn"); // source player name
+						int end = X.getInt("es");
+						Log.v(TAG,"attack incoming to current city, from "+playerName);
+						// FIXME, actually use these fields
+					}
+				}
 				else Log.v(TAG,"no attacks 2!");
 			}
 			else Log.v(TAG,"no attacks?");
@@ -194,6 +218,40 @@ public abstract class RPC extends Thread {
 			JSONArray D = p.getJSONArray("D");
 			onChat(D);
 			//Log.v(TAG,D.toString(1));
+		} else if (C.equals("PLAYER")) {
+			// refer to webfrontend.data.Player.js dispatchResults for more info
+			JSONObject D = p.getJSONObject("D");
+			if (D.has("iuo")) {
+				Object iuo2 = D.get("iuo");
+				if (iuo2 != JSONObject.NULL) {
+					JSONArray iuo = (JSONArray) iuo2;
+					//Log.v(TAG, iuo.toString(1));
+					int x;
+					for (x = 0; x < iuo.length(); x++) {
+						// incoming attacks on current city
+						JSONObject X = iuo.getJSONObject(x);
+						int city = X.getInt("c");
+						int alliance = X.getInt("a");
+						int stepMoongate = X.getInt("ms");
+						boolean isMoongate = X.getBoolean("m");
+						int id = X.getInt("i");
+						int type = X.getInt("t");
+						int state = X.getInt("s");
+						String cityName = X.getString("cn"); // source city
+						int player = X.getInt("p");
+						String allianceName = X.getString("an"); // source alliance
+						int start = X.getInt("ss");
+						String playerName = X.getString("pn"); // source player name
+						int end = X.getInt("es");
+						String targetCityName = X.getString("tcn");
+						// FIXME, actually use these fields
+						// FIXME, not all fields extracted
+						Log.v(TAG,"attack incoming to "+targetCityName+" from player "+playerName);
+					}
+				}
+				else Log.v(TAG,"no attacks 2!");
+			}
+			else Log.v(TAG,"no attacks?");
 		} else {
 			Log.v(TAG,"unexpected Poll data "+C);
 		}
