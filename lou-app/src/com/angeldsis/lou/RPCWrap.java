@@ -1,15 +1,18 @@
 package com.angeldsis.lou;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+
 import com.angeldsis.LOU.Account;
 import com.angeldsis.LOU.HttpRequest;
 import com.angeldsis.LOU.LouState;
 import com.angeldsis.LOU.RPC;
 
 public class RPCWrap extends RPC {
-	LouSessionMain activity;
-	public RPCWrap(Account acct, LouState state,LouSessionMain activity) {
+	SessionKeeper.Session callbacks;
+	public RPCWrap(Account acct, LouState state,SessionKeeper.Session activity) {
 		super(acct, state);
-		this.activity = activity;
+		this.callbacks = activity;
 		// TODO Auto-generated constructor stub
 	}
 	@Override
@@ -20,14 +23,18 @@ public class RPCWrap extends RPC {
 	}
 	@Override
 	public void visDataReset() {
-		activity.visDataReset();
+		callbacks.visDataReset();
 	}
 	@Override
 	public void tick() {
-		activity.tick();
+		callbacks.tick();
 	}
 	@Override
 	public void gotCityData() {
-		activity.gotCityData();
+		callbacks.gotCityData();
+	}
+	@Override
+	public void onChat(JSONArray d) throws JSONException {
+		callbacks.onChat(d);
 	}
 }

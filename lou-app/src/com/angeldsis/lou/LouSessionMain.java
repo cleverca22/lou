@@ -1,25 +1,32 @@
 package com.angeldsis.lou;
 
-import org.json.JSONObject;
+import org.json.JSONArray;
+
 import com.angeldsis.LOU.Account;
-import com.angeldsis.LOU.LouState;
-import com.angeldsis.LOU.RPC;
+import com.angeldsis.lou.SessionKeeper.MyBinder;
+
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.RadioGroup;
 
-public class LouSessionMain extends FragmentActivity implements RadioGroup.OnCheckedChangeListener {
+public class LouSessionMain extends FragmentActivity implements RadioGroup.OnCheckedChangeListener, SessionKeeper.Callbacks {
 	static final String TAG = "LouSessionMain";
-	Account acct;
-	RPC rpc;
-	LouState state;
+	SessionKeeper mService;
+	boolean mBound;
+	AccountWrap acct;
 	CityUI mTest;
 	boolean vis_data_loaded;
+	SessionKeeper.Session session;
+
 	public void onCreate(Bundle sis) {
 		super.onCreate(sis);
+		Log.v(TAG,"onCreate");
 		Intent msg = getIntent();
 		Bundle args = msg.getExtras();
 		setContentView(R.layout.city_layout);
@@ -27,31 +34,50 @@ public class LouSessionMain extends FragmentActivity implements RadioGroup.OnChe
 		rg.setOnCheckedChangeListener(this);
 		vis_data_loaded = false;
 		acct = new AccountWrap(args);
-		state = new LouState();
-		mTest = new CityUI(this,state);
-		ViewGroup vg = (ViewGroup) this.findViewById(R.id.test);
-		vg.addView(mTest);
-		rpc = new RPCWrap(acct,state,this);
-		rpc.OpenSession(true,rpc.new RPCDone() {
-			public void requestDone(JSONObject reply) {
-				Log.v(TAG,"session opened");
-				rpc.GetServerInfo(rpc.new RPCDone() {
-					public void requestDone(JSONObject reply) {
-						rpc.GetPlayerInfo(rpc.new RPCDone() {
-							@Override
-							public void requestDone(JSONObject reply) {
-								// state variable now has some data populated
-								rpc.startPolling();
-							}
-						});
-					}
-				});
-			}
-		}, 0);
+		Intent intent = new Intent(this,SessionKeeper.class);
+		startService(intent);
+	}
+	void check_state() {
+		Log.v(TAG,"check_state");
+		if (session == null) {
+			session = mService.getSession(acct);
+			session.setCallback(this);
+			mTest = new CityUI(this,session.state);
+			ViewGroup vg = (ViewGroup) this.findViewById(R.id.test);
+			vg.addView(mTest);
+		}
+	}
+	private ServiceConnection mConnection = new ServiceConnection() {
+		public void onServiceConnected(ComponentName className, IBinder service) {
+			Log.v(TAG,"onServiceConnected");
+			MyBinder binder = (MyBinder)service;
+			mService = binder.getService();
+			mBound = true;
+			LouSessionMain.this.check_state();
+		}
+		public void onServiceDisconnected(ComponentName arg0) {
+			Log.v(TAG,"onServiceDisconnected");
+			mBound = false;
+		}
+	};
+	public void startActivity (Intent intent, Bundle options) {
+		Log.v(TAG,"resuming not finished");
+		acct = new AccountWrap(options);
+	}
+	protected void onStart() {
+		super.onStart();
+		Log.v(TAG,"onStart");
+		Intent intent2 = new Intent(this,SessionKeeper.class);
+		bindService(intent2,mConnection,BIND_AUTO_CREATE);
 	}
 	protected void onStop() {
 		super.onStop();
-		rpc.stopPolling();
+		Log.v(TAG,"onStop");
+		if (mBound) {
+			if (session != null) session.unsetCallback(this);
+			unbindService(mConnection);
+			mBound = false;
+		}
 	}
 	void gotVisDataInit() {
 		vis_data_loaded = true;
@@ -59,7 +85,7 @@ public class LouSessionMain extends FragmentActivity implements RadioGroup.OnChe
 		Log.v(TAG,"added view");
 	}
 	public void visDataReset() {
-		Log.v(TAG,"vis count "+rpc.state.visData.size());
+		Log.v(TAG,"vis count "+session.rpc.state.visData.size());
 		if (!vis_data_loaded) gotVisDataInit();
 	}
 	@Override
@@ -87,5 +113,10 @@ public class LouSessionMain extends FragmentActivity implements RadioGroup.OnChe
 			}
 		};
 		this.runOnUiThread(resync);
+	}
+	@Override
+	public void onChat(JSONArray d) {
+		// TODO Auto-generated method stub
+		
 	}
 }

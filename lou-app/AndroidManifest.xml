@@ -15,5 +15,6 @@
         </activity>
         <activity android:name="louLogin"></activity>
         <activity android:name="LouSessionMain"></activity>
+        <service android:exported="false" android:name=".SessionKeeper"></service>
     </application>
 </manifest>

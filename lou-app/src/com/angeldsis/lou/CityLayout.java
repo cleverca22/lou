@@ -48,6 +48,7 @@ public class CityLayout extends ViewGroup {
 		a.recycle();
 		setWillNotDraw(false);
 		Log.v(TAG,"constructed");
+		if (state.visData.size() > 0) gotVisData();
 	}
 	protected void onLayout(boolean changed, int l, int t, int r, int b) {
 		// FIXME, internal scroll!
