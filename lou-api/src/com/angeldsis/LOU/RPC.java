@@ -171,6 +171,7 @@ public abstract class RPC extends Thread {
 			parseVIS(D);
 		} else if (C.equals("CITY")) {
 			JSONObject D = p.getJSONObject("D");
+			Log.v(TAG,D.toString(1));
 			JSONArray r = D.getJSONArray("r");
 			int x;
 			for (x = 0; x < r.length(); x++) {
@@ -182,6 +183,12 @@ public abstract class RPC extends Thread {
 				Log.v(TAG,"resource "+i+" count "+b+"/"+m);
 				state.resources[i-1].set(d,b,m);
 			}
+			if (D.has("iuo")) {
+				Object iuo = D.get("iuo");
+				if (iuo != JSONObject.NULL) Log.v(TAG, ((JSONObject)iuo).toString(1));
+				else Log.v(TAG,"no attacks 2!");
+			}
+			else Log.v(TAG,"no attacks?");
 			gotCityData();
 		} else if (C.equals("CHAT")) {
 			JSONArray D = p.getJSONArray("D");
