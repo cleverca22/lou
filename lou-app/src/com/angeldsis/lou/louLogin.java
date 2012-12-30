@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.CookieHandler;
 import java.net.CookieManager;
+import java.net.HttpCookie;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -14,7 +15,6 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.util.List;
-import java.net.HttpCookie;
 import javax.net.ssl.HttpsURLConnection;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
@@ -23,6 +23,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -101,6 +102,7 @@ public class louLogin extends Activity {
 						"&remember_me=on";
 				conn.setFixedLengthStreamingMode(data.getBytes().length);
 				conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+				conn.setDoOutput(true);
 				PrintWriter out = new PrintWriter(conn.getOutputStream());
 				out.print(data);
 				out.close();
@@ -156,7 +158,7 @@ public class louLogin extends Activity {
 					public int read(byte[] buffer, int offset, int count) throws IOException {
 						int size = super.read(buffer, offset, count);
 						if (size == -1) return size;
-						Log.v(TAG,"sniff:"+new String(buffer,offset,size));
+						//Log.v(TAG,"sniff:"+new String(buffer,offset,size));
 						return size;
 					}
 				};

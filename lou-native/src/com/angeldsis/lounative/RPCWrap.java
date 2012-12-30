@@ -39,17 +39,13 @@ public class RPCWrap extends RPC {
 		this.chat = chatWindow;
 	}
 	@Override
-	public void onChat(final ArrayList<ChatMsg> d) throws JSONException {
+	public void onChat(final ArrayList<ChatMsg> d) {
 		display.syncExec(new Runnable() {
 			@Override
 			public void run() {
 				int i;
 				for (i = 0; i < d.size(); i++) {
-					try {
-						chat.handle_msg(d.get(i));
-					} catch (JSONException e) {
-						e.printStackTrace();
-					}
+					chat.handle_msg(d.get(i));
 				}
 			}
 		});

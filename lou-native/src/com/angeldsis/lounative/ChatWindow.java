@@ -36,7 +36,7 @@ public class ChatWindow extends Shell implements MouseListener {
 		open();
 	}
 	protected void checkSubclass() {}
-	public void handle_msg(ChatMsg c) throws JSONException {
+	public void handle_msg(ChatMsg c) {
 		text.setText(text.getText() + "\r\n" + c.toString());
 	}
 	@Override

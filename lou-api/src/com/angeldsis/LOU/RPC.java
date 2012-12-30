@@ -254,7 +254,7 @@ public abstract class RPC extends Thread {
 		chat_queue.add(message);
 		interrupt();
 	}
-	public abstract void onChat(ArrayList<ChatMsg> recent) throws JSONException;
+	public abstract void onChat(ArrayList<ChatMsg> recent);
 	/** called after state.gold and state.incoming_attacks is updated
 	 */
 	public abstract void onPlayerData();

@@ -37,7 +37,7 @@ public class RPCWrap extends RPC {
 		callbacks.gotCityData();
 	}
 	@Override
-	public void onChat(ArrayList<ChatMsg> d) throws JSONException {
+	public void onChat(ArrayList<ChatMsg> d) {
 		callbacks.onChat(d);
 	}
 	@Override
