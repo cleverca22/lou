@@ -1,9 +1,12 @@
 package com.angeldsis.lou;
 
+import java.util.ArrayList;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 
 import com.angeldsis.LOU.Account;
+import com.angeldsis.LOU.ChatMsg;
 import com.angeldsis.LOU.HttpRequest;
 import com.angeldsis.LOU.LouState;
 import com.angeldsis.LOU.RPC;
@@ -34,7 +37,16 @@ public class RPCWrap extends RPC {
 		callbacks.gotCityData();
 	}
 	@Override
-	public void onChat(JSONArray d) throws JSONException {
+	public void onChat(ArrayList<ChatMsg> d) throws JSONException {
 		callbacks.onChat(d);
+	}
+	@Override
+	public void onPlayerData() {
+		callbacks.onPlayerData();
+	}
+	@Override
+	public void onEjected() {
+		// TODO Auto-generated method stub
+		
 	}
 }

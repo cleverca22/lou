@@ -16,5 +16,8 @@
         <activity android:name="louLogin"></activity>
         <activity android:name="LouSessionMain"></activity>
         <service android:exported="false" android:name=".SessionKeeper"></service>
+        <activity android:name="CityView"></activity>
+        <activity android:name="IncomingAttacks"></activity>
+        <activity android:name="ChatWindow"></activity>
     </application>
 </manifest>

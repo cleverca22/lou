@@ -12,6 +12,8 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 
+import com.angeldsis.LOU.ChatMsg;
+
 public class ChatWindow extends Shell implements MouseListener {
 	private Text text;
 	private Text text_1;
@@ -34,13 +36,8 @@ public class ChatWindow extends Shell implements MouseListener {
 		open();
 	}
 	protected void checkSubclass() {}
-	public void handle_msg(JSONObject d) throws JSONException {
-		System.out.println(d.toString(1));
-		String s = d.getString("s");
-		String c = d.getString("c");
-		String m = d.getString("m");
-		String formated = s+" "+c+" "+m;
-		text.setText(text.getText() + "\r\n" + formated);
+	public void handle_msg(ChatMsg c) throws JSONException {
+		text.setText(text.getText() + "\r\n" + c.toString());
 	}
 	@Override
 	public void mouseDoubleClick(MouseEvent e) {

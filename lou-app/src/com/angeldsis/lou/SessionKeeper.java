@@ -7,9 +7,11 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.angeldsis.LOU.Account;
+import com.angeldsis.LOU.ChatMsg;
 import com.angeldsis.LOU.LouState;
 import com.angeldsis.LOU.RPC;
 
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -37,7 +39,7 @@ public class SessionKeeper extends Service {
 		if (sessions == null) sessions = new ArrayList<Session>();
 		return START_NOT_STICKY;
 	}
-	NotificationCompat.Builder mBuilder;
+	NotificationCompat.Builder mBuilder,chatBuilder;
 	public class Session {
 		private static final String TAG = "Session";
 		RPC rpc;
@@ -85,8 +87,14 @@ public class SessionKeeper extends Service {
 		public void gotCityData() {
 			if (cb != null) cb.gotCityData();
 		}
-		public void onChat(JSONArray d) {
+		public void onChat(ArrayList<ChatMsg> d) {
 			if (cb != null) cb.onChat(d);
+			else {
+				Log.v(TAG,"uncaught message");
+				chatBuilder.setContentText(d.get(d.size()-1).toString());
+				NotificationManager mNotificationManager = (NotificationManager) getSystemService(SessionKeeper.NOTIFICATION_SERVICE);
+				mNotificationManager.notify(1, chatBuilder.build());
+			}
 		}
 		public void setCallback(Callbacks cb1) {
 			cb = cb1;
@@ -94,10 +102,14 @@ public class SessionKeeper extends Service {
 		public void unsetCallback(Callbacks cb1) {
 			if (cb == cb1) cb = null;
 		}
+		public void onPlayerData() {
+			if (cb != null) cb.onPlayerData();
+		}
 	}
 	public interface Callbacks {
 		void visDataReset();
-		void onChat(JSONArray d);
+		void onPlayerData();
+		void onChat(ArrayList<ChatMsg> d);
 		void gotCityData();
 		void tick();
 	}
@@ -107,6 +119,9 @@ public class SessionKeeper extends Service {
 					.setContentTitle("Lord of Ultima")
 					.setContentText("LOU is still running")
 					.setOngoing(true);
+			chatBuilder = new NotificationCompat.Builder(SessionKeeper.this).setSmallIcon(R.drawable.ic_launcher)
+					.setContentTitle("Unread Message in LOU")
+					.setContentText("FIXME");
 		}
 		Iterator<Session> i = sessions.iterator();
 		while (i.hasNext()) {

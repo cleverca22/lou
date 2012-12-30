@@ -148,6 +148,7 @@ public abstract class RPC extends Thread {
 				requests = requests + "\fCHAT:"+msg;
 			} else requests = requests + "\fCHAT:";
 			requests += "\fPLAYER:";
+			requests += "\fTIME:"+System.currentTimeMillis();
 			obj.put("requests",requests);
 			doRPC("Poll",obj,this,new RPCCallback() {
 				void requestDone(rpcreply r) throws JSONException {
@@ -167,7 +168,13 @@ public abstract class RPC extends Thread {
 	void handlePollPacket(JSONObject p) throws JSONException {
 		String C = p.getString("C");
 		Log.v(TAG,"Poll packet "+C);
-		if (C.equals("VIS")) {
+		if (C.equals("TIME")) {
+			int refTime = p.optInt("Ref");
+			int stepTime = p.optInt("Step");
+			int diff = p.optInt("Diff");
+			int serverOffset = p.optInt("o") * 60 * 60 * 1000;
+			state.setTime(refTime,stepTime,diff,serverOffset);
+		} else if (C.equals("VIS")) {
 			JSONObject D = p.getJSONObject("D");
 			parseVIS(D);
 		} else if (C.equals("CITY")) {
@@ -216,52 +223,41 @@ public abstract class RPC extends Thread {
 			gotCityData();
 		} else if (C.equals("CHAT")) {
 			JSONArray D = p.getJSONArray("D");
-			onChat(D);
+			int i;
+			ArrayList<ChatMsg> recent = new ArrayList<ChatMsg>(); 
+			for (i = 0; i < D.length(); i++) {
+				ChatMsg c = new ChatMsg(D.getJSONObject(i));
+				state.chat_history.add(c);
+				recent.add(c);
+			}
+			onChat(recent);
 			//Log.v(TAG,D.toString(1));
 		} else if (C.equals("PLAYER")) {
 			// refer to webfrontend.data.Player.js dispatchResults for more info
 			JSONObject D = p.getJSONObject("D");
-			if (D.has("iuo")) {
-				Object iuo2 = D.get("iuo");
-				if (iuo2 != JSONObject.NULL) {
-					JSONArray iuo = (JSONArray) iuo2;
-					//Log.v(TAG, iuo.toString(1));
-					int x;
-					for (x = 0; x < iuo.length(); x++) {
-						// incoming attacks on current city
-						JSONObject X = iuo.getJSONObject(x);
-						int city = X.getInt("c");
-						int alliance = X.getInt("a");
-						int stepMoongate = X.getInt("ms");
-						boolean isMoongate = X.getBoolean("m");
-						int id = X.getInt("i");
-						int type = X.getInt("t");
-						int state = X.getInt("s");
-						String cityName = X.getString("cn"); // source city
-						int player = X.getInt("p");
-						String allianceName = X.getString("an"); // source alliance
-						int start = X.getInt("ss");
-						String playerName = X.getString("pn"); // source player name
-						int end = X.getInt("es");
-						String targetCityName = X.getString("tcn");
-						// FIXME, actually use these fields
-						// FIXME, not all fields extracted
-						Log.v(TAG,"attack incoming to "+targetCityName+" from player "+playerName);
-					}
-				}
-				else Log.v(TAG,"no attacks 2!");
+			state.parsePlayerUpdate(D);
+			onPlayerData();
+		} else if (C.equals("SYS")) {
+			Log.v(TAG,p.toString(1));
+			if (p.getString("D").equals("CLOSED")) {
+				this.stopPolling();
+				onEjected();
 			}
-			else Log.v(TAG,"no attacks?");
 		} else {
 			Log.v(TAG,"unexpected Poll data "+C);
 		}
 	}
+	/** called when the session is ended, usually by logging in elsewhere **/
+	abstract public void onEjected();
 	/** queues a chat message like /a hello\n **/
 	public void QueueChat(String message) {
 		chat_queue.add(message);
 		interrupt();
 	}
-	public abstract void onChat(JSONArray d) throws JSONException;
+	public abstract void onChat(ArrayList<ChatMsg> recent) throws JSONException;
+	/** called after state.gold and state.incoming_attacks is updated
+	 */
+	public abstract void onPlayerData();
 	void parseVIS(JSONObject D) throws JSONException {
 		JSONArray u = D.getJSONArray("u");
 		int x;
@@ -301,8 +297,6 @@ public abstract class RPC extends Thread {
 			try {
 				Thread.sleep(10000);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			}
 		}
 	}
