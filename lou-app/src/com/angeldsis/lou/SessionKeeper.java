@@ -22,7 +22,14 @@ import android.util.Log;
 
 public class SessionKeeper extends Service {
 	ArrayList<Session> sessions;
+	NotificationManager mNotificationManager;
 	private final IBinder binder = new MyBinder();
+	
+	// constansts for notification id's
+	// worldid (86) will be added to these to keep them unique
+	static final int STILL_OPEN = 0x1000;
+	static final int UNREAD_MESSAGE = 0x2000;
+	
 	public class MyBinder extends Binder {
 		public SessionKeeper getService() {
 			return SessionKeeper.this;
@@ -55,8 +62,7 @@ public class SessionKeeper extends Service {
 			PendingIntent resultPendingIntent = stackBuilder
 					.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT, options);
 			mBuilder.setContentIntent(resultPendingIntent);
-			NotificationManager mNotificationManager = (NotificationManager) getSystemService(SessionKeeper.NOTIFICATION_SERVICE);
-			mNotificationManager.notify(0, mBuilder.build());
+			mNotificationManager.notify(STILL_OPEN, mBuilder.build());
 			state = new LouState();
 			rpc = new RPCWrap(acct,state,this);
 			rpc.OpenSession(true,rpc.new RPCDone() {
@@ -91,8 +97,7 @@ public class SessionKeeper extends Service {
 			else {
 				Log.v(TAG,"uncaught message");
 				chatBuilder.setContentText(d.get(d.size()-1).toString());
-				NotificationManager mNotificationManager = (NotificationManager) getSystemService(SessionKeeper.NOTIFICATION_SERVICE);
-				mNotificationManager.notify(1, chatBuilder.build());
+				mNotificationManager.notify(UNREAD_MESSAGE, chatBuilder.build());
 			}
 		}
 		public void setCallback(Callbacks cb1) {
@@ -110,6 +115,12 @@ public class SessionKeeper extends Service {
 		}
 		public void cityChanged() {
 			if (cb != null) cb.cityChanged();
+		}
+		public void logout() {
+			rpc.stopPolling();
+			mNotificationManager.cancel(STILL_OPEN);
+			alive = false;
+			sessions.remove(this);
 		}
 	}
 	public interface Callbacks {
@@ -130,6 +141,7 @@ public class SessionKeeper extends Service {
 			chatBuilder = new NotificationCompat.Builder(SessionKeeper.this).setSmallIcon(R.drawable.ic_launcher)
 					.setContentTitle("Unread Message in LOU")
 					.setContentText("FIXME");
+			mNotificationManager = (NotificationManager) getSystemService(SessionKeeper.NOTIFICATION_SERVICE);
 		}
 		Iterator<Session> i = sessions.iterator();
 		while (i.hasNext()) {

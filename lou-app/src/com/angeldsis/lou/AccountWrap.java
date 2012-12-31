@@ -9,15 +9,17 @@ public class AccountWrap extends Account {
 	public AccountWrap() {
 	}
 	public AccountWrap(Bundle args) {
-		this.pathid = args.getString("pathid");
-		this.serverid = args.getString("serverid");
-		this.sessionid = args.getString("sessionid");
+		pathid = args.getString("pathid");
+		serverid = args.getString("serverid");
+		sessionid = args.getString("sessionid");
+		worldid = args.getInt("worldid");
 	}
 	public Bundle toBundle() {
-    	Bundle args = new Bundle();
-    	args.putString("pathid", this.pathid);
-    	args.putString("serverid", this.serverid);
-    	args.putString("sessionid", this.sessionid);
-    	return args;
+		Bundle args = new Bundle();
+		args.putString("pathid", pathid);
+		args.putString("serverid", serverid);
+		args.putString("sessionid", sessionid);
+		args.putInt("worldid", worldid);
+		return args;
 	}
 }

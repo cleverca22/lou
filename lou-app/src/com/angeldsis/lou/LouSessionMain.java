@@ -101,6 +101,10 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 		i.putExtras(acct.toBundle());
 		startActivity(i);
 	}
+	public void doLogout(View v) {
+		session.logout();
+		finish();
+	}
 	public void onChat(ArrayList<ChatMsg> c) {
 		int total = session.state.chat_history.size();
 		Button chat = (Button) findViewById(R.id.chat);

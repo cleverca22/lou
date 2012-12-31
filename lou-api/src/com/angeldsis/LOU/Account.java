@@ -4,4 +4,5 @@ package com.angeldsis.LOU;
 public class Account {
 	public String world, pathid, serverid, sessionid;
 	public boolean offline;
+	public int worldid;
 }
