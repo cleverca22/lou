@@ -10,4 +10,5 @@
     <string name="city_view">Open City View</string>
     <string name="logout">Log out</string>
     <string name="send">Send</string>
+    <string name="current_city">Current city:</string>
 </resources>
