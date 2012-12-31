@@ -24,6 +24,7 @@ public class doRPCasync implements HttpRequest {
 					conn.setReadTimeout(30000);
 					conn.setConnectTimeout(15000);
 					conn.setRequestMethod("POST");
+					conn.setDoOutput(true);
 					HttpURLConnection.setFollowRedirects(false);
 					conn.setFixedLengthStreamingMode(data.getBytes().length);
 					conn.setRequestProperty("Content-Type", "application/json");
