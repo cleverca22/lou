@@ -11,7 +11,7 @@ public class LouState {
 	String AllianceName,Name;
 	ArrayList<City> cities;
 	public ArrayList<LouVisData> visData;
-	City currentCity;
+	public City currentCity;
 	public Resource[] resources;
 	public Counter gold = Counter.ZERO;
 	public ManaCounter mana = ManaCounter.ZERO;
@@ -43,8 +43,8 @@ public class LouState {
 		AllianceName = obj.getString("AllianceName");
 		Name = obj.getString("Name");
 	}
-	class City {
-		String name;
+	public class City {
+		public String name;
 		long cityid;
 	}
 	public void addVisObj(LouVisData parsed) {
@@ -93,6 +93,7 @@ public class LouState {
 		this.stepTime = stepTime;
 		this.diff = diff;
 		this.serverOffset = serverOffset;
+		Log.v(TAG,"ref:"+refTime+" stepTime:"+stepTime+" diff:"+diff+" serverOffset"+serverOffset);
 	}
 	// not sure entirely what these are for yet, so i'm reproducing them exactly
 	long getServerStep() {

@@ -7,7 +7,6 @@ public class ChatMsg {
 	public String s,c,m;
 	public boolean hascrown;
 	public ChatMsg(JSONObject C) throws JSONException {
-		System.out.println(C.toString(1));
 		s = C.getString("s").substring(1);
 		c = C.getString("c");
 		m = C.getString("m");

@@ -3,15 +3,12 @@ package com.angeldsis.lou;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
-import com.angeldsis.LOU.Account;
 import com.angeldsis.LOU.ChatMsg;
 import com.angeldsis.LOU.LouState;
 import com.angeldsis.LOU.RPC;
 
-import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -46,6 +43,7 @@ public class SessionKeeper extends Service {
 		LouState state;
 		AccountWrap acct;
 		Callbacks cb;
+		boolean alive = false;
 		Session(AccountWrap acct2) {
 			acct = acct2;
 			Bundle options = acct.toBundle();
@@ -77,6 +75,7 @@ public class SessionKeeper extends Service {
 					});
 				}
 			}, 0);
+			alive = true;
 		}
 		public void visDataReset() {
 			if (cb != null) cb.visDataReset();
@@ -105,9 +104,18 @@ public class SessionKeeper extends Service {
 		public void onPlayerData() {
 			if (cb != null) cb.onPlayerData();
 		}
+		public void onEjected() {
+			alive = false;
+			if (cb != null) cb.onEjected();
+		}
+		public void cityChanged() {
+			if (cb != null) cb.cityChanged();
+		}
 	}
 	public interface Callbacks {
 		void visDataReset();
+		void cityChanged();
+		void onEjected();
 		void onPlayerData();
 		void onChat(ArrayList<ChatMsg> d);
 		void gotCityData();

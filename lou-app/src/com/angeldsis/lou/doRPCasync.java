@@ -32,7 +32,7 @@ public class doRPCasync implements HttpRequest {
 					out.close();
 					conn.connect();
 					reply.code = conn.getResponseCode();
-					Log.v(TAG,"response code "+reply.code);
+					//Log.v(TAG,"response code "+reply.code);
 					char[] buffer = new char[1024];
 					int size;
 					StringBuilder buf = new StringBuilder();

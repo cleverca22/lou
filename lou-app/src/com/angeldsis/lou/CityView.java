@@ -19,69 +19,31 @@ import android.view.ViewGroup;
 import android.widget.RadioGroup;
 import android.widget.RadioGroup.OnCheckedChangeListener;
 
-public class CityView extends FragmentActivity implements OnCheckedChangeListener, Callbacks {
+public class CityView extends SessionUser implements OnCheckedChangeListener, Callbacks {
 	private static final String TAG = "CityView";
 	CityUI mTest;
 	boolean vis_data_loaded;
-	SessionKeeper mService;
-	boolean mBound;
-	AccountWrap acct;
-	SessionKeeper.Session session;
 
 	public void onCreate(Bundle sis) {
 		super.onCreate(sis);
 		Log.v(TAG,"onCreate");
-		Intent msg = getIntent();
-		Bundle args = msg.getExtras();
 		setContentView(R.layout.city_layout);
 		RadioGroup rg = (RadioGroup)findViewById(R.id.zoom);
 		rg.setOnCheckedChangeListener(this);
 		vis_data_loaded = false;
-		acct = new AccountWrap(args);
-		Intent intent = new Intent(this,SessionKeeper.class);
-		startService(intent);
 	}
-	private ServiceConnection mConnection = new ServiceConnection() {
-		public void onServiceConnected(ComponentName className, IBinder service) {
-			Log.v(TAG,"onServiceConnected");
-			MyBinder binder = (MyBinder)service;
-			mService = binder.getService();
-			mBound = true;
-			CityView.this.check_state();
-		}
-		public void onServiceDisconnected(ComponentName arg0) {
-			Log.v(TAG,"onServiceDisconnected");
-			mBound = false;
-		}
-	};
-	void check_state() {
-		Log.v(TAG,"check_state");
-		if (session == null) {
-			session = mService.getSession(acct);
-			session.setCallback(this);
-			mTest = new CityUI(this,session.state);
-			ViewGroup vg = (ViewGroup) this.findViewById(R.id.test);
-			vg.addView(mTest);
-		}
-	}
-	public void startActivity (Intent intent, Bundle options) {
-		Log.v(TAG,"resuming not finished");
-		acct = new AccountWrap(options);
+	void session_ready() {
+		mTest = new CityUI(this,session.state);
+		ViewGroup vg = (ViewGroup) this.findViewById(R.id.test);
+		vg.addView(mTest);
 	}
 	protected void onStart() {
 		super.onStart();
 		Log.v(TAG,"onStart");
-		Intent intent2 = new Intent(this,SessionKeeper.class);
-		bindService(intent2,mConnection,BIND_AUTO_CREATE);
 	}
 	protected void onStop() {
 		super.onStop();
 		Log.v(TAG,"onStop");
-		if (mBound) {
-			if (session != null) session.unsetCallback(this);
-			unbindService(mConnection);
-			mBound = false;
-		}
 	}
 	public void tick() {
 		// called from the network thread, needs to re-dir to main one
@@ -109,10 +71,6 @@ public class CityView extends FragmentActivity implements OnCheckedChangeListene
 		Log.v(TAG,"vis count "+session.rpc.state.visData.size());
 		if (!vis_data_loaded) gotVisDataInit();
 	}
-	public void onChat(ArrayList<ChatMsg> d) {
-		// TODO Auto-generated method stub
-		
-	}
 	void gotVisDataInit() {
 		vis_data_loaded = true;
 		mTest.gotVisData();
@@ -120,10 +78,5 @@ public class CityView extends FragmentActivity implements OnCheckedChangeListene
 	}
 	public void gotCityData() {
 		mTest.gotCityData();
-	}
-	@Override
-	public void onPlayerData() {
-		// TODO Auto-generated method stub
-		
 	}
 }

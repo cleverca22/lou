@@ -11,7 +11,7 @@ import org.json.JSONTokener;
 import com.angeldsis.LOU.HttpRequest.HttpReply;
 
 public abstract class RPC extends Thread {
-	static String TAG = "lou.RPC";
+	static String TAG = "RPC";
 	private Account account;
 	String instanceid;
 	String urlbase;
@@ -129,6 +129,7 @@ public abstract class RPC extends Thread {
 					state.processPlayerInfo(r.reply);
 					Log.v(TAG+".GetPlayerInfo",r.reply.toString(1));
 					rpcDone.requestDone(r.reply);
+					cityChanged();
 				}
 			});
 		} catch (JSONException e) {
@@ -136,6 +137,7 @@ public abstract class RPC extends Thread {
 			e.printStackTrace();
 		}
 	}
+	public abstract void cityChanged();
 	public void Poll() {
 		try {
 			JSONObject obj = new JSONObject();

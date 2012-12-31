@@ -5,11 +5,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import android.annotation.TargetApi;
-import android.graphics.Paint;
-import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -73,22 +69,18 @@ public class ChatWindow extends SessionUser {
 	@Override
 	public void visDataReset() {
 		// TODO Auto-generated method stub
-
 	}
 	@Override
 	public void onPlayerData() {
 		// TODO Auto-generated method stub
-
 	}
 	@Override
 	public void gotCityData() {
 		// TODO Auto-generated method stub
-
 	}
 	@Override
 	public void tick() {
 		// TODO Auto-generated method stub
-
 	}
 	class NameClicked implements View.OnClickListener {
 		@Override
@@ -150,8 +142,9 @@ public class ChatWindow extends SessionUser {
 					mTabHost.addTab(s);
 					private_messages.put(p.tag, p);
 				}
-				if (c.c.equals("privatein")) channel.setText("from ");
-				else channel.setText("to ");
+				if (c.c.equals("privateout")) sender.setText("clever: ");
+				else sender.setText(c.s+": ");
+				l.removeView(channel);
 				p.l.addView(l);
 			}
 			else {

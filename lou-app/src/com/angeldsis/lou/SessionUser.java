@@ -12,8 +12,10 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 
 public abstract class SessionUser extends FragmentActivity implements Callbacks {
+	static final String TAG = "SessionUser";
 	SessionKeeper mService;
 	boolean mBound;
 	AccountWrap acct;
@@ -42,6 +44,7 @@ public abstract class SessionUser extends FragmentActivity implements Callbacks 
 			SessionUser.this.check_state();
 		}
 		public void onServiceDisconnected(ComponentName arg0) {
+			Log.v(TAG,"onServiceDisconnected");
 			mBound = false;
 		}
 	};
@@ -55,14 +58,18 @@ public abstract class SessionUser extends FragmentActivity implements Callbacks 
 	}
 	protected void onStop() {
 		super.onStop();
+		Log.v(TAG,"onStop");
 		if (mBound) {
 			if (session != null) session.unsetCallback(this);
 			unbindService(mConnection);
 			mBound = false;
+			session = null;
 		}
 	}
 	/** ignore the event for most, if any subclass needs it, override
 	 */
-	public void onChat(ArrayList<ChatMsg> d) {
-	}
+	public void onChat(ArrayList<ChatMsg> d) {}
+	public void onEjected() {}
+	public void onPlayerData() {}
+	public void cityChanged() {}
 }

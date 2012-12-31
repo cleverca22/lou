@@ -46,7 +46,10 @@ public class RPCWrap extends RPC {
 	}
 	@Override
 	public void onEjected() {
-		// TODO Auto-generated method stub
-		
+		callbacks.onEjected();
+	}
+	@Override
+	public void cityChanged() {
+		callbacks.cityChanged();
 	}
 }

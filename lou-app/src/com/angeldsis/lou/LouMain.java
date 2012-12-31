@@ -245,7 +245,7 @@ public class LouMain extends FragmentActivity {
 						} else if (in_server_list) {
 							if (localName.equals("li")) {
 								String id = attributes.getValue("id");
-								Log.v(TAG,"class:"+classVal+" id:"+id);
+								//Log.v(TAG,"class:"+classVal+" id:"+id);
 								acct = new AccountWrap();
 								acct.world = id; // FIXME
 								if (classVal.equals("offline menu_bubble")) {
@@ -254,7 +254,7 @@ public class LouMain extends FragmentActivity {
 									acct.offline = false;
 								}
 							} else if (localName.equals("div")) {
-								Log.v(TAG,"div class="+classVal);
+								//Log.v(TAG,"div class="+classVal);
 							} else if (localName.equals("input")) {
 								String name = attributes.getValue("name");
 								if (acct != null && name != null && name.equals("sessionId")) {
@@ -269,7 +269,7 @@ public class LouMain extends FragmentActivity {
 						if (in_server_list) {
 							if (localName.equals("ul")) in_server_list = false;
 							else if (localName.equals("li")) {
-								Log.v(TAG,"li done, adding acct "+acct);
+								//Log.v(TAG,"li done, adding acct "+acct);
 								servers.add(acct);
 								acct = null;
 							}
