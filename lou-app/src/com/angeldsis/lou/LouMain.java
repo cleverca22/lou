@@ -219,6 +219,8 @@ public class LouMain extends FragmentActivity {
 			try {
 				Log.v(TAG, "checking cookie....");
 				URL check = new URL("https://www.lordofultima.com/en/welcome");
+				HttpsURLConnection.setFollowRedirects(false);
+				HttpURLConnection.setFollowRedirects(false);
 				HttpsURLConnection conn = (HttpsURLConnection) check
 						.openConnection();
 				conn.setReadTimeout(30000);
