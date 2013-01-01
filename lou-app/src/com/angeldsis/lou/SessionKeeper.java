@@ -5,9 +5,9 @@ import java.util.Iterator;
 
 import org.json.JSONObject;
 
-import com.angeldsis.LOU.ChatMsg;
-import com.angeldsis.LOU.LouState;
-import com.angeldsis.LOU.RPC;
+import com.angeldsis.louapi.ChatMsg;
+import com.angeldsis.louapi.LouState;
+import com.angeldsis.louapi.RPC;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent;

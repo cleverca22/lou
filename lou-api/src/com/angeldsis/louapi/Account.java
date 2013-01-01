@@ -1,4 +1,4 @@
-package com.angeldsis.LOU;
+package com.angeldsis.louapi;
 
 // stores info on a single world account ingame
 public class Account {

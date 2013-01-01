@@ -1,4 +1,4 @@
-package com.angeldsis.LOU;
+package com.angeldsis.louapi;
 
 import java.util.ArrayList;
 import org.json.JSONArray;

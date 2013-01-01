@@ -2,7 +2,8 @@ package com.angeldsis.lounative;
 
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-import com.angeldsis.LOU.LouSession;
+
+import com.angeldsis.louapi.LouSession;
 
 public class LouMain {
 	boolean cli;

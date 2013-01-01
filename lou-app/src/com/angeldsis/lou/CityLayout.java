@@ -1,13 +1,11 @@
 package com.angeldsis.lou;
 
 import java.util.ArrayList;
-import java.util.Iterator;
-
-import com.angeldsis.LOU.CityBuilding;
-import com.angeldsis.LOU.LouState;
-import com.angeldsis.LOU.CityResField;
-import com.angeldsis.LOU.LouVisData;
 import com.angeldsis.lou.fragments.ResourceBar;
+import com.angeldsis.louapi.CityBuilding;
+import com.angeldsis.louapi.CityResField;
+import com.angeldsis.louapi.LouState;
+import com.angeldsis.louapi.LouVisData;
 
 import android.content.Context;
 import android.content.res.TypedArray;

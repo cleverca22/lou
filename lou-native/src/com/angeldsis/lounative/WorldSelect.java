@@ -19,8 +19,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Tray;
 import org.eclipse.swt.widgets.TrayItem;
 
-import com.angeldsis.LOU.Account;
-import com.angeldsis.LOU.LouSession;
+import com.angeldsis.louapi.Account;
+import com.angeldsis.louapi.LouSession;
 
 public class WorldSelect extends Shell {
 	Display display;

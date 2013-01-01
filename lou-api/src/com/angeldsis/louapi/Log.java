@@ -1,4 +1,4 @@
-package com.angeldsis.LOU;
+package com.angeldsis.louapi;
 
 public class Log {
 	public static void e(String TAG, String string) {

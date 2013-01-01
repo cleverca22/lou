@@ -2,8 +2,8 @@ package com.angeldsis.lou;
 
 import java.util.ArrayList;
 
-import com.angeldsis.LOU.ChatMsg;
 import com.angeldsis.lou.fragments.ResourceBar;
+import com.angeldsis.louapi.ChatMsg;
 
 import android.content.Intent;
 import android.os.Bundle;

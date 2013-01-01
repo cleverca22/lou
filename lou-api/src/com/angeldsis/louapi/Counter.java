@@ -1,4 +1,4 @@
-package com.angeldsis.LOU;
+package com.angeldsis.louapi;
 
 public class Counter {
 	static Counter ZERO = new Counter(0,0);

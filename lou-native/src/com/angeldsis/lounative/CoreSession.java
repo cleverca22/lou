@@ -3,8 +3,8 @@ package com.angeldsis.lounative;
 import org.eclipse.swt.widgets.Display;
 import org.json.JSONObject;
 
-import com.angeldsis.LOU.Account;
-import com.angeldsis.LOU.LouState;
+import com.angeldsis.louapi.Account;
+import com.angeldsis.louapi.LouState;
 
 public class CoreSession {
 	LouState state;

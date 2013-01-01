@@ -2,7 +2,7 @@ package com.angeldsis.lou;
 
 import android.os.Bundle;
 
-import com.angeldsis.LOU.Account;
+import com.angeldsis.louapi.Account;
 
 // helper methods to send an Account thru a Bundle
 public class AccountWrap extends Account {

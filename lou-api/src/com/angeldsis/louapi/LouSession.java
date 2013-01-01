@@ -1,4 +1,4 @@
-package com.angeldsis.LOU;
+package com.angeldsis.louapi;
 
 import java.io.FilterInputStream;
 import java.io.IOException;

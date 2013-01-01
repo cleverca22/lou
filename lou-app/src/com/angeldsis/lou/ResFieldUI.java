@@ -1,6 +1,6 @@
 package com.angeldsis.lou;
 
-import com.angeldsis.LOU.CityResField;
+import com.angeldsis.louapi.CityResField;
 
 import android.content.Context;
 import android.graphics.RectF;

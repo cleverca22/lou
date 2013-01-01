@@ -2,14 +2,11 @@ package com.angeldsis.lou;
 
 import java.util.ArrayList;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-
-import com.angeldsis.LOU.Account;
-import com.angeldsis.LOU.ChatMsg;
-import com.angeldsis.LOU.HttpRequest;
-import com.angeldsis.LOU.LouState;
-import com.angeldsis.LOU.RPC;
+import com.angeldsis.louapi.Account;
+import com.angeldsis.louapi.ChatMsg;
+import com.angeldsis.louapi.HttpRequest;
+import com.angeldsis.louapi.LouState;
+import com.angeldsis.louapi.RPC;
 
 public class RPCWrap extends RPC {
 	SessionKeeper.Session callbacks;

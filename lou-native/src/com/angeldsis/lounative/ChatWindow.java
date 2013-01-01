@@ -12,7 +12,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 
-import com.angeldsis.LOU.ChatMsg;
+import com.angeldsis.louapi.ChatMsg;
 
 public class ChatWindow extends Shell implements MouseListener {
 	private Text text;

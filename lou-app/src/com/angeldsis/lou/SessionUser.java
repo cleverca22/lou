@@ -2,9 +2,9 @@ package com.angeldsis.lou;
 
 import java.util.ArrayList;
 
-import com.angeldsis.LOU.ChatMsg;
 import com.angeldsis.lou.SessionKeeper.Callbacks;
 import com.angeldsis.lou.SessionKeeper.MyBinder;
+import com.angeldsis.louapi.ChatMsg;
 
 import android.content.ComponentName;
 import android.content.Intent;

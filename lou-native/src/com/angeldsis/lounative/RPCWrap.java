@@ -6,11 +6,11 @@ import org.eclipse.swt.widgets.Display;
 import org.json.JSONArray;
 import org.json.JSONException;
 
-import com.angeldsis.LOU.Account;
-import com.angeldsis.LOU.ChatMsg;
-import com.angeldsis.LOU.HttpRequest;
-import com.angeldsis.LOU.LouState;
-import com.angeldsis.LOU.RPC;
+import com.angeldsis.louapi.Account;
+import com.angeldsis.louapi.ChatMsg;
+import com.angeldsis.louapi.HttpRequest;
+import com.angeldsis.louapi.LouState;
+import com.angeldsis.louapi.RPC;
 
 public class RPCWrap extends RPC {
 	private ChatWindow chat;
@@ -54,5 +54,15 @@ public class RPCWrap extends RPC {
 	public void onPlayerData() {
 		// TODO Auto-generated method stub
 		
+	}
+	@Override
+	public void cityChanged() {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void onEjected() {
+		// TODO Auto-generated method stub
+		System.out.println("ejected");
 	}
 }

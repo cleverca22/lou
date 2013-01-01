@@ -1,7 +1,7 @@
 package com.angeldsis.lou.fragments;
 
-import com.angeldsis.LOU.LouState;
 import com.angeldsis.lou.R;
+import com.angeldsis.louapi.LouState;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;

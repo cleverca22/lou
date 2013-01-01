@@ -1,4 +1,4 @@
-package com.angeldsis.LOU;
+package com.angeldsis.louapi;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -8,7 +8,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
-import com.angeldsis.LOU.HttpRequest.HttpReply;
+import com.angeldsis.louapi.HttpRequest.HttpReply;
 
 public abstract class RPC extends Thread {
 	static String TAG = "RPC";

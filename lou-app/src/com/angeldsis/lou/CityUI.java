@@ -1,6 +1,6 @@
 package com.angeldsis.lou;
 
-import com.angeldsis.LOU.LouState;
+import com.angeldsis.louapi.LouState;
 
 import android.util.Log;
 import android.view.ViewGroup;

@@ -1,4 +1,4 @@
-package com.angeldsis.LOU;
+package com.angeldsis.louapi;
 
 import org.json.JSONException;
 import org.json.JSONObject;

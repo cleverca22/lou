@@ -3,8 +3,8 @@ package com.angeldsis.lou;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import com.angeldsis.LOU.ChatMsg;
-import com.angeldsis.LOU.IncomingAttack;
+import com.angeldsis.louapi.ChatMsg;
+import com.angeldsis.louapi.IncomingAttack;
 
 import android.os.Bundle;
 import android.util.Log;

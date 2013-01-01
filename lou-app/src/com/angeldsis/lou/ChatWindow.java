@@ -14,7 +14,7 @@ import android.widget.ScrollView;
 import android.widget.TabHost;
 import android.widget.TextView;
 
-import com.angeldsis.LOU.ChatMsg;
+import com.angeldsis.louapi.ChatMsg;
 
 public class ChatWindow extends SessionUser {
 	static final String TAG = "ChatWindow";

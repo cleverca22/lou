@@ -1,4 +1,4 @@
-package com.angeldsis.LOU;
+package com.angeldsis.louapi;
 
 public interface HttpRequest {
 	void PostURL(String url, String data,Callback cb);

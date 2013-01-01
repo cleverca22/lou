@@ -10,8 +10,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
-import com.angeldsis.LOU.LouSession;
-import com.angeldsis.LOU.LouSession.result;
+import com.angeldsis.louapi.LouSession;
+import com.angeldsis.louapi.LouSession.result;
 
 public class DoLogin extends Shell implements MouseListener {
 	Text user,pass;

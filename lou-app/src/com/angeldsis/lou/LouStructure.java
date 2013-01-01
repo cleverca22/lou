@@ -1,6 +1,7 @@
 package com.angeldsis.lou;
 
-import com.angeldsis.LOU.CityBuilding;
+import com.angeldsis.louapi.CityBuilding;
+
 import android.content.Context;
 import android.graphics.Rect;
 import android.graphics.RectF;

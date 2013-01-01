@@ -10,7 +10,7 @@ import java.net.URL;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.angeldsis.LOU.HttpRequest;
+import com.angeldsis.louapi.HttpRequest;
 
 public class doRPCasync implements HttpRequest {
 	static final String TAG = "doRPCasync";

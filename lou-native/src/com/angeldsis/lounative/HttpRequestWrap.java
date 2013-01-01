@@ -7,7 +7,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import com.angeldsis.LOU.HttpRequest;
+import com.angeldsis.louapi.HttpRequest;
 
 public class HttpRequestWrap implements HttpRequest {
 	public void PostURL(String urlIN, String data, Callback cb) {
