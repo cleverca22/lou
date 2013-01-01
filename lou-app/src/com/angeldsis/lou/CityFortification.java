@@ -54,6 +54,14 @@ public class CityFortification extends VisObject {
 			width = 128;
 			height = 120;
 			break;
+		case 24:
+			width = 255;
+			height = 128;
+			break;
+		case 25:
+			width = 128;
+			height = 256;
+			break;
 		default:
 			width = 128;
 			height = 128;
@@ -120,6 +128,12 @@ public class CityFortification extends VisObject {
 			break;
 		case 23:
 			res = R.drawable.palisade_wall_tjunction_r_outside;
+			break;
+		case 24:
+			res = R.drawable.palisade_wall_tower_watercity_b;
+			break;
+		case 25:
+			res = R.drawable.palisade_wall_tower_watercity_r;
 			break;
 		case 50:
 			res = R.drawable.gatehouse_bl;

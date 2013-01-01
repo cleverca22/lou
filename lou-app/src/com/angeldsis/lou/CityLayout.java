@@ -34,9 +34,6 @@ public class CityLayout extends ViewGroup {
 		zoom = 1;
 		dirt = context.getResources().getDrawable(R.drawable.texture_bg_tile_big_city);
 		dirt.setBounds(0, 0, 2944, 1840);
-		maxx = 2944 - 600;
-		maxy = 1840 - 1000;
-		Log.v(TAG,"width: "+dirt.getIntrinsicWidth()+" height "+dirt.getIntrinsicHeight());
 		// water.setBounds(0,0,896,560);
 		buildings = new ArrayList<VisObject>();
 
@@ -51,6 +48,8 @@ public class CityLayout extends ViewGroup {
 		if (state.currentCity.visData.size() > 0) gotVisData();
 	}
 	protected void onLayout(boolean changed, int l, int t, int r, int b) {
+		maxx = 2944 - (r - l);
+		maxy = 1840 - (b - t);
 		// FIXME, internal scroll!
 		int x;
 		//maxx = 2944;
@@ -64,7 +63,6 @@ public class CityLayout extends ViewGroup {
 		setMeasuredDimension(MeasureSpec.getSize(widthMeasureSpec),MeasureSpec.getSize(heightMeasureSpec));
 	}
 	public void scrollTo(int x,int y) {
-		Log.v(TAG,"maxx "+maxx+" x "+x);
 		if (x > maxx) x = maxx;
 		else if (x < 0) x = 0;
 		if (y > maxy) y = maxy;
