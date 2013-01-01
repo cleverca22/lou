@@ -1,21 +1,10 @@
 package com.angeldsis.lou;
 
-import java.util.ArrayList;
-
-import org.json.JSONArray;
-
 import com.angeldsis.lou.SessionKeeper.Callbacks;
-import com.angeldsis.lou.SessionKeeper.MyBinder;
-import com.angeldsis.louapi.ChatMsg;
-
-import android.content.ComponentName;
-import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.IBinder;
-import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.RadioGroup;
 import android.widget.RadioGroup.OnCheckedChangeListener;
 
@@ -36,6 +25,8 @@ public class CityView extends SessionUser implements OnCheckedChangeListener, Ca
 		mTest = new CityUI(this,session.state);
 		ViewGroup vg = (ViewGroup) this.findViewById(R.id.test);
 		vg.addView(mTest);
+		((FrameLayout) findViewById(R.id.resource_bar)).addView(mTest.mTest.resource_bar.self);
+		mTest.mTest.resource_bar.update(session.state.currentCity);
 	}
 	protected void onStart() {
 		super.onStart();
@@ -68,7 +59,7 @@ public class CityView extends SessionUser implements OnCheckedChangeListener, Ca
 		}
 	}
 	public void visDataReset() {
-		Log.v(TAG,"vis count "+session.rpc.state.visData.size());
+		Log.v(TAG,"vis count "+session.rpc.state.currentCity.visData.size());
 		if (!vis_data_loaded) gotVisDataInit();
 	}
 	void gotVisDataInit() {

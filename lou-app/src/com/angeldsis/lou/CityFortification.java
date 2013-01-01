@@ -16,6 +16,10 @@ public class CityFortification extends VisObject {
 		id2 = base.typeid;
 		//Log.v(TAG,"typeid is "+base.typeid);
 		switch (base.typeid) {
+		case 0:
+		case 1:
+		case 2:
+		case 3:
 		case 50:
 		case 51:
 		case 52:
@@ -23,11 +27,18 @@ public class CityFortification extends VisObject {
 			width = 384;
 			height = 240;
 			break;
+		case 15:
+		case 18:
+		case 21:
 		case 57:
 		case 68:
 			width = 128;
 			height = 80;
 			break;
+		case 19:
+		case 20:
+		case 22:
+		case 23:
 		case 69:
 		case 70:
 		case 71:
@@ -36,12 +47,80 @@ public class CityFortification extends VisObject {
 			width = 192;
 			height = 80;
 			break;
+		case 13:
+		case 14:
+		case 16:
+		case 17:
+			width = 128;
+			height = 120;
+			break;
 		default:
 			width = 128;
 			height = 128;
 		}
 		rect = new RectF(base.x,base.y,base.x+width,base.y+height);
+		// from the cityfortification array
 		switch (base.typeid) {
+		case 0:
+			res = R.drawable.palisade_gatehouse_bl;
+			break;
+		case 1:
+			res = R.drawable.palisade_gatehouse_br;
+			break;
+		case 2:
+			res = R.drawable.palisade_gatehouse_tl;
+			break;
+		case 3:
+			res = R.drawable.palisade_gatehouse_tr;
+			break;
+		case 4:
+			res = R.drawable.palisade_wall_t;
+			break;
+		case 5:
+			res = R.drawable.palisade_wall_b;
+			break;
+		case 6:
+			res = R.drawable.palisade_wall_l;
+			break;
+		case 7:
+			res = R.drawable.palisade_wall_r;
+			break;
+		case 12:
+			res = R.drawable.palisade_wall_tjunction_t;
+			break;
+		case 13:
+			res = R.drawable.palisade_wall_tjunction_t_center;
+			break;
+		case 14:
+			res = R.drawable.palisade_wall_tjunction_t_outside;
+			break;
+		case 15:
+			res = R.drawable.palisade_wall_tjunction_b;
+			break;
+		case 16:
+			res = R.drawable.palisade_wall_tjunction_b_center;
+			break;
+		case 17:
+			res = R.drawable.palisade_wall_tjunction_b_outside;
+			break;
+		case 18:
+			res = R.drawable.palisade_wall_tjunction_l;
+			break;
+		case 19:
+			res = R.drawable.palisade_wall_tjunction_l_center;
+			break;
+		case 20:
+			res = R.drawable.palisade_wall_tjunction_l_outside;
+			break;
+		case 21:
+			res = R.drawable.palisade_wall_tjunction_r;
+			break;
+		case 22:
+			res = R.drawable.palisade_wall_tjunction_r_center;
+			break;
+		case 23:
+			res = R.drawable.palisade_wall_tjunction_r_outside;
+			break;
 		case 50:
 			res = R.drawable.gatehouse_bl;
 			break;
@@ -102,6 +181,8 @@ public class CityFortification extends VisObject {
 		case 73:
 			res = R.drawable.wall_tjunction_r_outside;
 			break;
+		default:
+			Log.e(TAG,"unknown wall type "+base.typeid);
 		}
 		if (res != -1) {
 			images = new LouImage[1];

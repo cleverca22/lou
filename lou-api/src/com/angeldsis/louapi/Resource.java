@@ -10,13 +10,16 @@ public class Resource {
 		max = m;
 		lastTime = System.currentTimeMillis();
 	}
-	public String getCurrent() {
+	public int getCurrent() {
 		long timepassed = (System.currentTimeMillis() - lastTime)/1000;
 		double gained = timepassed * gain;
-		return ""+(int)(lastValue+gained);
+		return (int)(lastValue+gained);
 	}
 	public String getRate() {
 		double rate = gain * 3600;
 		return ""+(int)rate;
+	}
+	public int getMax() {
+		return max;
 	}
 }

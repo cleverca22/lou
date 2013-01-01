@@ -12,7 +12,6 @@ public class LouState {
 	int AllianceId;
 	String AllianceName,Name;
 	public ArrayList<City> cities;
-	public ArrayList<LouVisData> visData;
 	public City currentCity;
 	public Counter gold;
 	public ManaCounter mana;
@@ -24,7 +23,6 @@ public class LouState {
 
 	public LouState() {
 		this.rpc = rpc;
-		visData = new ArrayList<LouVisData>();
 		incoming_attacks = new ArrayList<IncomingAttack>();
 		chat_history = new ArrayList<ChatMsg>();
 		gold = new Counter(this);
@@ -50,17 +48,19 @@ public class LouState {
 		public Resource[] resources;
 		public String name;
 		long cityid;
+		public ArrayList<LouVisData> visData;
 		City() {
 			resources = new Resource[4];
+			visData = new ArrayList<LouVisData>();
 			int i;
 			for (i = 0; i < 4; i++) resources[i] = new Resource();
 		}
 		public String toString() {
 			return name;
 		}
-	}
-	public void addVisObj(LouVisData parsed) {
-		visData.add(parsed);
+		public void addVisObj(LouVisData parsed) {
+			visData.add(parsed);
+		}
 	}
 	public void parsePlayerUpdate(JSONObject d) throws JSONException {
 		if (d.has("g")) {
@@ -113,6 +113,7 @@ public class LouState {
 		currentCity = city;
 		rpc.interrupt();
 		rpc.cityChanged(); // FIXME, maybe fire this after the new data is in
+		city.visData.clear(); // the code wasn't receiving updates, re-fetch it
 	}
 	public void setRPC(RPC rpc2) {
 		rpc = rpc2;

@@ -5,8 +5,10 @@ import com.angeldsis.lou.fragments.ResourceBar;
 import com.angeldsis.louapi.CityBuilding;
 import com.angeldsis.louapi.CityResField;
 import com.angeldsis.louapi.LouState;
+import com.angeldsis.louapi.LouState.City;
 import com.angeldsis.louapi.LouVisData;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
@@ -24,11 +26,11 @@ public class CityLayout extends ViewGroup {
 	Context context;
 	ResourceBar resource_bar;
 	int maxx,maxy;
-	public CityLayout(Context context, LouState state) {
+	public CityLayout(Activity context, LouState state) {
 		super(context);
 		this.state = state;
 		this.context = context;
-		resource_bar = new ResourceBar();
+		resource_bar = new ResourceBar(context);
 		zoom = 1;
 		dirt = context.getResources().getDrawable(R.drawable.texture_bg_tile_big_city);
 		dirt.setBounds(0, 0, 2944, 1840);
@@ -46,7 +48,7 @@ public class CityLayout extends ViewGroup {
 		a.recycle();
 		setWillNotDraw(false);
 		Log.v(TAG,"constructed");
-		if (state.visData.size() > 0) gotVisData();
+		if (state.currentCity.visData.size() > 0) gotVisData();
 	}
 	protected void onLayout(boolean changed, int l, int t, int r, int b) {
 		// FIXME, internal scroll!
@@ -113,6 +115,7 @@ public class CityLayout extends ViewGroup {
 			if (b.rect == null) Log.e(TAG,"rect isnt set on an instance of "+b.getType());
 			if (c.quickReject(b.rect, Canvas.EdgeType.BW)) {
 				//skipped++;
+				//Log.v(TAG,"drawing "+b.getType());
 				for (j = 0; j < b.images.length; j++ ) {
 					b.images[j].expire();
 				}
@@ -147,8 +150,9 @@ public class CityLayout extends ViewGroup {
 	public void gotVisData() {
 		//resource_bar.setLevels(12, 34, 56, 78);
 		int x;
-		for (x = 0; x < state.visData.size(); x++) {
-			LouVisData current = state.visData.get(x);
+		City self = state.currentCity;
+		for (x = 0; x < self.visData.size(); x++) {
+			LouVisData current = self.visData.get(x);
 			switch (current.type) {
 			case 4:
 				LouStructure vg = new LouStructure(context,(CityBuilding)current);

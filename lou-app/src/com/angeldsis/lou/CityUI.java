@@ -2,8 +2,8 @@ package com.angeldsis.lou;
 
 import com.angeldsis.louapi.LouState;
 
-import android.util.Log;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 
 public class CityUI extends ViewGroup {
 	static final String TAG = "CityUI";
@@ -12,7 +12,6 @@ public class CityUI extends ViewGroup {
 		super(cityView);
 		mTest = new CityLayout(cityView, state);
 		addView(mTest);
-		cityView.getSupportFragmentManager().beginTransaction().add(R.id.resource_bar, mTest.resource_bar).commit();
 	}
 	protected void onLayout(boolean arg0, int arg1, int arg2, int arg3, int arg4) {
 		mTest.layout(0, 0, getWidth(), getHeight());

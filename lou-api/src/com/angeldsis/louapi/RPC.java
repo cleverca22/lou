@@ -146,7 +146,7 @@ public abstract class RPC extends Thread {
 			obj.put("requestid", requestid);
 			requestid++;
 			String requests = "CITY:"+state.currentCity.cityid;
-			if (state.visData.size() == 0) requests = requests + "\fVIS:c:"+state.currentCity.cityid+":0:-1085:-638:775:565:1"; // FIXME
+			if (state.currentCity.visData.size() == 0) requests = requests + "\fVIS:c:"+state.currentCity.cityid+":0:-1085:-638:775:565:1"; // FIXME
 			if (chat_queue.size() > 0) {
 				String msg = chat_queue.remove(0);
 				requests = requests + "\fCHAT:"+msg;
@@ -289,7 +289,7 @@ public abstract class RPC extends Thread {
 			}
 			if (parsed != null) {
 				parsed.type = type;
-				state.addVisObj(parsed);
+				state.currentCity.addVisObj(parsed);
 			}
 		}
 		visDataReset();

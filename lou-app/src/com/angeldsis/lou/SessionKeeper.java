@@ -113,6 +113,8 @@ public class SessionKeeper extends Service {
 		public void onEjected() {
 			alive = false;
 			if (cb != null) cb.onEjected();
+			mNotificationManager.cancel(STILL_OPEN);
+			sessions.remove(this);
 		}
 		public void cityChanged() {
 			if (cb != null) cb.cityChanged();
