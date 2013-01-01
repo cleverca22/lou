@@ -111,4 +111,10 @@
         android:onClick="doLogout"
         android:text="@string/logout" />
 
+    <ListView
+        android:id="@+id/cities"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+    </ListView>
+
 </LinearLayout>

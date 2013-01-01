@@ -7,6 +7,8 @@ public class IncomingAttack {
 	public String targetCityName,playerName;
 	public int start,end;
 	public IncomingAttack(JSONObject X) throws JSONException {
+		// FIXME, actually use these fields
+		// FIXME, not all fields extracted
 		int city = X.getInt("c");
 		int alliance = X.getInt("a");
 		int stepMoongate = X.getInt("ms");

@@ -72,4 +72,5 @@ public abstract class SessionUser extends FragmentActivity implements Callbacks 
 	public void onEjected() {}
 	public void onPlayerData() {}
 	public void cityChanged() {}
+	public void cityListChanged() {}
 }

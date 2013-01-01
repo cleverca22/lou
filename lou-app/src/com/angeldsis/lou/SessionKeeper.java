@@ -65,6 +65,7 @@ public class SessionKeeper extends Service {
 			mNotificationManager.notify(STILL_OPEN, mBuilder.build());
 			state = new LouState();
 			rpc = new RPCWrap(acct,state,this);
+			state.setRPC(rpc);
 			rpc.OpenSession(true,rpc.new RPCDone() {
 				public void requestDone(JSONObject reply) {
 					Log.v(TAG,"session opened");
@@ -122,9 +123,13 @@ public class SessionKeeper extends Service {
 			alive = false;
 			sessions.remove(this);
 		}
+		public void cityListChanged() {
+			if (cb != null) cb.cityListChanged();
+		}
 	}
 	public interface Callbacks {
 		void visDataReset();
+		void cityListChanged();
 		void cityChanged();
 		void onEjected();
 		void onPlayerData();

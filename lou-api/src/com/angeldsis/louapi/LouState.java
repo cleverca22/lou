@@ -5,27 +5,30 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.angeldsis.louapi.LouState.City;
+
 public class LouState {
 	private static final String TAG = "LouState";
 	int AllianceId;
 	String AllianceName,Name;
-	ArrayList<City> cities;
+	public ArrayList<City> cities;
 	public ArrayList<LouVisData> visData;
 	public City currentCity;
-	public Resource[] resources;
-	public Counter gold = Counter.ZERO;
-	public ManaCounter mana = ManaCounter.ZERO;
+	public Counter gold;
+	public ManaCounter mana;
 	public ArrayList<IncomingAttack> incoming_attacks;
-	private int serverOffset, diff, stepTime, refTime;
+	private int serverOffset, diff, stepTime;
+	long refTime;
 	public ArrayList<ChatMsg> chat_history;
+	RPC rpc;
 
 	public LouState() {
+		this.rpc = rpc;
 		visData = new ArrayList<LouVisData>();
 		incoming_attacks = new ArrayList<IncomingAttack>();
 		chat_history = new ArrayList<ChatMsg>();
-		resources = new Resource[4];
-		int i;
-		for (i = 0; i < 4; i++) resources[i] = new Resource();
+		gold = new Counter(this);
+		mana = new ManaCounter(this);
 	}
 	public void processPlayerInfo(JSONObject obj) throws JSONException {
 		JSONArray cities = obj.getJSONArray("Cities");
@@ -44,8 +47,17 @@ public class LouState {
 		Name = obj.getString("Name");
 	}
 	public class City {
+		public Resource[] resources;
 		public String name;
 		long cityid;
+		City() {
+			resources = new Resource[4];
+			int i;
+			for (i = 0; i < 4; i++) resources[i] = new Resource();
+		}
+		public String toString() {
+			return name;
+		}
 	}
 	public void addVisObj(LouVisData parsed) {
 		visData.add(parsed);
@@ -55,18 +67,16 @@ public class LouState {
 			JSONObject g = d.optJSONObject("g");
 			double base = g.optDouble("b");
 			double delta = g.optDouble("d");
-			//int step = g.optInt("s");
-			Log.v(TAG, g.toString(1));
-			// FIXME, is delta per second??
-			gold = new Counter(base,delta);
+			int step = g.optInt("s");
+			gold.update(base,delta,step);
 		}
 		if (d.has("m")) {
 			JSONObject m = d.optJSONObject("m");
 			double base = m.optDouble("b");
 			double delta = m.optDouble("d");
-			//int step = m.optInt("s");
+			int step = m.optInt("s");
 			int max = m.optInt("m");
-			mana = new ManaCounter(base,delta,max);
+			mana.update(base, delta, max, step);
 		}
 		if (d.has("iuo")) {
 			Object iuo2 = d.get("iuo");
@@ -78,8 +88,6 @@ public class LouState {
 					// incoming attacks on current city
 					JSONObject X = iuo.getJSONObject(x);
 					IncomingAttack ia = new IncomingAttack(X);
-					// FIXME, actually use these fields
-					// FIXME, not all fields extracted
 					Log.v(TAG,"attack incoming to "+ia.targetCityName+" from player "+ia.playerName);
 					incoming_attacks.add(ia);
 				}
@@ -88,17 +96,25 @@ public class LouState {
 		}
 		else Log.v(TAG,"no attacks?");
 	}
-	public void setTime(int refTime, int stepTime, int diff, int serverOffset) {
-		this.refTime = refTime;
+	public void setTime(long refTime2, int stepTime, int diff, int serverOffset) {
+		refTime = refTime2;
 		this.stepTime = stepTime;
 		this.diff = diff;
 		this.serverOffset = serverOffset;
-		Log.v(TAG,"ref:"+refTime+" stepTime:"+stepTime+" diff:"+diff+" serverOffset"+serverOffset);
+		Log.v(TAG,"ref:"+refTime2+" stepTime:"+stepTime+" diff:"+diff+" serverOffset"+serverOffset);
 	}
 	// not sure entirely what these are for yet, so i'm reproducing them exactly
 	long getServerStep() {
 		if (stepTime == 0) return 0;
 		long d = System.currentTimeMillis() - refTime - diff;
 		return d / stepTime;
+	}
+	public void changeCity(City city) {
+		currentCity = city;
+		rpc.interrupt();
+		rpc.cityChanged(); // FIXME, maybe fire this after the new data is in
+	}
+	public void setRPC(RPC rpc2) {
+		rpc = rpc2;
 	}
 }

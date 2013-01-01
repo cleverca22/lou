@@ -1,20 +1,34 @@
 package com.angeldsis.lou;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import com.angeldsis.lou.fragments.ResourceBar;
 import com.angeldsis.louapi.ChatMsg;
+import com.angeldsis.louapi.LouState.City;
 
+import android.content.Context;
 import android.content.Intent;
+import android.database.DataSetObserver;
 import android.os.Bundle;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 
-public class LouSessionMain extends SessionUser implements SessionKeeper.Callbacks {
+public class LouSessionMain extends SessionUser implements SessionKeeper.Callbacks, OnItemClickListener {
 	static final String TAG = "LouSessionMain";
 	ResourceBar resource_bar;
+	cityList mAdapter;
 
 	public void onCreate(Bundle sis) {
 		super.onCreate(sis);
@@ -22,6 +36,10 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 		setContentView(R.layout.session_core);
 		resource_bar = new ResourceBar();
 		getSupportFragmentManager().beginTransaction().add(R.id.resource_bar, resource_bar).commit();
+		mAdapter = new cityList(this);
+		ListView list = (ListView) findViewById(R.id.cities);
+		list.setAdapter(mAdapter);
+		list.setOnItemClickListener(this);
 	}
 	protected void onStart() {
 		super.onStart();
@@ -35,10 +53,16 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 			int total = session.state.chat_history.size();
 			Button chat = (Button) findViewById(R.id.chat);
 			chat.setText("chat ("+total+")");
+			if (session.state.currentCity != null) {
+				cityListChanged();
+				TextView city = (TextView) findViewById(R.id.current_city);
+				city.setText(session.state.currentCity.name);
+			}
 			updateTickers();
 		}
 	}
 	public void cityChanged() {
+		Log.v(TAG,"cityChanged");
 		TextView city = (TextView) findViewById(R.id.current_city);
 		city.setText(session.state.currentCity.name);
 	}
@@ -56,7 +80,10 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 		//if (!vis_data_loaded) gotVisDataInit();
 	}
 	public void gotCityData() {
-		//mTest.gotCityData();
+		Log.v(TAG,"gotCityData");
+		resource_bar.update(session.state.currentCity);
+		TextView city = (TextView) findViewById(R.id.current_city);
+		city.setText(session.state.currentCity.name);
 	}
 	public void tick() {
 		// called from the network thread, needs to re-dir to main one
@@ -89,7 +116,7 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 		mana.setText(""+session.state.mana.getCurrent());
 		TextView incoming = (TextView) findViewById(R.id.incoming_attacks);
 		incoming.setText("" + session.state.incoming_attacks.size());
-		resource_bar.update(session.state);
+		if (session.state.currentCity != null) resource_bar.update(session.state.currentCity);
 	}
 	public void showIncoming(View v) {
 		Intent i = new Intent(this,IncomingAttacks.class);
@@ -109,5 +136,40 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 		int total = session.state.chat_history.size();
 		Button chat = (Button) findViewById(R.id.chat);
 		chat.setText("chat ("+total+")");
+	}
+	@Override
+	public void cityListChanged() {
+		mAdapter.clear();
+		Iterator<City> i = session.state.cities.iterator();
+		while (i.hasNext()) {
+			mAdapter.add(i.next());
+		}
+	}
+	@Override
+	public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
+		Log.v(TAG,session.state.cities.get(arg2).toString());
+		session.state.changeCity(session.state.cities.get(arg2));
+	}
+	class cityList extends ArrayAdapter<City> {
+		cityList(Context c) {
+			super(c,0);
+		}
+		public View getView(int position, View convertView, ViewGroup parent) {
+			ViewGroup row = new LinearLayout(LouSessionMain.this);
+			TextView name = new TextView(LouSessionMain.this);
+			City i = getItem(position);
+			name.setText(i.name);
+			row.addView(name);
+			// FIXME
+			//FrameLayout bar = new FrameLayout(LouSessionMain.this);
+			//FragmentTransaction trans = getSupportFragmentManager().beginTransaction();
+			//ResourceBar bar2 = new ResourceBar();
+			//bar.setId(0x1000 + position);
+			//trans.add(0x1000 + position, bar2);
+			//bar2.update(i);
+			//trans.commit();
+			//row.addView(bar);
+			return row;
+		}
 	}
 }

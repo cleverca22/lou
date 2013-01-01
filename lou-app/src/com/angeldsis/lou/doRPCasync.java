@@ -54,7 +54,7 @@ public class doRPCasync implements HttpRequest {
 					e.printStackTrace();
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
-					e.printStackTrace();
+					Log.e(TAG,"IOException",e);
 				}
 				// TODO Auto-generated method stub
 				return null;

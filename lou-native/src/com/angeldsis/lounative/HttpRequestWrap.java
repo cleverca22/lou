@@ -27,7 +27,7 @@ public class HttpRequestWrap implements HttpRequest {
 			out.close();
 			conn.connect();
 			reply.code = conn.getResponseCode();
-			System.out.println("response code "+reply.code);
+			//System.out.println("response code "+reply.code);
 			char[] buffer = new char[1024];
 			int size;
 			StringBuilder buf = new StringBuilder();

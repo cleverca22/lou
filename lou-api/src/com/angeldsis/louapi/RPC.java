@@ -129,6 +129,7 @@ public abstract class RPC extends Thread {
 					state.processPlayerInfo(r.reply);
 					Log.v(TAG+".GetPlayerInfo",r.reply.toString(1));
 					rpcDone.requestDone(r.reply);
+					cityListChanged();
 					cityChanged();
 				}
 			});
@@ -138,6 +139,7 @@ public abstract class RPC extends Thread {
 		}
 	}
 	public abstract void cityChanged();
+	public abstract void cityListChanged();
 	public void Poll() {
 		try {
 			JSONObject obj = new JSONObject();
@@ -171,10 +173,11 @@ public abstract class RPC extends Thread {
 		String C = p.getString("C");
 		Log.v(TAG,"Poll packet "+C);
 		if (C.equals("TIME")) {
-			int refTime = p.optInt("Ref");
-			int stepTime = p.optInt("Step");
-			int diff = p.optInt("Diff");
-			int serverOffset = p.optInt("o") * 60 * 60 * 1000;
+			JSONObject D = p.optJSONObject("D");
+			long refTime = D.optLong("Ref");
+			int stepTime = D.optInt("Step");
+			int diff = D.optInt("Diff");
+			int serverOffset = D.optInt("o") * 60 * 60 * 1000;
 			state.setTime(refTime,stepTime,diff,serverOffset);
 		} else if (C.equals("VIS")) {
 			JSONObject D = p.getJSONObject("D");
@@ -182,7 +185,7 @@ public abstract class RPC extends Thread {
 		} else if (C.equals("CITY")) {
 			// refer to webfrontend.data.City.js dispatchResults for more info
 			JSONObject D = p.getJSONObject("D");
-			Log.v(TAG,D.toString(1));
+			//Log.v(TAG,D.toString(1));
 			JSONArray r = D.getJSONArray("r");
 			int x;
 			for (x = 0; x < r.length(); x++) {
@@ -192,7 +195,7 @@ public abstract class RPC extends Thread {
 				double b = item.getDouble("b"); // last value
 				double d = item.getDouble("d"); // gain per sec
 				Log.v(TAG,"resource "+i+" count "+b+"/"+m);
-				state.resources[i-1].set(d,b,m);
+				state.currentCity.resources[i-1].set(d,b,m);
 			}
 			if (D.has("iuo")) {
 				Object iuo2 = D.get("iuo");

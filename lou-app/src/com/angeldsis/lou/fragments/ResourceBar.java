@@ -2,6 +2,7 @@ package com.angeldsis.lou.fragments;
 
 import com.angeldsis.lou.R;
 import com.angeldsis.louapi.LouState;
+import com.angeldsis.louapi.LouState.City;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -36,12 +37,12 @@ public class ResourceBar extends Fragment {
 		rates[2] = (TextView) getActivity().findViewById(R.id.ironR);
 		rates[3] = (TextView) getActivity().findViewById(R.id.foodR);
 	}
-	public void update(LouState state) {
+	public void update(City city) {
 		init();
 		int x;
 		for (x = 0; x < 4; x++) {
-			counts[x].setText(state.resources[x].getCurrent());
-			rates[x].setText(state.resources[x].getRate());
+			counts[x].setText(city.resources[x].getCurrent());
+			rates[x].setText(city.resources[x].getRate());
 		}
 	}
 }
