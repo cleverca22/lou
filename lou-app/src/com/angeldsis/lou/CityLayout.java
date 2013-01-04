@@ -1,6 +1,8 @@
 package com.angeldsis.lou;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+
 import com.angeldsis.lou.fragments.ResourceBar;
 import com.angeldsis.louapi.CityBuilding;
 import com.angeldsis.louapi.CityResField;
@@ -24,13 +26,10 @@ public class CityLayout extends ViewGroup {
 	Drawable dirt;
 	LouState state;
 	Context context;
-	ResourceBar resource_bar;
 	int maxx,maxy;
-	public CityLayout(Activity context, LouState state) {
+	public CityLayout(Activity context) {
 		super(context);
-		this.state = state;
 		this.context = context;
-		resource_bar = new ResourceBar(context);
 		zoom = 1;
 		dirt = context.getResources().getDrawable(R.drawable.texture_bg_tile_big_city);
 		dirt.setBounds(0, 0, 2944, 1840);
@@ -45,6 +44,9 @@ public class CityLayout extends ViewGroup {
 		a.recycle();
 		setWillNotDraw(false);
 		Log.v(TAG,"constructed");
+	}
+	public void setState(LouState state2) {
+		this.state = state2;
 		if (state.currentCity.visData.size() > 0) gotVisData();
 	}
 	protected void onLayout(boolean changed, int l, int t, int r, int b) {
@@ -153,10 +155,9 @@ public class CityLayout extends ViewGroup {
 			LouVisData current = self.visData.get(x);
 			switch (current.type) {
 			case 4:
-				LouStructure vg = new LouStructure(context,(CityBuilding)current);
+				LouStructure vg = new LouStructure(context,(CityBuilding)current,state);
 				vg.addViews(this);
 				buildings.add(vg);
-				vg.setLevel(((CityBuilding)current).level);
 				break;
 			case 9:
 				ResFieldUI vg3 = new ResFieldUI(context,(CityResField)current);
@@ -169,5 +170,22 @@ public class CityLayout extends ViewGroup {
 				break;
 			}
 		}
+	}
+	void onResume() {
+		updateAll();
+	}
+	void updateAll() {
+		Iterator<VisObject> i = buildings.iterator();
+		while (i.hasNext()) {
+			VisObject v = i.next();
+			if (v instanceof LouStructure) ((LouStructure)v).updated();
+		}
+	}
+	public void tick() {
+		Iterator<VisObject> i = buildings.iterator();
+		while (i.hasNext()) {
+			VisObject v = i.next();
+			if (v instanceof LouStructure) ((LouStructure)v).tick();
+		}		
 	}
 }

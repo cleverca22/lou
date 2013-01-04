@@ -26,6 +26,10 @@ public class RPCWrap extends RPC {
 		callbacks.visDataReset();
 	}
 	@Override
+	public void visDataUpdated() {
+		callbacks.vidDataUpdated();
+	}
+	@Override
 	public void tick() {
 		callbacks.tick();
 	}

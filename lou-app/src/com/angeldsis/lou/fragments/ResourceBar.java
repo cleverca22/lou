@@ -6,6 +6,7 @@ import com.angeldsis.louapi.Resource;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -52,11 +53,17 @@ public class ResourceBar {
 			Resource r = lastCity.resources[x];
 			counts[x].setText(""+r.getCurrent());
 			rates[x].setText(r.getRate());
-			int color = android.R.color.white;
-			// FIXME, 50% is not red
-			if (r.getCurrent() > (r.getMax()/2)) {
-				color = R.color.red;
-				
+			int color;
+			// 25-71% == green
+			// 82-88% == yellow
+			// 90% == orange
+			// 100% == red!
+			if (r.getMax() == 0) color = android.R.color.white;
+			else {
+				int percent = (r.getCurrent() * 100) / r.getMax();
+				if (percent > 90) color = R.color.resource_orange;
+				else if (percent > 82) color = R.color.resource_yellow;
+				else color = R.color.resource_green;
 			}
 			counts[x].setTextColor(self.getContext().getResources().getColor(color));
 		}

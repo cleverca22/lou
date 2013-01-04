@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="green">#78b042</color>
+    <color name="chat_green">#78b042</color>
     <color name="red">#ff0000</color>
+    <color name="resource_green">#40c849</color>
+    <color name="resource_yellow">#ffe400</color>
+    <color name="resource_orange">#f7941d</color>
 </resources>

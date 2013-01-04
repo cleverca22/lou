@@ -5,7 +5,7 @@ import org.json.JSONObject;
 
 public class CityResField extends LouVisData {
 	String TAG = "CityResField";
-	public int c,visId;
+	public int c;
 	// subid/typeid data
 	// most images are 150x128
 	// 0/0 image 221 townlayer/stone_m_1x1_01.png
@@ -34,6 +34,11 @@ public class CityResField extends LouVisData {
 		super(base);
 		subid = base.getInt("r");
 		c = base.getInt("c");
-		visId = base.getInt("i");
+	}
+	@Override
+	void update(JSONObject base) throws JSONException {
+		Log.v("CityResField",base.toString(1));
+		subid = base.optInt("r");
+		c = base.optInt("c");
 	}
 }

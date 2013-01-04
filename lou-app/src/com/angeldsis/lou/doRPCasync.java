@@ -13,6 +13,7 @@ import android.util.Log;
 import com.angeldsis.louapi.HttpRequest;
 
 public class doRPCasync implements HttpRequest {
+	char[] buffer = new char[1024];
 	static final String TAG = "doRPCasync";
 	public void PostURL(final String urlIN, final String data, final Callback cb) {
 		AsyncTask<Integer,Integer,HttpReply> desync = new AsyncTask<Integer,Integer,HttpReply>() {
@@ -34,7 +35,6 @@ public class doRPCasync implements HttpRequest {
 					conn.connect();
 					reply.code = conn.getResponseCode();
 					//Log.v(TAG,"response code "+reply.code);
-					char[] buffer = new char[1024];
 					int size;
 					StringBuilder buf = new StringBuilder();
 					InputStreamReader reply1 = new InputStreamReader(conn.getInputStream()); // FIXME, change char encoding?

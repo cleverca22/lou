@@ -2,6 +2,7 @@ package com.angeldsis.louapi;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -9,6 +10,7 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import com.angeldsis.louapi.HttpRequest.HttpReply;
+import com.angeldsis.louapi.LouState.City;
 
 public abstract class RPC extends Thread {
 	static String TAG = "RPC";
@@ -30,6 +32,8 @@ public abstract class RPC extends Thread {
 	public void OpenSession(final boolean reset,final RPCDone callback2, final int retry_count) {
 		if (retry_count > 10) {
 			Log.e(TAG,"too many retrys");
+			onEjected();
+			// FIXME, better error msg
 			return;
 		}
 		JSONObject obj = new JSONObject();
@@ -38,8 +42,9 @@ public abstract class RPC extends Thread {
 			doRPC("OpenSession",obj,this,new RPCCallback() {
 				@Override
 				void requestDone(rpcreply reply) throws JSONException,Exception {
-					Log.v(TAG,"http code:"+reply.http_code);
+					Log.v(TAG,account.sessionid+" http code:"+reply.http_code);
 					int r = reply.reply.getInt("r");
+					Log.v(TAG,reply.reply.toString(1));
 					if (r < 0) {
 						Thread.sleep(1000);
 						OpenSession(reset,callback2,retry_count+1);
@@ -60,7 +65,7 @@ public abstract class RPC extends Thread {
 			obj.put("time", System.currentTimeMillis());
 			doRPC("GetServerInfo",obj,this,new RPCCallback() {
 				void requestDone(rpcreply reply) throws JSONException {
-					Log.v(TAG+".GetServerInfo",reply.reply.toString(1));
+					//Log.v(TAG+".GetServerInfo",reply.reply.toString(1));
 					rpcDone.requestDone(reply.reply);
 				}
 			});
@@ -127,7 +132,7 @@ public abstract class RPC extends Thread {
 				@Override
 				void requestDone(rpcreply r) throws JSONException, Exception {
 					state.processPlayerInfo(r.reply);
-					Log.v(TAG+".GetPlayerInfo",r.reply.toString(1));
+					//Log.v(TAG+".GetPlayerInfo",r.reply.toString(1));
 					rpcDone.requestDone(r.reply);
 					cityListChanged();
 					cityChanged();
@@ -146,7 +151,7 @@ public abstract class RPC extends Thread {
 			obj.put("requestid", requestid);
 			requestid++;
 			String requests = "CITY:"+state.currentCity.cityid;
-			if (state.currentCity.visData.size() == 0) requests = requests + "\fVIS:c:"+state.currentCity.cityid+":0:-1085:-638:775:565:1"; // FIXME
+			requests += "\fVIS:c:"+state.currentCity.cityid+":0:-1085:-638:775:565:"+state.currentCity.visreset; // FIXME last field is reset, check webfrontend.vis.Main.js for others
 			if (chat_queue.size() > 0) {
 				String msg = chat_queue.remove(0);
 				requests = requests + "\fCHAT:"+msg;
@@ -194,8 +199,8 @@ public abstract class RPC extends Thread {
 				int m = item.getInt("m"); // max
 				double b = item.getDouble("b"); // last value
 				double d = item.getDouble("d"); // gain per sec
-				Log.v(TAG,"resource "+i+" count "+b+"/"+m);
-				state.currentCity.resources[i-1].set(d,b,m);
+				int step = item.getInt("s");
+				state.currentCity.resources[i-1].set(d,b,m,step);
 			}
 			if (D.has("iuo")) {
 				Object iuo2 = D.get("iuo");
@@ -225,6 +230,7 @@ public abstract class RPC extends Thread {
 				else Log.v(TAG,"no attacks 2!");
 			}
 			else Log.v(TAG,"no attacks?");
+			state.processCityPacket(D);
 			gotCityData();
 		} else if (C.equals("CHAT")) {
 			JSONArray D = p.getJSONArray("D");
@@ -264,35 +270,59 @@ public abstract class RPC extends Thread {
 	 */
 	public abstract void onPlayerData();
 	void parseVIS(JSONObject D) throws JSONException {
+		City c = state.currentCity;
+		if (c.visreset == 1) {
+			c.visData.clear();
+		}
 		JSONArray u = D.getJSONArray("u");
 		int x;
 		for (x = 0; x < u.length(); x++) {
 			JSONObject structure = u.getJSONObject(x);
-			LouVisData parsed = null;
-			int type = structure.getInt("t");
-			switch (type) {
-			case 3: // CityObject
-				break;
-			case 4:
-				parsed = new CityBuilding(structure,CityBuilding.BUILDING);
-				break;
-			case 5: // CityBuildingPlace
-				break;
-			case 9: // CityResField
-				parsed = new CityResField(structure);
-				break;
-			case 10: // CityFortification
-				parsed = new CityBuilding(structure,CityBuilding.WALL);
-				break;
-			default:
-				Log.v(TAG,"unhandled VIS type "+type);
+			LouVisData parsed = null,temp = null;
+			
+			// find the existing structure to update
+			int findme = structure.optInt("i");
+			Iterator<LouVisData> i = c.visData.iterator();
+			while (i.hasNext()) {
+				temp = i.next();
+				if (temp.visId == findme) {
+					parsed = temp;
+					break;
+				}
 			}
-			if (parsed != null) {
-				parsed.type = type;
-				state.currentCity.addVisObj(parsed);
+			if (parsed == null) { // if it was not found
+				int type = structure.getInt("t");
+				switch (type) {
+				case 3: // CityObject
+					break;
+				case 4:
+					parsed = new CityBuilding(structure,CityBuilding.BUILDING);
+					break;
+				case 5: // CityBuildingPlace
+					break;
+				case 9: // CityResField
+					parsed = new CityResField(structure);
+					break;
+				case 10: // CityFortification
+					parsed = new CityBuilding(structure,CityBuilding.WALL);
+					break;
+				default:
+					Log.v(TAG,"unhandled VIS type "+type);
+				}
+				if (parsed != null) {
+					parsed.type = type;
+					c.addVisObj(parsed);
+				}
+			} else { // if it was found
+				parsed.update(structure);
 			}
 		}
-		visDataReset();
+		if (c.visreset == 1) {
+			c.visreset = 0;
+			visDataReset();
+		} else {
+			visDataUpdated();
+		}
 	}
 	public void run() {
 		while (cont) {
@@ -315,6 +345,7 @@ public abstract class RPC extends Thread {
 	}
 	/** called when all state.visData has been reloaded */
 	public abstract void visDataReset();
+	public abstract void visDataUpdated();
 	/** called when Poll happens */
 	public abstract void tick();
 	/** called when state.resources has been updated */

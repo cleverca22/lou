@@ -1,10 +1,12 @@
 package com.angeldsis.lou;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 
 import com.angeldsis.lou.fragments.ResourceBar;
 import com.angeldsis.louapi.ChatMsg;
+import com.angeldsis.louapi.LouState;
 import com.angeldsis.louapi.LouState.City;
 
 import android.content.Context;
@@ -13,6 +15,7 @@ import android.database.DataSetObserver;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -35,6 +38,7 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 		super.onCreate(sis);
 		Log.v(TAG,"onCreate");
 		setContentView(R.layout.session_core);
+		Log.v(TAG,"bar1");
 		resource_bar = new ResourceBar(this);
 		((FrameLayout) findViewById(R.id.resource_bar)).addView(resource_bar.self);
 		mAdapter = new cityList(this);
@@ -52,7 +56,9 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 		if (session.alive == false) {
 			onEjected();
 		} else {
-			int total = session.state.chat_history.size();
+			LouState state = session.state;
+			ArrayList<ChatMsg> msgs = state.chat_history;
+			int total = msgs.size();
 			Button chat = (Button) findViewById(R.id.chat);
 			chat.setText("chat ("+total+")");
 			if (session.state.currentCity != null) {
@@ -78,7 +84,7 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 		Log.v(TAG,"onStop");
 	}
 	public void visDataReset() {
-		Log.v(TAG,"vis count "+session.rpc.state.currentCity.visData.size());
+		super.visDataReset();
 		//if (!vis_data_loaded) gotVisDataInit();
 	}
 	public void gotCityData() {
@@ -147,6 +153,7 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 	}
 	@Override
 	public void cityListChanged() {
+		Log.v(TAG,"cityListChanged()");
 		mAdapter.clear();
 		bars.clear();
 		Iterator<City> i = session.state.cities.iterator();
@@ -160,11 +167,20 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 		session.state.changeCity(session.state.cities.get(arg2));
 	}
 	class cityList extends ArrayAdapter<City> {
+		// getView gets called at regular intervals, causing excessive recreation of objects
+		SparseArray<ViewGroup> views;
 		cityList(Context c) {
 			super(c,0);
+			views = new SparseArray<ViewGroup>();
+		}
+		public void clear() {
+			super.clear();
+			views.clear();
 		}
 		public View getView(int position, View convertView, ViewGroup parent) {
-			ViewGroup row = new LinearLayout(LouSessionMain.this);
+			ViewGroup row = views.get(position);
+			if (row != null) return row;
+			row = new LinearLayout(LouSessionMain.this);
 			TextView name = new TextView(LouSessionMain.this);
 			City i = getItem(position);
 			name.setText(i.name);
@@ -181,6 +197,7 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 			//trans.commit();
 			bar.addView(bar2.self);
 			row.addView(bar);
+			views.put(position, row);
 			return row;
 		}
 	}

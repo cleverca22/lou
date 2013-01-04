@@ -154,6 +154,7 @@ public class LouMain extends FragmentActivity {
 			super.onCreate(savedInstanceState);
 			int acctOffset = getArguments() != null ? getArguments().getInt(
 					"acctOffset") : -1;
+			// FIXME this has caused a NullPointerException atleast once
 			this.account = ((LouMain) this.getActivity()).accounts
 					.get(acctOffset);
 		}

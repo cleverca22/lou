@@ -1,6 +1,8 @@
 package com.angeldsis.lou;
 
 import com.angeldsis.louapi.CityBuilding;
+import com.angeldsis.louapi.LouState;
+import com.angeldsis.louapi.LouVisData.Hook;
 
 import android.content.Context;
 import android.graphics.Rect;
@@ -9,17 +11,22 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.TextView;
 
-public class LouStructure extends VisObject {
+public class LouStructure extends VisObject implements Hook {
 	String TAG = "LouStructure";
 	TextView level;
-	public LouStructure(Context context,CityBuilding base) {
+	CityBuilding base;
+	LouState state;
+	public LouStructure(Context context,CityBuilding base,LouState state) {
+		this.state = state;
+		this.base = base;
+		base.hook = this;
 		rect = new RectF(base.x,base.y,base.x+128,base.y+128);
 		//setFocusable(true);
 		//setFocusableInTouchMode(true);
 		level = new TextView(context,null,android.R.attr.textAppearanceMedium);
 		//ViewGroup.LayoutParams layout = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT);
 		//addView(level,layout);
-		level.setText("?");
+		updated(); // sets level text
 		level.setBackgroundResource(R.drawable.building_level_display_bgr);
 		
 		int res = -1;
@@ -94,11 +101,11 @@ public class LouStructure extends VisObject {
 		//String crash = null;
 		//Log.v(TAG,""+crash.length());
 	}
-	void setLevel(int level) {
+	/*void setLevel(int level) {
 		this.level.setText(""+level);
 		//Log.v(TAG,"setting level to "+level);
 		//this.level.invalidate();
-	}
+	}*/
 	@Override
 	void addViews(CityLayout l) {
 		l.addView(level);
@@ -110,5 +117,16 @@ public class LouStructure extends VisObject {
 	}
 	String getType() {
 		return "building";
+	}
+	@Override
+	public void updated() {
+		if (base.s == 1) {
+			level.setText("X");
+			Log.v(TAG,"time left:"+(base.se - state.getServerStep()));
+		}
+		else level.setText(""+base.level);
+	}
+	public void tick() {
+		if (base.s == 1) Log.v(TAG,"time left:"+(base.se - state.getServerStep()));
 	}
 }

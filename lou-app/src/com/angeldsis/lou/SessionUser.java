@@ -13,8 +13,11 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 
-public abstract class SessionUser extends FragmentActivity implements Callbacks {
+public class SessionUser extends FragmentActivity implements Callbacks {
 	static final String TAG = "SessionUser";
 	SessionKeeper mService;
 	boolean mBound;
@@ -25,8 +28,6 @@ public abstract class SessionUser extends FragmentActivity implements Callbacks 
 		Intent msg = getIntent();
 		Bundle args = msg.getExtras();
 		acct = new AccountWrap(args);
-		Intent intent = new Intent(this,SessionKeeper.class);
-		startService(intent);
 	}
 	void check_state() {
 		if (session == null) {
@@ -73,4 +74,27 @@ public abstract class SessionUser extends FragmentActivity implements Callbacks 
 	public void onPlayerData() {}
 	public void cityChanged() {}
 	public void cityListChanged() {}
+	public void visDataReset() {
+		Log.v(TAG,"vis count "+session.rpc.state.currentCity.visData.size()+" "+session.rpc.state.currentCity.hashCode());
+	}
+	public void visDataUpdated() {
+		Log.v(TAG,"vis count "+session.rpc.state.currentCity.visData.size());
+	}
+	public void gotCityData() {}
+	public void tick() {}
+	public boolean onCreateOptionsMenu(Menu menu) {
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.main_menu, menu);
+		return true;
+	}
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.item1:
+			Intent intent = new Intent(this,ChatWindow.class);
+			intent.putExtras(acct.toBundle());
+			startActivity(intent);
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
+	}
 }

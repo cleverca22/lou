@@ -124,7 +124,7 @@ public class ChatWindow extends SessionUser {
 			
 			if (c.c.equals("@A")) {
 				channel.setText("[Alliance] ");
-				int green = this.getResources().getColor(R.color.green);
+				int green = this.getResources().getColor(R.color.chat_green);
 				channel.setTextColor(green);
 				sender.setTextColor(green);
 				msg.setTextColor(green);

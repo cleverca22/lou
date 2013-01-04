@@ -1,5 +1,6 @@
 package com.angeldsis.lou;
 
+import com.angeldsis.lou.fragments.ResourceBar;
 import com.angeldsis.louapi.LouState;
 
 import android.view.ViewGroup;
@@ -8,9 +9,11 @@ import android.widget.FrameLayout;
 public class CityUI extends ViewGroup {
 	static final String TAG = "CityUI";
 	CityLayout mTest;
-	public CityUI(CityView cityView, LouState state) {
+	ResourceBar resource_bar;
+	public CityUI(CityView cityView) {
 		super(cityView);
-		mTest = new CityLayout(cityView, state);
+		resource_bar = new ResourceBar(cityView);
+		mTest = new CityLayout(cityView);
 		addView(mTest);
 	}
 	protected void onLayout(boolean arg0, int arg1, int arg2, int arg3, int arg4) {
@@ -26,9 +29,14 @@ public class CityUI extends ViewGroup {
 		mTest.setZoom(f);
 	}
 	public void gotCityData() {
-		mTest.resource_bar.update(mTest.state.currentCity);
+		resource_bar.update(mTest.state.currentCity);
 	}
 	public void tick() {
-		mTest.resource_bar.update(mTest.state.currentCity);
+		resource_bar.update(mTest.state.currentCity);
+		mTest.tick();
+	}
+	public void setState(LouState state) {
+		// TODO Auto-generated method stub
+		mTest.setState(state);
 	}
 }

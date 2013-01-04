@@ -20,13 +20,14 @@ public class CityView extends SessionUser implements OnCheckedChangeListener, Ca
 		RadioGroup rg = (RadioGroup)findViewById(R.id.zoom);
 		rg.setOnCheckedChangeListener(this);
 		vis_data_loaded = false;
-	}
-	void session_ready() {
-		mTest = new CityUI(this,session.state);
+		mTest = new CityUI(this);
 		ViewGroup vg = (ViewGroup) this.findViewById(R.id.test);
 		vg.addView(mTest);
-		((FrameLayout) findViewById(R.id.resource_bar)).addView(mTest.mTest.resource_bar.self);
-		mTest.mTest.resource_bar.update(session.state.currentCity);
+		((FrameLayout) findViewById(R.id.resource_bar)).addView(mTest.resource_bar.self);
+	}
+	void session_ready() {
+		mTest.setState(session.state);
+		mTest.resource_bar.update(session.state.currentCity);
 	}
 	protected void onStart() {
 		super.onStart();
