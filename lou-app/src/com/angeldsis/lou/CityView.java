@@ -1,8 +1,13 @@
 package com.angeldsis.lou;
 
 import com.angeldsis.lou.SessionKeeper.Callbacks;
+
+import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.RadioGroup;
@@ -16,6 +21,7 @@ public class CityView extends SessionUser implements OnCheckedChangeListener, Ca
 	public void onCreate(Bundle sis) {
 		super.onCreate(sis);
 		Log.v(TAG,"onCreate");
+		if (Build.VERSION.SDK_INT > 13) initApi14();
 		setContentView(R.layout.city_layout);
 		RadioGroup rg = (RadioGroup)findViewById(R.id.zoom);
 		rg.setOnCheckedChangeListener(this);
@@ -28,6 +34,7 @@ public class CityView extends SessionUser implements OnCheckedChangeListener, Ca
 	void session_ready() {
 		mTest.setState(session.state);
 		mTest.resource_bar.update(session.state.currentCity);
+		session.state.enableVis();
 	}
 	protected void onStart() {
 		super.onStart();
@@ -70,5 +77,22 @@ public class CityView extends SessionUser implements OnCheckedChangeListener, Ca
 	}
 	public void gotCityData() {
 		mTest.gotCityData();
+	}
+	public boolean onCreateOptionsMenu(Menu menu) {
+		super.onCreateOptionsMenu(menu);
+		menu.removeItem(R.id.city);
+		return true;
+	}
+	public boolean onOptionsItemSelected(MenuItem item) {
+		Log.v(TAG,"click! "+item.getItemId());
+		switch (item.getItemId()) {
+		case android.R.id.home:
+			Intent i = new Intent(this,LouSessionMain.class);
+			i.putExtras(acct.toBundle());
+			i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+			startActivity(i);
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
 	}
 }

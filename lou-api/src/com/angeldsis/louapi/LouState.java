@@ -25,6 +25,7 @@ public class LouState implements Serializable {
 	long refTime;
 	public ArrayList<ChatMsg> chat_history;
 	RPC rpc;
+	boolean fetchVis = false;
 
 	public LouState() {
 		init();
@@ -166,6 +167,15 @@ public class LouState implements Serializable {
 		rpc.cityChanged(); // FIXME, maybe fire this after the new data is in
 		city.visData.clear(); // the code wasn't receiving updates, re-fetch it
 		city.visreset = 1;
+	}
+	public void enableVis() {
+		currentCity.visData.clear();
+		currentCity.visreset = 1;
+		fetchVis = true;
+		rpc.interrupt();
+	}
+	public void disableVis() {
+		fetchVis = false;
 	}
 	public void setRPC(RPC rpc2) {
 		rpc = rpc2;

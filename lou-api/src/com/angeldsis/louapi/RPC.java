@@ -151,7 +151,9 @@ public abstract class RPC extends Thread {
 			obj.put("requestid", requestid);
 			requestid++;
 			String requests = "CITY:"+state.currentCity.cityid;
-			requests += "\fVIS:c:"+state.currentCity.cityid+":0:-1085:-638:775:565:"+state.currentCity.visreset; // FIXME last field is reset, check webfrontend.vis.Main.js for others
+			if (state.fetchVis) {
+				requests += "\fVIS:c:"+state.currentCity.cityid+":0:-1085:-638:775:565:"+state.currentCity.visreset; // FIXME last field is reset, check webfrontend.vis.Main.js for others
+			}
 			if (chat_queue.size() > 0) {
 				String msg = chat_queue.remove(0);
 				requests = requests + "\fCHAT:"+msg;

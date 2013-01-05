@@ -53,7 +53,6 @@ public class Resource implements Serializable {
 	}
 	private void readObject(java.io.ObjectInputStream in) throws IOException,
 			ClassNotFoundException {
-		Log.v("Resource","Restore");
 		base = in.readDouble();
 		step = in.readLong();
 		delta = in.readDouble();

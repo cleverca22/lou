@@ -1,7 +1,6 @@
 package com.angeldsis.lou;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 
 import com.angeldsis.lou.fragments.ResourceBar;
@@ -11,9 +10,7 @@ import com.angeldsis.louapi.LouState.City;
 
 import android.content.Context;
 import android.content.Intent;
-import android.database.DataSetObserver;
 import android.os.Bundle;
-import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
@@ -21,10 +18,8 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -59,8 +54,8 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 			LouState state = session.state;
 			ArrayList<ChatMsg> msgs = state.chat_history;
 			int total = msgs.size();
-			Button chat = (Button) findViewById(R.id.chat);
-			chat.setText("chat ("+total+")");
+			TextView chat = (TextView) findViewById(R.id.chat);
+			chat.setText(""+total);
 			if (session.state.currentCity != null) {
 				cityListChanged();
 				TextView city = (TextView) findViewById(R.id.current_city);
@@ -111,12 +106,6 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 	void mainTick() {
 		updateTickers();
 	}
-	public void cityView(View v) {
-		Log.v(TAG,"opening city view");
-		Intent i = new Intent(this,CityView.class);
-		i.putExtras(acct.toBundle());
-		startActivity(i);
-	}
 	@Override
 	public void onPlayerData() {
 		updateTickers();
@@ -137,19 +126,10 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 		i.putExtras(acct.toBundle());
 		startActivity(i);
 	}
-	public void openChat(View v) {
-		Intent i = new Intent(this,ChatWindow.class);
-		i.putExtras(acct.toBundle());
-		startActivity(i);
-	}
-	public void doLogout(View v) {
-		session.logout();
-		finish();
-	}
 	public void onChat(ArrayList<ChatMsg> c) {
 		int total = session.state.chat_history.size();
-		Button chat = (Button) findViewById(R.id.chat);
-		chat.setText("chat ("+total+")");
+		TextView chat = (TextView) findViewById(R.id.chat);
+		chat.setText(""+total);
 	}
 	@Override
 	public void cityListChanged() {

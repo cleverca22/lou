@@ -4,7 +4,6 @@ import com.angeldsis.lou.fragments.ResourceBar;
 import com.angeldsis.louapi.LouState;
 
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 
 public class CityUI extends ViewGroup {
 	static final String TAG = "CityUI";

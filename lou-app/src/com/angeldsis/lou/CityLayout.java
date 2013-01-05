@@ -3,7 +3,6 @@ package com.angeldsis.lou;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import com.angeldsis.lou.fragments.ResourceBar;
 import com.angeldsis.louapi.CityBuilding;
 import com.angeldsis.louapi.CityResField;
 import com.angeldsis.louapi.LouState;
@@ -54,8 +53,6 @@ public class CityLayout extends ViewGroup {
 		maxy = 1840 - (b - t);
 		// FIXME, internal scroll!
 		int x;
-		//maxx = 2944;
-		//maxy = 1840;
 		for (x = 0; x < buildings.size(); x++) {
 			VisObject y = buildings.get(x);
 			y.layout(getScrollX(),getScrollY(),zoom);
@@ -148,7 +145,6 @@ public class CityLayout extends ViewGroup {
 		this.onLayout(false, 0, 0, 0, 0);
 	}
 	public void gotVisData() {
-		//resource_bar.setLevels(12, 34, 56, 78);
 		int x;
 		City self = state.currentCity;
 		for (x = 0; x < self.visData.size(); x++) {
@@ -170,6 +166,7 @@ public class CityLayout extends ViewGroup {
 				break;
 			}
 		}
+		requestLayout();
 	}
 	void onResume() {
 		updateAll();

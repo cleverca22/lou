@@ -88,6 +88,7 @@ public class LouStructure extends VisObject implements Hook {
 		Log.v(TAG,"focus changed ");
 	}
 	public void layout(int x,int y,float zoom) {
+		Log.v(TAG,"x:"+x+" y:"+y+" z:"+zoom);
 		// position of structure on screen, including scroll and scale
 		int selfx = (int) ((x + rect.left) * zoom);
 		int selfy = (int) ((y + rect.top) * zoom);
@@ -122,11 +123,13 @@ public class LouStructure extends VisObject implements Hook {
 	public void updated() {
 		if (base.s == 1) {
 			level.setText("X");
+			// FIXME progress bar
 			Log.v(TAG,"time left:"+(base.se - state.getServerStep()));
 		}
 		else level.setText(""+base.level);
 	}
 	public void tick() {
+		// FIXME, progress bar
 		if (base.s == 1) Log.v(TAG,"time left:"+(base.se - state.getServerStep()));
 	}
 }

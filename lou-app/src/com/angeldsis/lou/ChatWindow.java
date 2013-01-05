@@ -5,7 +5,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -28,6 +33,7 @@ public class ChatWindow extends SessionUser {
 	private NameClicked nameClicker;
 	public void onCreate(Bundle b) {
 		super.onCreate(b);
+		if (Build.VERSION.SDK_INT > 13) initApi14();
 		setContentView(R.layout.chat_window);
 		general = new LinearLayout(this);
 		alliance = new LinearLayout(this);
@@ -163,5 +169,22 @@ public class ChatWindow extends SessionUser {
 		}
 		session.rpc.QueueChat(buffer);
 		m.setText("");
+	}
+	public boolean onCreateOptionsMenu(Menu menu) {
+		super.onCreateOptionsMenu(menu);
+		menu.removeItem(R.id.open_chat);
+		return true;
+	}
+	public boolean onOptionsItemSelected(MenuItem item) {
+		Log.v(TAG,"click! "+item.getItemId());
+		switch (item.getItemId()) {
+		case android.R.id.home:
+			Intent i = new Intent(this,LouSessionMain.class);
+			i.putExtras(acct.toBundle());
+			i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+			startActivity(i);
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
 	}
 }

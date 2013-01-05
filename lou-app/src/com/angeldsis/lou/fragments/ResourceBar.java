@@ -61,7 +61,8 @@ public class ResourceBar {
 			if (r.getMax() == 0) color = android.R.color.white;
 			else {
 				int percent = (r.getCurrent() * 100) / r.getMax();
-				if (percent > 90) color = R.color.resource_orange;
+				if (percent == 100) color = R.color.resource_red;
+				else if (percent > 90) color = R.color.resource_orange;
 				else if (percent > 82) color = R.color.resource_yellow;
 				else color = R.color.resource_green;
 			}
