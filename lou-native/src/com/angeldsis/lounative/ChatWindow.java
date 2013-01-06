@@ -21,7 +21,7 @@ public class ChatWindow extends Shell {
 		setLayout(new GridLayout(1, false));
 		setText("Chat");
 		
-		text = new Text(this, SWT.BORDER | SWT.MULTI);
+		text = new Text(this, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL | SWT.CANCEL | SWT.MULTI);
 		text.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		msg_input = new Text(this, SWT.BORDER);
