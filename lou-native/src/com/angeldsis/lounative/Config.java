@@ -51,4 +51,10 @@ public class Config {
 		props.remove("username");
 		props.remove("password");
 	}
+	public void setRememberMe(String cookie) {
+		props.setProperty("remember_me", cookie);
+	}
+	public String getRememberMe() {
+		return props.getProperty("remember_me", null);
+	}
 }

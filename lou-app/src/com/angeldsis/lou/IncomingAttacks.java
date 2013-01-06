@@ -1,9 +1,7 @@
 package com.angeldsis.lou;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 
-import com.angeldsis.louapi.ChatMsg;
 import com.angeldsis.louapi.IncomingAttack;
 
 import android.os.Bundle;
@@ -32,22 +30,12 @@ public class IncomingAttacks extends SessionUser {
 		}
 	}
 	@Override
-	public void visDataReset() {
-		// TODO Auto-generated method stub
-		
-	}
-	@Override
 	public void onPlayerData() {
 		// TODO Auto-generated method stub
 		
 	}
 	@Override
 	public void gotCityData() {
-		// TODO Auto-generated method stub
-		
-	}
-	@Override
-	public void tick() {
 		// TODO Auto-generated method stub
 		
 	}

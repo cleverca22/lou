@@ -9,8 +9,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.angeldsis.louapi.LouState.City;
-
 public class LouState implements Serializable {
 	private static final long serialVersionUID = 1L;
 	private static final String TAG = "LouState";
@@ -61,7 +59,6 @@ public class LouState implements Serializable {
 			}
 			if (cityout == null) {
 				cityout = new City();
-				Log.v(TAG,"made new");
 			}
 			cityout.name = cityin.getString("n");
 			cityout.cityid = cityid;

@@ -1,57 +1,46 @@
 package com.angeldsis.lounative;
 
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.widgets.Button;
-
 import com.angeldsis.louapi.ChatMsg;
 
-public class ChatWindow extends Shell implements MouseListener {
+public class ChatWindow extends Shell {
+	static final String TAG = "ChatWindow";
 	private Text text;
-	private Text text_1;
+	private Text msg_input;
 	RPCWrap rpc;
 	public ChatWindow(Display display,RPCWrap rpc) {
 		this.rpc = rpc;
-		setLayout(new GridLayout(2, false));
+		setLayout(new GridLayout(1, false));
+		setText("Chat");
 		
 		text = new Text(this, SWT.BORDER | SWT.MULTI);
-		GridData gd_text = new GridData(SWT.LEFT, SWT.FILL, true, true, 2, 1);
-		gd_text.widthHint = 431;
-		text.setLayoutData(gd_text);
+		text.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
-		text_1 = new Text(this, SWT.BORDER);
-		text_1.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		
-		Button btnNewButton = new Button(this, SWT.NONE);
-		btnNewButton.setText("Send");
-		btnNewButton.addMouseListener(this);
+		msg_input = new Text(this, SWT.BORDER);
+		msg_input.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		msg_input.addListener(SWT.KeyUp, new Listener() {
+			public void handleEvent(Event e) {
+				if (e.keyCode == 13) {
+					sendMessage(null);
+				}
+			}
+		});
 		open();
 	}
 	protected void checkSubclass() {}
 	public void handle_msg(ChatMsg c) {
 		text.setText(text.getText() + "\r\n" + c.toString());
 	}
-	@Override
-	public void mouseDoubleClick(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
-	@Override
-	public void mouseDown(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
-	@Override
-	public void mouseUp(MouseEvent e) {
-		rpc.QueueChat(text_1.getText() + "\n");
-		text_1.setText("");
+	public void sendMessage(MouseEvent e) {
+		rpc.QueueChat(msg_input.getText() + "\n");
+		msg_input.setText("");
 	}
 }

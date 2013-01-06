@@ -65,4 +65,14 @@ public class RPCWrap extends RPC {
 		// TODO Auto-generated method stub
 		System.out.println("ejected");
 	}
+	@Override
+	public void cityListChanged() {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void visDataUpdated() {
+		// TODO Auto-generated method stub
+		
+	}
 }

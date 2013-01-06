@@ -35,7 +35,6 @@ public class CityUI extends ViewGroup {
 		mTest.tick();
 	}
 	public void setState(LouState state) {
-		// TODO Auto-generated method stub
 		mTest.setState(state);
 	}
 }

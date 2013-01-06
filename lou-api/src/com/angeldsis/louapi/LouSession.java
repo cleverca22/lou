@@ -11,12 +11,15 @@ import java.net.CookiePolicy;
 import java.net.CookieStore;
 import java.net.HttpCookie;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -32,8 +35,10 @@ import org.xml.sax.helpers.XMLReaderFactory;
 
 public class LouSession {
 	static final String TAG = "LouSession";
+	static URL base;
 	public CookieManager mCookieManager;
 	public ArrayList<Account> servers;
+	public String REMEMBER_ME;
 	// handles the login process
 	private class Policy implements CookiePolicy {
 		@Override
@@ -46,6 +51,12 @@ public class LouSession {
 	public LouSession() {
 		mCookieManager = new CookieManager(null,new Policy());
 		CookieHandler.setDefault(mCookieManager);
+		try {
+			base = new URL("http://lordofultima.com");
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	public result startLogin(String username,String password) {
 		try {
@@ -97,89 +108,10 @@ public class LouSession {
 					Log.v(TAG,"302'd to "+url2);
 				}
 			} while (repeat);
+
 			final result output = new result();
 			output.worked = false;
-			XMLReader xmlReader = XMLReaderFactory.createXMLReader ("org.ccil.cowan.tagsoup.Parser");
-			final ArrayList<Account> servers = new ArrayList<Account>();
-			final Pattern actioncheck = Pattern.compile("^http://prodgame(\\d+).lordofultima.com/(\\d+)/index.aspx$");
-			ContentHandler handler = new DefaultHandler() {
-				Account acct;
-				boolean in_server_list = false;
-				public void startElement(String uri,String localName,String qName, Attributes attributes) throws SAXException {
-					String classVal = attributes.getValue("class");
-					if (localName.equals("ul") && (classVal != null) && classVal.equals("server-list")) {
-						in_server_list = true;
-					} else if (localName.equals("form")) {
-						Log.v(TAG,"found a form");
-						String action = attributes.getValue("action");
-						Matcher m = actioncheck.matcher(action);
-						if (action.equals("/en/user/logout")) {
-							output.worked = true;
-						} else if (m.find()) {
-							acct.serverid = m.group(1);
-							acct.pathid = m.group(2);
-						} else Log.v(TAG,"action "+action);
-					} else if (in_server_list) {
-						if (localName.equals("li")) {
-							String id = attributes.getValue("id");
-							Log.v(TAG,"class:"+classVal+" id:"+id);
-							acct = new Account();
-							acct.world = id; // FIXME
-							if (classVal.equals("offline menu_bubble")) {
-								acct.offline = true;
-							} else {
-								acct.offline = false;
-							}
-						} else if (localName.equals("div")) {
-							Log.v(TAG,"div class="+classVal);
-						} else if (localName.equals("input")) {
-							String name = attributes.getValue("name");
-							if (acct != null && name != null && name.equals("sessionId")) {
-								acct.sessionid = attributes.getValue("value");
-							} else if (acct != null && attributes.getValue("type").equals("submit")) {
-								//acct.world = attributes.getValue("value");
-							}
-						}
-					}
-				}
-				public void endElement (String uri, String localName, String qName) {
-					if (in_server_list) {
-						if (localName.equals("ul")) in_server_list = false;
-						else if (localName.equals("li")) {
-							Log.v(TAG,"li done, adding acct "+acct);
-							servers.add(acct);
-							acct = null;
-						}
-					}
-				}
-				/*public void characters(char[]text, int start, int size) {
-				String buf = new String(text,start,size);
-				Log.v(TAG,"text: "+buf);
-				}*/
-			};
-			xmlReader.setContentHandler(handler);
-			FilterInputStream wrapper = new FilterInputStream(conn2.getInputStream()) {
-				public int read(byte[] buffer, int offset, int count) throws IOException {
-					int size = super.read(buffer, offset, count);
-					if (size == -1) return size;
-					//Log.v(TAG,"sniff:"+new String(buffer,offset,size));
-					return size;
-				}
-			};
-			xmlReader.parse(new InputSource(wrapper));
-			if (output.worked) {
-				this.servers = servers;
-				return output;
-			}
-			output.error = true;
-			output.errmsg = "logout link not found";
-			CookieStore store = mCookieManager.getCookieStore();
-			Iterator<HttpCookie> i = store.getCookies().iterator();
-			while (i.hasNext()) {
-				HttpCookie c = i.next();
-				System.out.println("cookie dump"+c.toString());
-			}
-			System.out.println("done");
+			parse_result(output, conn2.getInputStream());
 			return output;
 		} catch (UnknownHostException e) {
 			result output = new result();
@@ -205,7 +137,7 @@ public class LouSession {
 	}
 	HttpURLConnection doRequest(String url) throws IOException  {
 		Log.v(TAG,"Url2:"+url);
-		URL secondurl = new URL(url);
+		URL secondurl = new URL(base,url);
 		HttpURLConnection conn2 = (HttpURLConnection)secondurl.openConnection();
 		conn2.setReadTimeout(20000);
 		conn2.setConnectTimeout(15000);
@@ -213,6 +145,102 @@ public class LouSession {
 		conn2.setDoOutput(true);
 		conn2.connect();
 		return conn2;
+	}
+	private void parse_result(final result output, InputStream is) throws IOException, SAXException {
+		XMLReader xmlReader = XMLReaderFactory.createXMLReader ("org.ccil.cowan.tagsoup.Parser");
+		final ArrayList<Account> servers = new ArrayList<Account>();
+		final Pattern actioncheck = Pattern.compile("^http://prodgame(\\d+).lordofultima.com/(\\d+)/index.aspx$");
+		ContentHandler handler = new DefaultHandler() {
+			Account acct;
+			boolean in_server_list = false;
+			public void startElement(String uri,String localName,String qName, Attributes attributes) throws SAXException {
+				String classVal = attributes.getValue("class");
+				if (localName.equals("ul") && (classVal != null) && classVal.equals("server-list")) {
+					in_server_list = true;
+				} else if (localName.equals("form")) {
+					Log.v(TAG,"found a form");
+					String action = attributes.getValue("action");
+					Matcher m = actioncheck.matcher(action);
+					if (action.equals("/en/user/logout")) {
+						output.worked = true;
+					} else if (m.find()) {
+						acct.serverid = m.group(1);
+						acct.pathid = m.group(2);
+					} else Log.v(TAG,"action "+action);
+				} else if (in_server_list) {
+					if (localName.equals("li")) {
+						String id = attributes.getValue("id");
+						Log.v(TAG,"class:"+classVal+" id:"+id);
+						acct = new Account();
+						acct.world = id; // FIXME
+						if (classVal.equals("offline menu_bubble")) {
+							acct.offline = true;
+						} else {
+							acct.offline = false;
+						}
+					} else if (localName.equals("div")) {
+						Log.v(TAG,"div class="+classVal);
+					} else if (localName.equals("input")) {
+						String name = attributes.getValue("name");
+						if (acct != null && name != null && name.equals("sessionId")) {
+							acct.sessionid = attributes.getValue("value");
+						} else if (acct != null && attributes.getValue("type").equals("submit")) {
+							//acct.world = attributes.getValue("value");
+						}
+					}
+				}
+			}
+			public void endElement (String uri, String localName, String qName) {
+				if (in_server_list) {
+					if (localName.equals("ul")) in_server_list = false;
+					else if (localName.equals("li")) {
+						Log.v(TAG,"li done, adding acct "+acct);
+						servers.add(acct);
+						acct = null;
+					}
+				}
+			}
+			/*public void characters(char[]text, int start, int size) {
+			String buf = new String(text,start,size);
+			Log.v(TAG,"text: "+buf);
+			}*/
+		};
+		xmlReader.setContentHandler(handler);
+		FilterInputStream wrapper = new FilterInputStream(is) {
+			public int read(byte[] buffer, int offset, int count) throws IOException {
+				int size = super.read(buffer, offset, count);
+				if (size == -1) return size;
+				//Log.v(TAG,"sniff:"+new String(buffer,offset,size));
+				return size;
+			}
+		};
+		xmlReader.parse(new InputSource(wrapper));
+		if (output.worked) {
+			List<HttpCookie> cookies;
+			try {
+				cookies = mCookieManager.getCookieStore().get(new URI("http://www.lordofultima.com/"));
+				int x;
+				for (x = 0; x < cookies.size(); x++) {
+					if (cookies.get(x).getName().equals("REMEMBER_ME_COOKIE")) {
+						REMEMBER_ME = cookies.get(x).getValue();
+					}
+				}
+			} catch (URISyntaxException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			this.servers = servers;
+			return;
+		}
+		output.error = true;
+		output.errmsg = "logout link not found";
+		CookieStore store = mCookieManager.getCookieStore();
+		Iterator<HttpCookie> i = store.getCookies().iterator();
+		while (i.hasNext()) {
+			HttpCookie c = i.next();
+			System.out.println("cookie dump"+c.toString());
+		}
+		System.out.println("done");
 	}
 	public class result {
 		int code;
@@ -237,5 +265,58 @@ public class LouSession {
 			e.printStackTrace();
 		}
 		System.out.println(buf.toString());
+	}
+	public result check_cookie() {
+		try {
+			URL check = new URL("https://www.lordofultima.com/en/welcome");
+			HttpsURLConnection.setFollowRedirects(false);
+			HttpURLConnection.setFollowRedirects(false);
+			HttpsURLConnection conn = (HttpsURLConnection) check
+					.openConnection();
+			conn.setReadTimeout(30000);
+			conn.setConnectTimeout(15000);
+			conn.setRequestMethod("GET");
+			conn.setDoOutput(false);
+			conn.setDoInput(true);
+			conn.connect();
+			if (conn.getResponseCode() != 302) {
+				Log.v(TAG, "was expecting 302");
+				return null;
+				// FIXME
+			}
+			String secondurl = conn.getHeaderField("Location");
+			Log.v(TAG, "second url:" + secondurl);
+			if (secondurl.equals("/en/welcome?"))
+				secondurl = "http://www.lordofultima.com/en/welcome?";// FIXME
+	
+			boolean repeat = true;
+			HttpURLConnection conn2;
+			do {
+				conn2 = this.doRequest(secondurl);
+				if (conn2.getResponseCode() == 200) {
+					repeat = false;
+				} else if (conn2.getResponseCode() == 302) {
+					secondurl = conn2.getHeaderField("Location");
+					Log.v(TAG, "302'd to " + secondurl);
+				}
+			} while (repeat);
+			System.out.println("final code "+conn2.getResponseCode());
+			final result output = new result();
+			output.worked = false;
+			parse_result(output, conn2.getInputStream());
+			return output;
+		} catch (UnknownHostException e) {
+			System.out.println("dns error"+ e);
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SAXException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
 	}
 }

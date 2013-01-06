@@ -1,6 +1,7 @@
 package com.angeldsis.louapi;
 
 import java.io.InputStream;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -53,7 +54,7 @@ public abstract class RPC extends Thread {
 					instanceid = reply.reply.getString("i");
 					callback2.requestDone(null);
 				}
-			});
+			},5);
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -68,12 +69,16 @@ public abstract class RPC extends Thread {
 					//Log.v(TAG+".GetServerInfo",reply.reply.toString(1));
 					rpcDone.requestDone(reply.reply);
 				}
-			});
+			},5);
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
 	}
-	private InputStream doRPC(final String function,JSONObject request, RPC parent, final RPCCallback rpcCallback) throws JSONException {
+	private InputStream doRPC(final String function,final JSONObject request, final RPC parent, final RPCCallback rpcCallback, final int retry) throws JSONException {
+		if (retry == 0) {
+			System.out.println("too many treies");
+			return null;
+		}
 		if (function == "OpenSession") request.put("session", parent.account.sessionid);
 		else request.put("session", parent.instanceid);
 		HttpRequest req2 = newHttpRequest();
@@ -107,6 +112,19 @@ public abstract class RPC extends Thread {
 					e.printStackTrace();
 				}
 			}
+
+			@Override
+			public void error(UnknownHostException e) {
+				Log.w(TAG,"dns error, retrying");
+				// dns error when doing RPC
+				// retry up to 5 times
+				try {
+					doRPC(function,request,parent,rpcCallback,retry - 1);
+				} catch (JSONException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
 		};
 		req2.PostURL(urlbase + function, request.toString(), cb);
 		return null;
@@ -137,7 +155,7 @@ public abstract class RPC extends Thread {
 					cityListChanged();
 					cityChanged();
 				}
-			});
+			},5);
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -170,7 +188,7 @@ public abstract class RPC extends Thread {
 						handlePollPacket(obj);
 					}
 				}
-			});
+			},5);
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

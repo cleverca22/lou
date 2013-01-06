@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.UnknownHostException;
 
 import com.angeldsis.louapi.HttpRequest;
 
@@ -48,6 +49,8 @@ public class HttpRequestWrap implements HttpRequest {
 		} catch (MalformedURLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (UnknownHostException e) {
+			cb.error(e);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

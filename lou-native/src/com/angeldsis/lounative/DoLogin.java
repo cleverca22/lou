@@ -70,10 +70,8 @@ public class DoLogin extends Shell implements MouseListener {
 		if (btnSavePw.getSelection()) {
 			config.setUsername(username);
 			config.setPassword(password);
-			config.flush();
 		} else {
 			config.clearCredentials();
-			config.flush();
 		}
 		System.out.println("starting login");
 		result reply = session.startLogin(username,password);
@@ -82,11 +80,16 @@ public class DoLogin extends Shell implements MouseListener {
 			reply.e.printStackTrace();
 		}
 		if (reply.worked) {
+			config.setRememberMe(session.REMEMBER_ME);
+			config.flush();
 			System.out.println("worked");
 			close();
 			dispose();
 		}
-		else return;
+		else {
+			config.flush();
+			return;
+		}
 	}
 	protected void checkSubclass() {
 	}
