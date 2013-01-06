@@ -13,4 +13,7 @@
     <string name="current_city">Current city:</string>
     <string name="open_chat">Open Chat</string>
     <string name="total_chat">Total chat messages:</string>
+    <string name="gold">Gold</string>
+    <string name="low_ram">Sorry, but your device does not have enough RAM for the city view</string>
+    <string name="ok">OK</string>
 </resources>

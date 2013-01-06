@@ -116,8 +116,8 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 				startActivity(i);
 			} else {
 				AlertDialog.Builder b = new AlertDialog.Builder(this);
-				b.setMessage("Sorry, but your device does not have enough RAM for the city view");
-				b.setPositiveButton("OK", null);
+				b.setMessage(R.string.low_ram);
+				b.setPositiveButton(R.string.ok, null);
 				AlertDialog d = b.create();
 				d.show();
 			}

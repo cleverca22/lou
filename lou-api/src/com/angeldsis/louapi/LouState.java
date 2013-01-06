@@ -114,6 +114,7 @@ public class LouState implements Serializable {
 		}
 	}
 	public void parsePlayerUpdate(JSONObject d) throws JSONException {
+		// FIXME check d.c array for changes to cities array
 		if (d.has("g")) {
 			JSONObject g = d.optJSONObject("g");
 			double base = g.optDouble("b");

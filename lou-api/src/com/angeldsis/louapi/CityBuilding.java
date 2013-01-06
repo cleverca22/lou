@@ -11,6 +11,8 @@ public class CityBuilding extends LouVisData {
 	public int level,s,ss,se;
 	public final static int BUILDING = 1;
 	public final static int WALL = 2;
+	// s = 1 means upgrade working/in-queue
+	// ss/se are start/end, 0 for in-queue
 
 	public CityBuilding(JSONObject structure, int subtype) throws JSONException {
 		super(structure);
