@@ -27,6 +27,8 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 	ArrayList<VisObject> buildings;
 	float zoom;
 	Drawable dirt;
+	Drawable selection;
+	VisObject selected;
 	LouState state;
 	Context context;
 	int maxx,maxy;
@@ -40,6 +42,9 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 		zoom = 1;
 		dirt = context.getResources().getDrawable(R.drawable.texture_bg_tile_big_city);
 		dirt.setBounds(0, 0, 2944, 1840);
+		selection = context.getResources().getDrawable(R.drawable.decal_select_building);
+		selection.setBounds(-25, 15, 178 - 25, 144 + 15);
+		selected = null;
 		// water.setBounds(0,0,896,560);
 		buildings = new ArrayList<VisObject>();
 
@@ -125,6 +130,13 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 		c.scale(zoom, zoom);
 		
 		dirt.draw(c);
+		
+		if (selected != null) {
+			c.save();
+			c.translate(selected.rect.left,selected.rect.top);
+			selection.draw(c);
+			c.restore();
+		}
 		
 		int i,j;
 		for (i = buildings.size() - 1; i >= 0; i--) {
@@ -286,6 +298,17 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 	@Override
 	public boolean onSingleTapUp(MotionEvent e) {
 		Log.v(TAG,"onSingleTapUp scrollx:"+getScrollX()+" scrolly:"+getScrollY()+" zoom:"+zoom+" width:"+getWidth()+" height:"+getHeight()+" maxx:"+maxx+" maxy:"+maxy);
+		float x = (getScrollX() + e.getX()) * zoom;
+		float y = (getScrollY() + e.getY()) * zoom;
+		Log.v(TAG,"x:"+x+" y:"+y);
+		Iterator<VisObject> i = buildings.iterator();
+		while (i.hasNext()) {
+			VisObject o = i.next();
+			if (!o.rect.contains(x, y)) continue;
+			selected = o;
+			o.selected();
+			invalidate();
+		}
 		return true;
 	}
 }

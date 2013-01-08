@@ -13,4 +13,5 @@ public abstract class VisObject {
 	}
 	abstract void dumpInfo();
 	abstract String getType();
+	abstract void selected();
 }

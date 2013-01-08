@@ -88,4 +88,8 @@ public class ResFieldUI extends VisObject {
 	String getType() {
 		return "resource";
 	}
+	@Override
+	void selected() {
+		Log.v(TAG,"resource selected");
+	}
 }

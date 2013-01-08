@@ -132,4 +132,8 @@ public class LouStructure extends VisObject implements Hook {
 		// FIXME, progress bar
 		if (base.s == 1) Log.v(TAG,"time left:"+(base.se - state.getServerStep()));
 	}
+	@Override
+	void selected() {
+		Log.v(TAG,"structure selected");
+	}
 }

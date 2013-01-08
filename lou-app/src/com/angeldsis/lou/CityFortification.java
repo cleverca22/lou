@@ -217,4 +217,8 @@ public class CityFortification extends VisObject {
 	String getType() {
 		return "wall";
 	}
+	@Override
+	void selected() {
+		Log.v(TAG,"wall selected");
+	}
 }
