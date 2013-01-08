@@ -15,10 +15,14 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
+import android.view.GestureDetector;
+import android.view.GestureDetector.OnGestureListener;
 import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
+import android.view.ScaleGestureDetector.OnScaleGestureListener;
 import android.view.ViewGroup;
 
-public class CityLayout extends ViewGroup {
+public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnGestureListener {
 	static final String TAG = "CityLayout";
 	ArrayList<VisObject> buildings;
 	float zoom;
@@ -26,9 +30,13 @@ public class CityLayout extends ViewGroup {
 	LouState state;
 	Context context;
 	int maxx,maxy;
+	ScaleGestureDetector sgd;
+	GestureDetector gd;
 	public CityLayout(Activity context) {
 		super(context);
 		this.context = context;
+		sgd = new ScaleGestureDetector(context,this);
+		gd = new GestureDetector(context,this);
 		zoom = 1;
 		dirt = context.getResources().getDrawable(R.drawable.texture_bg_tile_big_city);
 		dirt.setBounds(0, 0, 2944, 1840);
@@ -48,9 +56,14 @@ public class CityLayout extends ViewGroup {
 		this.state = state2;
 		if (state.currentCity.visData.size() > 0) gotVisData();
 	}
+	void adjustMax() {
+		maxx = (int) ((2944*zoom) - getWidth());
+		maxy = (int) ((1840*zoom) - getHeight());
+		if (maxx < 0) maxx = 0;
+		if (maxy < 0) maxy = 0;
+	}
 	protected void onLayout(boolean changed, int l, int t, int r, int b) {
-		maxx = 2944 - (r - l);
-		maxy = 1840 - (b - t);
+		adjustMax();
 		// FIXME, internal scroll!
 		int x;
 		for (x = 0; x < buildings.size(); x++) {
@@ -70,6 +83,9 @@ public class CityLayout extends ViewGroup {
 	}
 	float lastx,lasty;
 	public boolean onTouchEvent(MotionEvent event) {
+		sgd.onTouchEvent(event);
+		if (sgd.isInProgress()) return true;
+		gd.onTouchEvent(event);
 		//Log.v(TAG,"motion "+event.getAction());
 		switch (event.getAction()) {
 		case 0: // down
@@ -78,19 +94,23 @@ public class CityLayout extends ViewGroup {
 			break;
 		case 1: // up
 		case 2: // move
-			this.scrollBy((int) (lastx - event.getX()), (int) (lasty - event.getY()));
-			awakenScrollBars(1000);
-			lastx = event.getX();
-			lasty = event.getY();
+			int xdiff = (int) (lastx - event.getX());
+			int ydiff = (int) (lasty - event.getY());
+			if ((xdiff > 10) || (ydiff > 10) || (xdiff < -10) || (ydiff < -10)) {
+				scrollBy(xdiff, ydiff);
+				awakenScrollBars(1000);
+				lastx = event.getX();
+				lasty = event.getY();
+			}
 			break;
 		}
 		return true;
 	}
 	protected int computeHorizontalScrollRange() {
-		return 2944;
+		return (int) (2944 * zoom);
 	}
 	protected int computeVerticalScrollRange() {
-		return 1840;
+		return (int) (1840 * zoom);
 	}
 	protected int computeHorizontalScrollExtent() {
 		return (int) (getWidth() / zoom);
@@ -114,6 +134,7 @@ public class CityLayout extends ViewGroup {
 				//skipped++;
 				//Log.v(TAG,"drawing "+b.getType());
 				for (j = 0; j < b.images.length; j++ ) {
+					//Log.v(TAG,"images:"+b.images);
 					b.images[j].expire();
 				}
 				continue;
@@ -140,7 +161,9 @@ public class CityLayout extends ViewGroup {
 		return "render time: "+lastRunTime+" fps:" + fps+" skip:"+skipped;
 	}
 	public void setZoom(float f) {
+		scrollTo((int)(getScrollX() * (f/zoom)),(int)(getScrollY() * (f/zoom)));
 		zoom = f;
+		adjustMax();
 		this.invalidate();
 		this.onLayout(false, 0, 0, 0, 0);
 	}
@@ -184,5 +207,85 @@ public class CityLayout extends ViewGroup {
 			VisObject v = i.next();
 			if (v instanceof LouStructure) ((LouStructure)v).tick();
 		}		
+	}
+	@Override
+	public boolean onScale(ScaleGestureDetector arg0) {
+		float x = arg0.getFocusX();
+		float y = arg0.getFocusY();
+		scrollBy((int) (lastx - x), (int) (lasty - y));
+		awakenScrollBars(1000);
+		lastx = x;
+		lasty = y;
+		invalidate();
+
+		float change = arg0.getScaleFactor();
+		if ((change > 0.98) && (change < 1.02)) return false;
+		//Log.v(TAG,"onScale "+change+" x:"+x+" y:"+y);
+
+		// the diff between viewpoint(0,0) and focus
+		float x2 = x * zoom;
+		float y2 = y * zoom;
+		
+		setZoom(zoom * change);
+		
+		float x3 = (x2 / zoom);
+		float y3 = (y2 / zoom);
+		
+		int xdiff = (int) (x3 - x);
+		int ydiff = (int) (y3 - y);
+		Log.v(TAG,"x:"+x+" y:"+y+" x2:"+x2+" y2:"+y2+" x3:"+x3+" y3:"+y3+" xdiff:"+xdiff+" ydiff:"+ydiff);
+		scrollBy(-xdiff,-ydiff);
+
+		/*float ncX = arg0.getFocusX() * zoom;
+		float Nw = getWidth() * zoom;
+		float tX = ncX-(Nw/2);
+		Log.v(TAG,"tX:"+tX+" Nw:"+Nw);
+		scrollBy((int)tX,0);*/
+		
+		//scrollBy(-(int)(x / getWidth()), -(int) (y / getHeight()));
+		return true;
+	}
+	@Override
+	public boolean onScaleBegin(ScaleGestureDetector detector) {
+		Log.v(TAG,"onScaleBegin");
+		lastx = detector.getFocusX();
+		lasty = detector.getFocusY();
+		return true;
+	}
+	@Override
+	public void onScaleEnd(ScaleGestureDetector detector) {
+		Log.v(TAG,"onScaleEnd");
+		lastx = detector.getFocusX();
+		lasty = detector.getFocusY();
+	}
+	@Override
+	public boolean onDown(MotionEvent e) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	@Override
+	public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	@Override
+	public void onLongPress(MotionEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	@Override
+	public void onShowPress(MotionEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public boolean onSingleTapUp(MotionEvent e) {
+		Log.v(TAG,"onSingleTapUp scrollx:"+getScrollX()+" scrolly:"+getScrollY()+" zoom:"+zoom+" width:"+getWidth()+" height:"+getHeight()+" maxx:"+maxx+" maxy:"+maxy);
+		return true;
 	}
 }
