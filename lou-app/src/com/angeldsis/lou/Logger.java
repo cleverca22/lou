@@ -4,11 +4,10 @@ import com.angeldsis.louapi.Log;
 import com.angeldsis.louapi.Log.LogServer;
 
 public class Logger implements LogServer {
-	static Logger self = init();
-	static Logger init() {
-		Logger l = new Logger();
-		Log.init(l);
-		return l;
+	static Logger self;
+	static void init() {
+		self = new Logger();
+		Log.init(self);
 	}
 	@Override
 	public void v(String TAG, String msg) {

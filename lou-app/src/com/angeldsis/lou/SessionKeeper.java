@@ -211,6 +211,7 @@ public class SessionKeeper extends Service {
 					.setContentTitle("Unread Message in LOU")
 					.setContentText("FIXME");
 			mNotificationManager = (NotificationManager) getSystemService(SessionKeeper.NOTIFICATION_SERVICE);
+			Logger.init();
 		}
 		Iterator<Session> i = sessions.iterator();
 		while (i.hasNext()) {
