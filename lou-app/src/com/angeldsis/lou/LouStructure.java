@@ -87,16 +87,17 @@ public class LouStructure extends VisObject implements Hook {
 	protected void onFocusChanged(boolean x, int y, Rect z) {
 		Log.v(TAG,"focus changed ");
 	}
-	public void layout(int x,int y,float zoom) {
+	public void layout(float zoom) {
 		//Log.v(TAG,"x:"+x+" y:"+y+" z:"+zoom);
 		// position of structure on screen, including scroll and scale
-		int selfx = (int) ((x + rect.left) * zoom);
-		int selfy = (int) ((y + rect.top) * zoom);
+		int selfx = (int) (rect.left * zoom);
+		int selfy = (int) (rect.top * zoom);
 		// position of level within structure, including scale
 		int left = (int) (52 * zoom);
 		int top = (int) (100 * zoom);
-		int right = (int) (76 * zoom);
+		int right = (int) (90 * zoom);
 		int bottom = (int) (128 * zoom);
+		Log.v(TAG,"width "+right);
 		level.layout(selfx + left, selfy + top,
 				selfx + right, selfy + bottom);
 		//String crash = null;
@@ -130,7 +131,10 @@ public class LouStructure extends VisObject implements Hook {
 	}
 	public void tick() {
 		// FIXME, progress bar
-		if (base.s == 1) Log.v(TAG,"time left:"+(base.se - state.getServerStep()));
+		if (base.s == 1) {
+			if (base.ss > 0) Log.v(TAG,"time left:"+(base.se - state.getServerStep()));
+			else Log.v(TAG,"in queue");
+		}
 	}
 	@Override
 	void selected() {

@@ -68,15 +68,16 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 		if (maxy < 0) maxy = 0;
 	}
 	protected void onLayout(boolean changed, int l, int t, int r, int b) {
+		Log.v(TAG,"onLayout");
 		adjustMax();
-		// FIXME, internal scroll!
 		int x;
 		for (x = 0; x < buildings.size(); x++) {
 			VisObject y = buildings.get(x);
-			y.layout(getScrollX(),getScrollY(),zoom);
+			y.layout(zoom);
 		}
 	}
 	protected void onMeasure (int widthMeasureSpec, int heightMeasureSpec) {
+		Log.v(TAG,"onMeasure");
 		setMeasuredDimension(MeasureSpec.getSize(widthMeasureSpec),MeasureSpec.getSize(heightMeasureSpec));
 	}
 	public void scrollTo(int x,int y) {
@@ -176,8 +177,8 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 		scrollTo((int)(getScrollX() * (f/zoom)),(int)(getScrollY() * (f/zoom)));
 		zoom = f;
 		adjustMax();
-		this.invalidate();
-		this.onLayout(false, 0, 0, 0, 0);
+		invalidate();
+		onLayout(false, 0, 0, 0, 0);
 	}
 	public void gotVisData() {
 		int x;
@@ -201,6 +202,7 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 				break;
 			}
 		}
+		onLayout(false, 0, 0, 0, 0);
 		requestLayout();
 	}
 	void onResume() {
