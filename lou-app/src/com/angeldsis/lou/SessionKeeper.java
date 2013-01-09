@@ -126,7 +126,10 @@ public class SessionKeeper extends Service {
 			cb = cb1;
 		}
 		public void unsetCallback(Callbacks cb1) {
-			if (cb == cb1) cb = null;
+			if (cb == cb1) {
+				state.disableVis();
+				cb = null;
+			}
 			saveState();
 		}
 		private void saveState() {

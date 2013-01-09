@@ -72,7 +72,6 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 		Log.v(TAG,"onStop");
 		if (mBound) {
 			if (session != null) {
-				session.state.disableVis();
 				session.unsetCallback(this);
 			}
 			unbindService(mConnection);
