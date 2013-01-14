@@ -10,9 +10,11 @@ import java.io.StreamCorruptedException;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import org.json.JSONObject;
+import org.json2.JSONObject;
 
 import com.angeldsis.louapi.ChatMsg;
+import com.angeldsis.louapi.LouSession;
+import com.angeldsis.louapi.LouSession.result;
 import com.angeldsis.louapi.LouState;
 import com.angeldsis.louapi.LouState.City;
 import com.angeldsis.louapi.RPC;
@@ -21,6 +23,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -33,25 +36,31 @@ public class SessionKeeper extends Service {
 	ArrayList<Session> sessions;
 	NotificationManager mNotificationManager;
 	private final IBinder binder = new MyBinder();
+	public static LouSession session2;
 	
 	// constansts for notification id's
 	// worldid (86) will be added to these to keep them unique
 	static final int STILL_OPEN = 0x1000;
 	static final int UNREAD_MESSAGE = 0x2000;
-	
+
 	public class MyBinder extends Binder {
 		public SessionKeeper getService() {
 			return SessionKeeper.this;
 		}
 	}
 	public IBinder onBind(Intent arg0) {
-		if (sessions == null) sessions = new ArrayList<Session>();
 		return binder;
+	}
+	@Override
+	public void onCreate() {
+		Logger.init(); // allows api to print to log
+		Log.v(TAG,"onCreate");
+		if (sessions == null) sessions = new ArrayList<Session>();
 	}
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		if (sessions == null) sessions = new ArrayList<Session>();
 		AccountWrap a = new AccountWrap(intent.getExtras());
-		Log.v(TAG,"onStartCommand"+a.world);
+		Log.v(TAG,"onStartCommand "+a.world);
 		return START_NOT_STICKY;
 	}
 	NotificationCompat.Builder mBuilder,chatBuilder;
@@ -78,7 +87,7 @@ public class SessionKeeper extends Service {
 			PendingIntent resultPendingIntent = stackBuilder
 					.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT, options);
 			mBuilder.setContentIntent(resultPendingIntent);
-			mNotificationManager.notify(STILL_OPEN, mBuilder.build());
+			mNotificationManager.notify(STILL_OPEN | acct.worldid, mBuilder.build());
 			
 			state = new LouState();
 			Log.v(TAG,""+state.chat_history);
@@ -102,7 +111,7 @@ public class SessionKeeper extends Service {
 						}
 					});
 				}
-			}, 0);
+			});
 			alive = true;
 		}
 		public void visDataReset() {
@@ -118,8 +127,20 @@ public class SessionKeeper extends Service {
 			if (cb != null) cb.onChat(d);
 			else {
 				Log.v(TAG,"uncaught message");
+				
+				Bundle options = acct.toBundle();
+				Intent resultIntent = new Intent(SessionKeeper.this,ChatWindow.class);
+				// FIXME, include chat details, to open tab
+				resultIntent.putExtras(options);
+				TaskStackBuilder stackBuilder = TaskStackBuilder.create(SessionKeeper.this);
+				stackBuilder.addParentStack(ChatWindow.class);
+				stackBuilder.addNextIntent(resultIntent);
+				PendingIntent resultPendingIntent = stackBuilder
+						.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT, options);
+				chatBuilder.setContentIntent(resultPendingIntent);
+
 				chatBuilder.setContentText(d.get(d.size()-1).toString());
-				mNotificationManager.notify(UNREAD_MESSAGE, chatBuilder.build());
+				mNotificationManager.notify(UNREAD_MESSAGE | acct.worldid, chatBuilder.build());
 			}
 		}
 		public void setCallback(Callbacks cb1) {
@@ -174,7 +195,7 @@ public class SessionKeeper extends Service {
 		public void onEjected() {
 			alive = false;
 			if (cb != null) cb.onEjected();
-			mNotificationManager.cancel(STILL_OPEN);
+			mNotificationManager.cancel(STILL_OPEN | acct.worldid);
 			sessions.remove(this);
 		}
 		public void cityChanged() {
@@ -182,7 +203,7 @@ public class SessionKeeper extends Service {
 		}
 		public void logout() {
 			rpc.stopPolling();
-			mNotificationManager.cancel(STILL_OPEN);
+			mNotificationManager.cancel(STILL_OPEN | acct.worldid);
 			alive = false;
 			sessions.remove(this);
 		}
@@ -205,6 +226,7 @@ public class SessionKeeper extends Service {
 		void tick();
 	}
 	public Session getSession(AccountWrap acct) {
+		Log.v(TAG,"getSession");
 		if (mBuilder == null) {
 			mBuilder = new NotificationCompat.Builder(SessionKeeper.this).setSmallIcon(R.drawable.ic_launcher)
 					.setContentTitle("Lord of Ultima")
@@ -212,7 +234,8 @@ public class SessionKeeper extends Service {
 					.setOngoing(true);
 			chatBuilder = new NotificationCompat.Builder(SessionKeeper.this).setSmallIcon(R.drawable.ic_launcher)
 					.setContentTitle("Unread Message in LOU")
-					.setContentText("FIXME");
+					.setContentText("FIXME")
+					.setAutoCancel(true);
 			mNotificationManager = (NotificationManager) getSystemService(SessionKeeper.NOTIFICATION_SERVICE);
 			Logger.init();
 		}
@@ -224,5 +247,38 @@ public class SessionKeeper extends Service {
 		Session s2 = new Session(acct);
 		sessions.add(s2);
 		return s2;
+	}
+	public static void checkCookie(final CookieCallback cb) {
+		Log.v(TAG,"checkCookie");
+		if (session2 == null) session2 = new LouSession();
+		AsyncTask<Object,Integer,result> task = new AsyncTask<Object,Integer,result>() {
+			@Override
+			protected result doInBackground(Object... arg0) {
+				result r = session2.check_cookie();
+				return r;
+			}
+			protected void onPostExecute(result result) {
+				cb.done(result);
+			}
+		};
+		task.execute();
+	}
+	public interface CookieCallback {
+		void done(result r);
+	}
+	public static void restore_cookie(String cookie) {
+		Log.v(TAG,"restore_cookie("+cookie+")");
+		if (session2 == null) session2 = new LouSession();
+		session2.restore_cookie(cookie);
+	}
+	@Override
+	public void onTrimMemory(int level) {
+		switch (level) {
+		case 0:
+			Log.v(TAG,"onTrimMemory("+level+")");
+			break;
+		case TRIM_MEMORY_UI_HIDDEN:
+			Log.v(TAG,"onTrimMemory(ui hidden or worse "+level+")");
+		}
 	}
 }

@@ -1,13 +1,11 @@
 package com.angeldsis.lou;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import android.os.AsyncTask;
 import android.util.Log;
 
 import com.angeldsis.louapi.HttpRequest;
@@ -16,8 +14,8 @@ public class doRPCasync implements HttpRequest {
 	char[] buffer = new char[1024];
 	static final String TAG = "doRPCasync";
 	public void PostURL(final String urlIN, final String data, final Callback cb) {
-		AsyncTask<Integer,Integer,HttpReply> desync = new AsyncTask<Integer,Integer,HttpReply>() {
-			protected HttpReply doInBackground(Integer... arg0) {
+		//AsyncTask<Integer,Integer,HttpReply> desync = new AsyncTask<Integer,Integer,HttpReply>() {
+			//protected HttpReply doInBackground(Integer... arg0) {
 				HttpReply reply = new HttpReply();
 				try {
 					URL url = new URL(urlIN);
@@ -27,42 +25,36 @@ public class doRPCasync implements HttpRequest {
 					conn.setRequestMethod("POST");
 					conn.setDoOutput(true);
 					HttpURLConnection.setFollowRedirects(false);
-					conn.setFixedLengthStreamingMode(data.getBytes().length);
+					byte[] raw_data = data.getBytes();
+					conn.setFixedLengthStreamingMode(raw_data.length);
 					conn.setRequestProperty("Content-Type", "application/json");
-					PrintWriter out = new PrintWriter(conn.getOutputStream());
-					out.print(data);
-					out.close();
+					
+					OutputStream os = conn.getOutputStream();
+					os.write(raw_data,0,raw_data.length);
+					os.close();
+					
 					conn.connect();
 					reply.code = conn.getResponseCode();
 					//Log.v(TAG,"response code "+reply.code);
-					int size;
-					StringBuilder buf = new StringBuilder();
-					InputStreamReader reply1 = new InputStreamReader(conn.getInputStream()); // FIXME, change char encoding?
-					try {
-						while ((size = reply1.read(buffer, 0, 1024)) != -1) {
-							buf.append(buffer,0,size);
-						}
-					} catch (IOException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-						return null;
-					}
-					reply.body = buf.toString();
-					return reply;
+					reply.stream = conn.getInputStream();
+					reply.size = conn.getContentLength();
+					cb.done(reply);
 				} catch (MalformedURLException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					Log.e(TAG,"IOException",e);
+					HttpReply r2 = new HttpReply();
+					r2.e = e;
+					cb.done(r2);
 				}
-				// TODO Auto-generated method stub
-				return null;
-			}
-			protected void onPostExecute(HttpReply reply) {
-				cb.done(reply);
-			}
-		};
-		desync.execute(0);
+				//return null;
+			//}
+			//protected void onPostExecute(HttpReply reply) {
+				//cb.done(reply);
+			//}
+		//};
+		//desync.execute(0);
 	}
 }

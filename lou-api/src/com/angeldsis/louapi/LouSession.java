@@ -48,6 +48,19 @@ public class LouSession {
 			return true;
 		}
 	}
+	public void restore_cookie(String cookie) {
+		HttpCookie httpcookie = new HttpCookie("REMEMBER_ME_COOKIE",cookie);
+		httpcookie.setDomain("www.lordofultima.com");
+		httpcookie.setPath("/");
+		httpcookie.setVersion(0);
+		try {
+			mCookieManager.getCookieStore().add(new URI("http://www.lordofultima.com/"),httpcookie);
+			Log.v(TAG, "cookie restored?");
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			Log.wtf(TAG, "hard-coded uri not valid", e);
+		}
+	}
 	public LouSession() {
 		mCookieManager = new CookieManager(null,new Policy());
 		CookieHandler.setDefault(mCookieManager);
@@ -150,6 +163,7 @@ public class LouSession {
 		XMLReader xmlReader = XMLReaderFactory.createXMLReader ("org.ccil.cowan.tagsoup.Parser");
 		final ArrayList<Account> servers = new ArrayList<Account>();
 		final Pattern actioncheck = Pattern.compile("^http://prodgame(\\d+).lordofultima.com/(\\d+)/index.aspx$");
+		final Pattern findid = Pattern.compile("\\d+");
 		ContentHandler handler = new DefaultHandler() {
 			Account acct;
 			boolean in_server_list = false;
@@ -173,6 +187,9 @@ public class LouSession {
 						Log.v(TAG,"class:"+classVal+" id:"+id);
 						acct = new Account();
 						acct.world = id; // FIXME
+						Matcher m = findid.matcher(id);
+						m.find();
+						acct.worldid = Integer.parseInt(m.group());
 						if (classVal.equals("offline menu_bubble")) {
 							acct.offline = true;
 						} else {

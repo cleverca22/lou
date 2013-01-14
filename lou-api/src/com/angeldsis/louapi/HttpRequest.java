@@ -1,15 +1,16 @@
 package com.angeldsis.louapi;
 
-import java.net.UnknownHostException;
+import java.io.InputStream;
 
 public interface HttpRequest {
 	void PostURL(String url, String data,Callback cb);
 	class HttpReply {
 		public int code;
-		public String body;
+		public InputStream stream;
+		public int size;
+		public Exception e;
 	}
 	abstract class Callback {
 		public abstract void done(HttpReply reply);
-		public abstract void error(UnknownHostException e);
 	}
 }

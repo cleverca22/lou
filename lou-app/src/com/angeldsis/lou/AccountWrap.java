@@ -8,6 +8,12 @@ import com.angeldsis.louapi.Account;
 public class AccountWrap extends Account {
 	public AccountWrap() {
 	}
+	public AccountWrap(Account a) {
+		pathid = a.pathid;
+		serverid = a.serverid;
+		sessionid = a.sessionid;
+		worldid = a.worldid;
+	}
 	public AccountWrap(Bundle args) {
 		pathid = args.getString("pathid");
 		serverid = args.getString("serverid");

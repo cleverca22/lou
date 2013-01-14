@@ -12,11 +12,19 @@ public class Log {
 		public void v(String TAG,String msg);
 		public void e(String tAG, String string);
 		public void w(String tAG, String string);
+		public void wtf(String tag, String string, Exception e);
+		public void e(String TAG, String string, Exception e);
 	}
 	public static void init(LogServer logger) {
 		self = logger;
 	}
 	public static void w(String TAG, String string) {
 		self.w(TAG,string);
+	}
+	public static void wtf(String tag, String string, Exception e) {
+		self.wtf(tag,string,e);
+	}
+	public static void e(String TAG, String string, Exception e) {
+		self.e(TAG, string,e);
 	}
 }

@@ -1,14 +1,15 @@
 package com.angeldsis.louapi;
 
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.JSONTokener;
+import org.json2.JSONArray;
+import org.json2.JSONException;
+import org.json2.JSONObject;
+import org.json2.JSONTokener;
 
 import com.angeldsis.louapi.HttpRequest.HttpReply;
 import com.angeldsis.louapi.LouState.City;
@@ -20,8 +21,9 @@ public abstract class RPC extends Thread {
 	String urlbase;
 	public LouState state;
 	int requestid;
-	boolean cont;
+	boolean cont,polling,running;
 	private ArrayList<String> chat_queue;
+	private ArrayList<Runnable> queue;
 
 	public RPC(Account acct, LouState state) {
 		this.account = acct;
@@ -29,8 +31,26 @@ public abstract class RPC extends Thread {
 		requestid = 0;
 		urlbase = "http://prodgame"+acct.serverid+".lordofultima.com/"+acct.pathid+"/Presentation/Service.svc/ajaxEndpoint/";
 		chat_queue = new ArrayList<String>();
+		queue = new ArrayList<Runnable>();
+		running = true;
+		polling = false;
+		cont = true;
+		start();
 	}
-	public void OpenSession(final boolean reset,final RPCDone callback2, final int retry_count) {
+	public void OpenSession(final boolean reset,final RPCDone callback) {
+		Runnable r = new Runnable() {
+			@Override
+			public void run() {
+				OpenSession(reset,callback,0);
+			}
+		};
+		post(r);
+	}
+	private void post(Runnable r) {
+		queue.add(r);
+		if (Thread.currentThread() != this) interrupt();
+	}
+	private void OpenSession(final boolean reset,final RPCDone callback2, final int retry_count) {
 		if (retry_count > 10) {
 			Log.e(TAG,"too many retrys");
 			onEjected();
@@ -85,21 +105,33 @@ public abstract class RPC extends Thread {
 		HttpRequest.Callback cb = new HttpRequest.Callback() {
 			public void done(HttpReply reply) {
 				rpcreply reply2 = new rpcreply();
+				if (reply.e != null) {
+					if (reply.e instanceof UnknownHostException) {
+						Log.w(TAG,"dns error, retrying");
+					} else {
+						Log.e(TAG, "exception from http req, retrying",reply.e);
+					}
+					try {
+						doRPC(function,request,parent,rpcCallback,retry - 1);
+					} catch (JSONException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+					return;
+				}
 				reply2.http_code = reply.code;
 
-				String json = reply.body;
-				//Log.v("louRPCREPLY",json);
-				if (json.length() == 0) {
-					reply2.raw_reply = "";
+				if (reply.size == 0) {
+					reply2.raw_reply = null;
 				} else {
 					try {
-						Object t = new JSONTokener(json).nextValue();
+						Object t = new JSONTokener(new InputStreamReader(reply.stream)).nextValue();
 						if (function.equals("Poll")) reply2.replyArray = (JSONArray) t;
 						else reply2.reply = (JSONObject) t;
 					} catch (JSONException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
-						reply2.raw_reply = json;
+						reply2.raw_reply = reply.stream;
 					}
 				}
 				try {
@@ -112,19 +144,6 @@ public abstract class RPC extends Thread {
 					e.printStackTrace();
 				}
 			}
-
-			@Override
-			public void error(UnknownHostException e) {
-				Log.w(TAG,"dns error, retrying");
-				// dns error when doing RPC
-				// retry up to 5 times
-				try {
-					doRPC(function,request,parent,rpcCallback,retry - 1);
-				} catch (JSONException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-			}
 		};
 		req2.PostURL(urlbase + function, request.toString(), cb);
 		return null;
@@ -134,7 +153,7 @@ public abstract class RPC extends Thread {
 	class rpcreply {
 		public JSONObject reply;
 		public int http_code;
-		public String raw_reply;
+		public InputStream raw_reply;
 		public JSONArray replyArray;
 	}
 	private abstract class RPCCallback {
@@ -152,8 +171,12 @@ public abstract class RPC extends Thread {
 					state.processPlayerInfo(r.reply);
 					//Log.v(TAG+".GetPlayerInfo",r.reply.toString(1));
 					rpcDone.requestDone(r.reply);
-					cityListChanged();
-					cityChanged();
+					runOnUiThread(new Runnable() {
+						public void run() {
+							cityListChanged();
+							cityChanged();
+						}
+					});
 				}
 			},5);
 		} catch (JSONException e) {
@@ -161,15 +184,18 @@ public abstract class RPC extends Thread {
 			e.printStackTrace();
 		}
 	}
+	public abstract void runOnUiThread(Runnable r);
 	public abstract void cityChanged();
 	public abstract void cityListChanged();
 	public void Poll() {
+		Log.v(TAG,"Poll()");
 		try {
 			JSONObject obj = new JSONObject();
 			obj.put("requestid", requestid);
 			requestid++;
 			String requests = "CITY:"+state.currentCity.cityid;
 			if (state.fetchVis) {
+				Log.v(TAG,"getting vis data");
 				requests += "\fVIS:c:"+state.currentCity.cityid+":0:-1085:-638:775:565:"+state.currentCity.visreset; // FIXME last field is reset, check webfrontend.vis.Main.js for others
 			}
 			if (chat_queue.size() > 0) {
@@ -230,13 +256,14 @@ public abstract class RPC extends Thread {
 					for (x = 0; x < iuo.length(); x++) {
 						// incoming attacks on current city
 						JSONObject X = iuo.getJSONObject(x);
+						Log.v(TAG,X.toString(1));
 						int city = X.getInt("c");
 						int alliance = X.getInt("a");
 						int stepMoongate = X.getInt("ms");
 						boolean isMoongate = X.getBoolean("m");
 						int id = X.getInt("i");
 						int type = X.getInt("t");
-						int state = X.getInt("s");
+						int state2 = X.getInt("s");
 						String cityName = X.getString("cn"); // source city
 						int player = X.getInt("p");
 						String allianceName = X.getString("an"); // source alliance
@@ -244,6 +271,7 @@ public abstract class RPC extends Thread {
 						String playerName = X.getString("pn"); // source player name
 						int end = X.getInt("es");
 						Log.v(TAG,"attack incoming to current city, from "+playerName);
+						Log.v(TAG,"time left: "+(end - state.getServerStep()));
 						// FIXME, actually use these fields
 					}
 				}
@@ -251,28 +279,37 @@ public abstract class RPC extends Thread {
 			}
 			else Log.v(TAG,"no attacks?");
 			state.processCityPacket(D);
+			runOnUiThread(new Runnable () {public void run() {
 			gotCityData();
+			}});
 		} else if (C.equals("CHAT")) {
 			JSONArray D = p.getJSONArray("D");
 			int i;
-			ArrayList<ChatMsg> recent = new ArrayList<ChatMsg>(); 
+			final ArrayList<ChatMsg> recent = new ArrayList<ChatMsg>(); 
 			for (i = 0; i < D.length(); i++) {
 				ChatMsg c = new ChatMsg(D.getJSONObject(i));
 				state.chat_history.add(c);
 				recent.add(c);
 			}
+			runOnUiThread(new Runnable () {public void run() {
 			onChat(recent);
+			}});
 			//Log.v(TAG,D.toString(1));
 		} else if (C.equals("PLAYER")) {
 			// refer to webfrontend.data.Player.js dispatchResults for more info
 			JSONObject D = p.getJSONObject("D");
 			state.parsePlayerUpdate(D);
-			onPlayerData();
+			runOnUiThread(new Runnable () {
+				public void run() {
+					onPlayerData();
+				}
+			});
 		} else if (C.equals("SYS")) {
 			Log.v(TAG,p.toString(1));
 			if (p.getString("D").equals("CLOSED")) {
 				this.stopPolling();
 				onEjected();
+				stopLooping();
 			}
 		} else {
 			Log.v(TAG,"unexpected Poll data "+C);
@@ -339,29 +376,47 @@ public abstract class RPC extends Thread {
 		}
 		if (c.visreset == 1) {
 			c.visreset = 0;
+			runOnUiThread(new Runnable () {public void run() {
 			visDataReset();
+			}});
 		} else {
+			runOnUiThread(new Runnable () {public void run() {
 			visDataUpdated();
+			}});
 		}
 	}
 	public void run() {
 		while (cont) {
+			Log.v(TAG,"loop");
+			while (queue.size() > 0) {
+				Runnable r = queue.remove(0);
+				Log.v(TAG,"running queued item");
+				r.run();
+			}
 			tick();
 			// FIXME, may cause multiple parallel requests if they take over 10sec
-			this.Poll();
+			if (polling) Poll();
+			else break;
 			try {
 				Thread.sleep(10000);
 			} catch (InterruptedException e) {
 			}
 		}
+		running = false;
 	}
 	public void startPolling() {
-		cont = true;
-		this.start();
+		polling = true;
+		if (!running) {
+			running = true;
+			start();
+		}
 	}
 	public void stopPolling() {
-		cont = false;
+		polling = false;
 		interrupt();
+	}
+	public void stopLooping() {
+		cont = false;
 	}
 	/** called when all state.visData has been reloaded */
 	public abstract void visDataReset();

@@ -300,8 +300,8 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 	@Override
 	public boolean onSingleTapUp(MotionEvent e) {
 		Log.v(TAG,"onSingleTapUp scrollx:"+getScrollX()+" scrolly:"+getScrollY()+" zoom:"+zoom+" width:"+getWidth()+" height:"+getHeight()+" maxx:"+maxx+" maxy:"+maxy);
-		float x = (getScrollX() + e.getX()) * zoom;
-		float y = (getScrollY() + e.getY()) * zoom;
+		float x = (getScrollX() + e.getX()) / zoom;
+		float y = (getScrollY() + e.getY()) / zoom;
 		Log.v(TAG,"x:"+x+" y:"+y);
 		Iterator<VisObject> i = buildings.iterator();
 		while (i.hasNext()) {

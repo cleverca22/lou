@@ -97,7 +97,6 @@ public class LouStructure extends VisObject implements Hook {
 		int top = (int) (100 * zoom);
 		int right = (int) (90 * zoom);
 		int bottom = (int) (128 * zoom);
-		Log.v(TAG,"width "+right);
 		level.layout(selfx + left, selfy + top,
 				selfx + right, selfy + bottom);
 		//String crash = null;

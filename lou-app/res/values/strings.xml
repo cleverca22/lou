@@ -16,4 +16,5 @@
     <string name="gold">Gold</string>
     <string name="low_ram">Sorry, but your device does not have enough RAM for the city view</string>
     <string name="ok">OK</string>
+    <string name="alliance">[Alliance] </string>
 </resources>

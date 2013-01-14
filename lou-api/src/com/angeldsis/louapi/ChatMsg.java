@@ -1,7 +1,7 @@
 package com.angeldsis.louapi;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import org.json2.JSONException;
+import org.json2.JSONObject;
 
 public class ChatMsg {
 	public String s,c,m;

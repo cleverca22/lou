@@ -5,9 +5,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import org.json2.JSONArray;
+import org.json2.JSONException;
+import org.json2.JSONObject;
 
 public class LouState implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -136,8 +136,10 @@ public class LouState implements Serializable {
 				for (x = 0; x < iuo.length(); x++) {
 					// incoming attacks on current city
 					JSONObject X = iuo.getJSONObject(x);
+					//Log.v(TAG,X.toString(1));
 					IncomingAttack ia = new IncomingAttack(X);
 					Log.v(TAG,"attack incoming to "+ia.targetCityName+" from player "+ia.playerName);
+					Log.v(TAG,"time left: "+(ia.end - getServerStep()));
 					incoming_attacks.add(ia);
 				}
 			}

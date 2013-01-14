@@ -2,6 +2,8 @@ package com.angeldsis.lou;
 
 import java.util.ArrayList;
 
+import android.os.Handler;
+
 import com.angeldsis.louapi.Account;
 import com.angeldsis.louapi.ChatMsg;
 import com.angeldsis.louapi.HttpRequest;
@@ -9,16 +11,16 @@ import com.angeldsis.louapi.LouState;
 import com.angeldsis.louapi.RPC;
 
 public class RPCWrap extends RPC {
+	Handler handler;
 	SessionKeeper.Session callbacks;
 	public RPCWrap(Account acct, LouState state,SessionKeeper.Session activity) {
 		super(acct, state);
 		this.callbacks = activity;
-		// TODO Auto-generated constructor stub
+		handler = new Handler();
 	}
 	@Override
 	public
 	HttpRequest newHttpRequest() {
-		// TODO Auto-generated method stub
 		return new doRPCasync();
 	}
 	@Override
@@ -56,5 +58,9 @@ public class RPCWrap extends RPC {
 	@Override
 	public void cityListChanged() {
 		callbacks.cityListChanged();
+	}
+	@Override
+	public void runOnUiThread(Runnable r) {
+		handler.post(r);
 	}
 }
