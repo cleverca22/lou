@@ -18,6 +18,7 @@ import com.angeldsis.louapi.LouSession.result;
 import com.angeldsis.louapi.LouState;
 import com.angeldsis.louapi.LouState.City;
 import com.angeldsis.louapi.RPC;
+import com.angeldsis.louapi.RPC.RPCDone;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -45,10 +46,15 @@ public class SessionKeeper extends Service {
 
 	public class MyBinder extends Binder {
 		public SessionKeeper getService() {
+			Log.v(TAG,"getService");
 			return SessionKeeper.this;
 		}
 	}
+	public SessionKeeper() {
+		Log.v(TAG,"constructor");
+	}
 	public IBinder onBind(Intent arg0) {
+		Log.v(TAG,"onBind");
 		return binder;
 	}
 	@Override
@@ -57,6 +63,12 @@ public class SessionKeeper extends Service {
 		Log.v(TAG,"onCreate");
 		if (sessions == null) sessions = new ArrayList<Session>();
 	}
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		Log.v(TAG,"onDestroyed");
+	}
+	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		if (sessions == null) sessions = new ArrayList<Session>();
 		AccountWrap a = new AccountWrap(intent.getExtras());
@@ -72,6 +84,7 @@ public class SessionKeeper extends Service {
 		Callbacks cb;
 		boolean alive = false;
 		Session(AccountWrap acct2) {
+			Log.v(TAG,"new Session");
 			acct = acct2;
 
 			Intent intent = new Intent(SessionKeeper.this,SessionKeeper.class);
@@ -87,6 +100,7 @@ public class SessionKeeper extends Service {
 			PendingIntent resultPendingIntent = stackBuilder
 					.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT, options);
 			mBuilder.setContentIntent(resultPendingIntent);
+			mBuilder.setContentText("LOU is still running "+acct.world);
 			mNotificationManager.notify(STILL_OPEN | acct.worldid, mBuilder.build());
 			
 			state = new LouState();
@@ -96,16 +110,17 @@ public class SessionKeeper extends Service {
 
 			rpc = new RPCWrap(acct,state,this);
 			state.setRPC(rpc);
-			rpc.OpenSession(true,rpc.new RPCDone() {
+			rpc.OpenSession(true,new RPCDone() {
 				public void requestDone(JSONObject reply) {
 					Log.v(TAG,"session opened");
-					rpc.GetServerInfo(rpc.new RPCDone() {
+					rpc.GetServerInfo(new RPCDone() {
 						public void requestDone(JSONObject reply) {
-							rpc.GetPlayerInfo(rpc.new RPCDone() {
+							rpc.GetPlayerInfo(new RPCDone() {
 								@Override
 								public void requestDone(JSONObject reply) {
 									// state variable now has some data populated
 									rpc.startPolling();
+									loginDone();
 								}
 							});
 						}
@@ -113,6 +128,9 @@ public class SessionKeeper extends Service {
 				}
 			});
 			alive = true;
+		}
+		private void loginDone() {
+			if (cb != null) cb.loginDone();
 		}
 		public void visDataReset() {
 			if (cb != null) cb.visDataReset();
@@ -197,12 +215,14 @@ public class SessionKeeper extends Service {
 			if (cb != null) cb.onEjected();
 			mNotificationManager.cancel(STILL_OPEN | acct.worldid);
 			sessions.remove(this);
+			rpc.stopLooping();
 		}
 		public void cityChanged() {
 			if (cb != null) cb.cityChanged();
 		}
 		public void logout() {
 			rpc.stopPolling();
+			rpc.stopLooping();
 			mNotificationManager.cancel(STILL_OPEN | acct.worldid);
 			alive = false;
 			sessions.remove(this);
@@ -216,6 +236,7 @@ public class SessionKeeper extends Service {
 	}
 	public interface Callbacks {
 		void visDataReset();
+		void loginDone();
 		void visDataUpdated();
 		void cityListChanged();
 		void cityChanged();
@@ -225,12 +246,11 @@ public class SessionKeeper extends Service {
 		void gotCityData();
 		void tick();
 	}
-	public Session getSession(AccountWrap acct) {
-		Log.v(TAG,"getSession");
+	public Session getSession(AccountWrap acct, boolean allow_login) {
+		Log.v(TAG,"getSession(world:"+acct.world+")");
 		if (mBuilder == null) {
 			mBuilder = new NotificationCompat.Builder(SessionKeeper.this).setSmallIcon(R.drawable.ic_launcher)
 					.setContentTitle("Lord of Ultima")
-					.setContentText("LOU is still running")
 					.setOngoing(true);
 			chatBuilder = new NotificationCompat.Builder(SessionKeeper.this).setSmallIcon(R.drawable.ic_launcher)
 					.setContentTitle("Unread Message in LOU")
@@ -239,14 +259,20 @@ public class SessionKeeper extends Service {
 			mNotificationManager = (NotificationManager) getSystemService(SessionKeeper.NOTIFICATION_SERVICE);
 			Logger.init();
 		}
+		Log.v(TAG,"looking for existing session");
 		Iterator<Session> i = sessions.iterator();
 		while (i.hasNext()) {
 			Session s = i.next();
-			if (s.acct.world == acct.world) return s;
+			if (s.acct.world.equals(acct.world)) {
+				Log.v(TAG,"found it");
+				return s;
+			}
 		}
-		Session s2 = new Session(acct);
-		sessions.add(s2);
-		return s2;
+		if (allow_login) {
+			Session s2 = new Session(acct);
+			sessions.add(s2);
+			return s2;
+		} else return null; // not a login page, fail out
 	}
 	public static void checkCookie(final CookieCallback cb) {
 		Log.v(TAG,"checkCookie");
@@ -267,6 +293,7 @@ public class SessionKeeper extends Service {
 		void done(result r);
 	}
 	public static void restore_cookie(String cookie) {
+		Logger.init();
 		Log.v(TAG,"restore_cookie("+cookie+")");
 		if (session2 == null) session2 = new LouSession();
 		session2.restore_cookie(cookie);
@@ -279,6 +306,8 @@ public class SessionKeeper extends Service {
 			break;
 		case TRIM_MEMORY_UI_HIDDEN:
 			Log.v(TAG,"onTrimMemory(ui hidden or worse "+level+")");
+			Log.v(TAG,"session count: "+sessions.size());
+			if (sessions.size() == 0) stopSelf();
 		}
 	}
 }

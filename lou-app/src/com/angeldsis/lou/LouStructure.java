@@ -16,11 +16,14 @@ public class LouStructure extends VisObject implements Hook {
 	TextView level;
 	CityBuilding base;
 	LouState state;
+	int typeid;
 	public LouStructure(Context context,CityBuilding base,LouState state) {
 		this.state = state;
 		this.base = base;
 		base.hook = this;
 		rect = new RectF(base.x,base.y,base.x+128,base.y+128);
+		Log.v(TAG,"x:"+(((float)base.x)/((float)128)));
+		Log.v(TAG,"y:"+base.y/160);
 		//setFocusable(true);
 		//setFocusableInTouchMode(true);
 		level = new TextView(context,null,android.R.attr.textAppearanceMedium);
@@ -30,6 +33,7 @@ public class LouStructure extends VisObject implements Hook {
 		level.setBackgroundResource(R.drawable.building_level_display_bgr);
 		
 		int res = -1;
+		this.typeid = base.typeid;
 		switch (base.typeid) {
 		case CityBuilding.COTTAGE:
 			res = R.drawable.building_cottage;
@@ -40,17 +44,38 @@ public class LouStructure extends VisObject implements Hook {
 		case 7:
 			res = R.drawable.building_lumber_mill;
 			break;
+		case 9:
+			res = R.drawable.building_hideout;
+			break;
 		case 10:
 			res = R.drawable.building_stonecutter;
 			break;
+		case 12:
+			res = R.drawable.building_townhall;
+			break;
+		case 13:
+			res = R.drawable.building_townhouse;
+			break;
 		case 14:
 			res = R.drawable.building_barracks;
+			break;
+		case 15:
+			res = R.drawable.building_cityguard_house;
+			break;
+		case 16:
+			res = R.drawable.building_casern;
+			break;
+		case 20:
+			res = R.drawable.building_storage;
 			break;
 		case 47:
 			res = R.drawable.building_hut_new;
 			break;
 		case 48:
 			res = R.drawable.building_quarry_new;
+			break;
+		case 49:
+			res = R.drawable.building_ore_mine_new;
 			break;
 		case 50:
 			res = R.drawable.building_farm_new;

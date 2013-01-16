@@ -66,7 +66,7 @@ public class LouState implements Serializable {
 		}
 		currentCity = this.cities.get(0);
 		AllianceId = obj.getInt("AllianceId");
-		AllianceName = obj.getString("AllianceName");
+		if (AllianceId > 0) AllianceName = obj.getString("AllianceName");
 		Name = obj.getString("Name");
 	}
 	public class City implements Serializable {
@@ -108,6 +108,16 @@ public class LouState implements Serializable {
 		public void fix(LouState state) {
 			int i = 0;
 			for (i = 0; i < 4; i++) resources[i].fix(state,i);
+		}
+		public long getCityid() {
+			return cityid;
+		}
+		public boolean hasVisData() {
+			synchronized(this) {
+				if (visData == null) return false;
+				if (visData.size() > 0) return true;
+				return false;
+			}
 		}
 	}
 	public void parsePlayerUpdate(JSONObject d) throws JSONException {

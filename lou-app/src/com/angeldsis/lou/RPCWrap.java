@@ -19,11 +19,6 @@ public class RPCWrap extends RPC {
 		handler = new Handler();
 	}
 	@Override
-	public
-	HttpRequest newHttpRequest() {
-		return new doRPCasync();
-	}
-	@Override
 	public void visDataReset() {
 		callbacks.visDataReset();
 	}

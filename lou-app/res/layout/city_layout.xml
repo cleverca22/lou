@@ -24,32 +24,6 @@
 
         </LinearLayout>
 
-        <RadioGroup
-            android:id="@+id/zoom"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1" >
-
-            <RadioButton
-                android:id="@+id/one"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:checked="true"
-                android:text="1x" />
-
-            <RadioButton
-                android:id="@+id/two"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0.5x" />
-
-            <RadioButton
-                android:id="@+id/three"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0.25x" />
-        </RadioGroup>
-
     </LinearLayout>
 
 </LinearLayout>

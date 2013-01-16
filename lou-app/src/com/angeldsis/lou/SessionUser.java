@@ -26,8 +26,10 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 	boolean mBound;
 	AccountWrap acct;
 	SessionKeeper.Session session;
+	boolean allow_login;
 	public void onCreate(Bundle sis) {
 		super.onCreate(sis);
+		allow_login = false;
 		Intent msg = getIntent();
 		Bundle args = msg.getExtras();
 		acct = new AccountWrap(args);
@@ -40,7 +42,12 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 	}
 	void check_state() {
 		if (session == null) {
-			session = mService.getSession(acct);
+			session = mService.getSession(acct,allow_login);
+			Log.v(TAG,this+" allow login: "+allow_login+" service "+session);
+			if (session == null) {
+				finish();
+				return;
+			}
 			session.setCallback(this);
 			session_ready();
 		}
@@ -132,4 +139,6 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 		super.onDestroy();
 		Log.v(TAG,"onDestroy");
 	}
+	@Override
+	public void loginDone() {}
 }

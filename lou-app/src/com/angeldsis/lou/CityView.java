@@ -1,30 +1,33 @@
 package com.angeldsis.lou;
 
+import com.angeldsis.lou.CityLayout.LayoutCallbacks;
 import com.angeldsis.lou.SessionKeeper.Callbacks;
+import com.angeldsis.lou.city.BuildMenu;
 
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
-import android.widget.RadioGroup;
-import android.widget.RadioGroup.OnCheckedChangeListener;
 
-public class CityView extends SessionUser implements OnCheckedChangeListener, Callbacks {
+public class CityView extends SessionUser implements Callbacks, LayoutCallbacks {
 	private static final String TAG = "CityView";
 	CityUI mTest;
 	boolean vis_data_loaded;
+	private MenuItem build,upgrade;
 
 	public void onCreate(Bundle sis) {
 		super.onCreate(sis);
 		Log.v(TAG,"onCreate");
 		if (Build.VERSION.SDK_INT > 13) initApi14();
 		setContentView(R.layout.city_layout);
-		RadioGroup rg = (RadioGroup)findViewById(R.id.zoom);
-		rg.setOnCheckedChangeListener(this);
 		vis_data_loaded = false;
 		mTest = new CityUI(this);
 		ViewGroup vg = (ViewGroup) this.findViewById(R.id.test);
@@ -32,8 +35,8 @@ public class CityView extends SessionUser implements OnCheckedChangeListener, Ca
 		((FrameLayout) findViewById(R.id.resource_bar)).addView(mTest.resource_bar.self);
 	}
 	void session_ready() {
-		mTest.setState(session.state);
-		mTest.resource_bar.update(session.state.currentCity);
+		mTest.setState(session.state,session.rpc);
+		if (session.state.currentCity != null) mTest.resource_bar.update(session.state.currentCity);
 		session.state.enableVis();
 	}
 	protected void onStart() {
@@ -53,19 +56,6 @@ public class CityView extends SessionUser implements OnCheckedChangeListener, Ca
 		};
 		this.runOnUiThread(resync);
 	}
-	public void onCheckedChanged(RadioGroup arg0, int arg1) {
-		switch (arg0.getCheckedRadioButtonId()) {
-		case R.id.one:
-			mTest.setZoom(1);
-			break;
-		case R.id.two:
-			mTest.setZoom(0.5f);
-			break;
-		case R.id.three:
-			mTest.setZoom(0.25f);
-			break;
-		}
-	}
 	public void visDataReset() {
 		Log.v(TAG,"vis count "+session.rpc.state.currentCity.visData.size());
 		if (!vis_data_loaded) gotVisDataInit();
@@ -80,7 +70,11 @@ public class CityView extends SessionUser implements OnCheckedChangeListener, Ca
 	}
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
-		menu.removeItem(R.id.city);
+		menu.removeItem(R.id.city); // FIXME, switch to hide
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.city_menu, menu);
+		build = menu.findItem(R.id.build);
+		upgrade = menu.findItem(R.id.upgrade);
 		return true;
 	}
 	public boolean onOptionsItemSelected(MenuItem item) {
@@ -92,7 +86,34 @@ public class CityView extends SessionUser implements OnCheckedChangeListener, Ca
 			i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 			startActivity(i);
 			return true;
+		case R.id.build:
+			showBuildDialog();
+			return true;
+		case R.id.upgrade:
+			int typeid = ((LouStructure)mTest.mTest.selected).typeid;
+			session.rpc.UpgradeBuilding(session.state.currentCity, mTest.mTest.currentCoord, typeid);
+			return true;
 		}
 		return super.onOptionsItemSelected(item);
+	}
+	void showBuildDialog() {
+		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+		Fragment prev = getSupportFragmentManager().findFragmentByTag("dialog");
+		if (prev != null) ft.remove(prev);
+		ft.addToBackStack(null);
+		DialogFragment newFragment = BuildMenu.newInstance(session.state.currentCity,mTest.mTest.currentCoord);
+		newFragment.show(ft, "dialog");
+	}
+	public void do_build(int structureid,int coord) {
+		Log.v(TAG,String.format("%s %s", structureid,coord));
+		session.rpc.UpgradeBuilding(session.state.currentCity, coord, structureid);
+	}
+	@Override
+	public void showBuildMenu(boolean enabled) {
+		build.setEnabled(enabled);
+	}
+	@Override
+	public void showUpgradeMenu(boolean b) {
+		upgrade.setEnabled(b);
 	}
 }

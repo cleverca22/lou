@@ -2,6 +2,7 @@ package com.angeldsis.lou;
 
 import com.angeldsis.lou.fragments.ResourceBar;
 import com.angeldsis.louapi.LouState;
+import com.angeldsis.louapi.RPC;
 
 import android.view.ViewGroup;
 
@@ -34,7 +35,7 @@ public class CityUI extends ViewGroup {
 		resource_bar.update(mTest.state.currentCity);
 		mTest.tick();
 	}
-	public void setState(LouState state) {
-		mTest.setState(state);
+	public void setState(LouState state, RPC rpc) {
+		mTest.setState(state,rpc);
 	}
 }

@@ -3,6 +3,8 @@ package com.angeldsis.louapi;
 import org.json2.JSONException;
 import org.json2.JSONObject;
 
+import com.angeldsis.louapi.LouState.City;
+
 public class CityBuilding extends LouVisData {
 	// FIXME, add the rest
 	/** the types for typeid **/
@@ -14,8 +16,8 @@ public class CityBuilding extends LouVisData {
 	// s = 1 means upgrade working/in-queue
 	// ss/se are start/end, 0 for in-queue
 
-	public CityBuilding(JSONObject structure, int subtype) throws JSONException {
-		super(structure);
+	public CityBuilding(City c,JSONObject structure, int subtype) throws JSONException {
+		super(c,structure);
 		switch (subtype) {
 		case BUILDING:
 			level = structure.getInt("l");

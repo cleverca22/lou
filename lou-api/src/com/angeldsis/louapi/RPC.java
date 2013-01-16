@@ -32,10 +32,11 @@ public abstract class RPC extends Thread {
 		urlbase = "http://prodgame"+acct.serverid+".lordofultima.com/"+acct.pathid+"/Presentation/Service.svc/ajaxEndpoint/";
 		chat_queue = new ArrayList<String>();
 		queue = new ArrayList<Runnable>();
-		running = true;
 		polling = false;
-		cont = true;
-		start();
+		synchronized(this) {
+			running = true;
+			start();
+		}
 	}
 	public void OpenSession(final boolean reset,final RPCDone callback) {
 		Runnable r = new Runnable() {
@@ -46,9 +47,82 @@ public abstract class RPC extends Thread {
 		};
 		post(r);
 	}
+	public void GetBuildingInfo(final LouVisData v, final RPCDone callback) {
+		post(new Runnable() {
+			public void run() {
+				try {
+					JSONObject obj = new JSONObject();
+					obj.put("cityid",v.getCity().cityid);
+					obj.put("buildingid", v.visId);
+					doRPC("GetBuildingInfo",obj,RPC.this,new RPCCallback() {
+						@Override
+						void requestDone(rpcreply r) throws JSONException,
+								Exception {
+							callback.requestDone(r.reply);
+						}
+					},5);
+				} catch (JSONException e) {
+					// FIXME
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+	public void UpgradeBuilding(final City c, final int coord, final int structureid) {
+		post(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					JSONObject obj = new JSONObject();
+					obj.put("cityid", c.cityid);
+					obj.put("buildingid", coord);
+					obj.put("buildingType", structureid);
+					obj.put("isPaid", true);
+					doRPC("UpgradeBuilding",obj,RPC.this,new RPCCallback() {
+						@Override
+						void requestDone(rpcreply r) throws JSONException {
+							Log.v(TAG,r.reply.toString(1));
+						}
+					},5);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+	public void GetBuildingUpgradeInfo(final City c,final int coord) {
+		post(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					JSONObject obj = new JSONObject();
+					obj.put("buildingPlace",coord);
+					obj.put("cityid", c.cityid);
+					doRPC("GetBuildingUpgradeInfo",obj,RPC.this,new RPCCallback() {
+						@Override
+						void requestDone(rpcreply r) throws JSONException,
+								Exception {
+							Log.v(TAG,r.reply.toString(1));
+						}
+					},5);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
 	private void post(Runnable r) {
 		queue.add(r);
-		if (Thread.currentThread() != this) interrupt();
+		if (Thread.currentThread() != this) {
+			synchronized(this) {
+				if (running) interrupt();
+				else {
+					Log.v(TAG,"starting thread for post");
+					running = true;
+					start();
+				}
+			}
+		}
 	}
 	private void OpenSession(final boolean reset,final RPCDone callback2, final int retry_count) {
 		if (retry_count > 10) {
@@ -101,7 +175,7 @@ public abstract class RPC extends Thread {
 		}
 		if (function == "OpenSession") request.put("session", parent.account.sessionid);
 		else request.put("session", parent.instanceid);
-		HttpRequest req2 = newHttpRequest();
+		HttpRequest req2 = new HttpRequest();
 		HttpRequest.Callback cb = new HttpRequest.Callback() {
 			public void done(HttpReply reply) {
 				rpcreply reply2 = new rpcreply();
@@ -149,7 +223,6 @@ public abstract class RPC extends Thread {
 		return null;
 	}
 	/** creates an instance of a class implementing HttpRequest */
-	public abstract HttpRequest newHttpRequest();
 	class rpcreply {
 		public JSONObject reply;
 		public int http_code;
@@ -159,8 +232,8 @@ public abstract class RPC extends Thread {
 	private abstract class RPCCallback {
 		abstract void requestDone(rpcreply r) throws JSONException, Exception;
 	}
-	public abstract class RPCDone {
-		public abstract void requestDone(JSONObject reply);
+	public interface RPCDone {
+		public void requestDone(JSONObject reply);
 	}
 	public void GetPlayerInfo(final RPCDone rpcDone) {
 		JSONObject obj = new JSONObject();
@@ -195,7 +268,6 @@ public abstract class RPC extends Thread {
 			requestid++;
 			String requests = "CITY:"+state.currentCity.cityid;
 			if (state.fetchVis) {
-				Log.v(TAG,"getting vis data");
 				requests += "\fVIS:c:"+state.currentCity.cityid+":0:-1085:-638:775:565:"+state.currentCity.visreset; // FIXME last field is reset, check webfrontend.vis.Main.js for others
 			}
 			if (chat_queue.size() > 0) {
@@ -353,15 +425,18 @@ public abstract class RPC extends Thread {
 				case 3: // CityObject
 					break;
 				case 4:
-					parsed = new CityBuilding(structure,CityBuilding.BUILDING);
+					parsed = new CityBuilding(c,structure,CityBuilding.BUILDING);
 					break;
 				case 5: // CityBuildingPlace
 					break;
 				case 9: // CityResField
-					parsed = new CityResField(structure);
+					parsed = new CityResField(c,structure);
 					break;
 				case 10: // CityFortification
-					parsed = new CityBuilding(structure,CityBuilding.WALL);
+					parsed = new CityBuilding(c,structure,CityBuilding.WALL);
+					break;
+				case 13:
+					// FIXME return new webfrontend.vis.CityWallLevel(this, bI.l, bI.i);
 					break;
 				default:
 					Log.v(TAG,"unhandled VIS type "+type);
@@ -371,7 +446,7 @@ public abstract class RPC extends Thread {
 					c.addVisObj(parsed);
 				}
 			} else { // if it was found
-				parsed.update(structure);
+				runOnUiThread(new uiUpdate(parsed,structure));
 			}
 		}
 		if (c.visreset == 1) {
@@ -385,7 +460,24 @@ public abstract class RPC extends Thread {
 			}});
 		}
 	}
+	private class uiUpdate implements Runnable {
+		LouVisData v;
+		JSONObject s;
+		uiUpdate(LouVisData v, JSONObject s) {
+			this.v = v;
+			this.s = s;
+		}
+		public void run() {
+			try {
+				v.update(s);
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
 	public void run() {
+		cont = true;
 		while (cont) {
 			Log.v(TAG,"loop");
 			while (queue.size() > 0) {
@@ -396,19 +488,22 @@ public abstract class RPC extends Thread {
 			tick();
 			// FIXME, may cause multiple parallel requests if they take over 10sec
 			if (polling) Poll();
-			else break;
 			try {
+				Log.v(TAG,"sleeping");
 				Thread.sleep(10000);
 			} catch (InterruptedException e) {
 			}
 		}
+		Log.v(TAG,"dying");
 		running = false;
 	}
 	public void startPolling() {
 		polling = true;
-		if (!running) {
-			running = true;
-			start();
+		synchronized(this) {
+			if (!running) {
+				running = true;
+				start();
+			}
 		}
 	}
 	public void stopPolling() {

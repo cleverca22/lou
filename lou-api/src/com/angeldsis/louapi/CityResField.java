@@ -3,6 +3,8 @@ package com.angeldsis.louapi;
 import org.json2.JSONException;
 import org.json2.JSONObject;
 
+import com.angeldsis.louapi.LouState.City;
+
 public class CityResField extends LouVisData {
 	String TAG = "CityResField";
 	public int c;
@@ -30,8 +32,8 @@ public class CityResField extends LouVisData {
 	// 5/0 image 202 townlayer/wood_magic_resource.png
 	// 6/0 image 198 townlayer/iron_magic_resource.png
 	// 7/0 effect 99 169x148 image 204 townlayer/lake_magic_resource.png
-	public CityResField(JSONObject base) throws JSONException {
-		super(base);
+	public CityResField(City city,JSONObject base) throws JSONException {
+		super(city,base);
 		subid = base.getInt("r");
 		c = base.getInt("c");
 	}

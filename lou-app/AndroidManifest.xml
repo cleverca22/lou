@@ -20,5 +20,6 @@
         <activity android:name="CityView"></activity>
         <activity android:name="IncomingAttacks"></activity>
         <activity android:name="ChatWindow"></activity>
+        <activity android:name="LoggingIn"></activity>
     </application>
 </manifest>

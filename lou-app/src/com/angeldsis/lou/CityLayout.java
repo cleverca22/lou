@@ -3,17 +3,23 @@ package com.angeldsis.lou;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import org.json2.JSONException;
+import org.json2.JSONObject;
+
 import com.angeldsis.louapi.CityBuilding;
 import com.angeldsis.louapi.CityResField;
 import com.angeldsis.louapi.LouState;
 import com.angeldsis.louapi.LouState.City;
 import com.angeldsis.louapi.LouVisData;
+import com.angeldsis.louapi.RPC;
+import com.angeldsis.louapi.RPC.RPCDone;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
+import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
+import android.os.Handler;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.GestureDetector.OnGestureListener;
@@ -26,16 +32,20 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 	static final String TAG = "CityLayout";
 	ArrayList<VisObject> buildings;
 	float zoom;
-	Drawable dirt;
-	Drawable selection;
+	Drawable dirt, selection, hammer;
+	RectF newBuilding;
 	VisObject selected;
 	LouState state;
 	Context context;
 	int maxx,maxy;
 	ScaleGestureDetector sgd;
 	GestureDetector gd;
-	public CityLayout(Activity context) {
+	Handler h = new Handler();
+	private RPC rpc;
+	LayoutCallbacks callbacks;
+	public CityLayout(CityView context) {
 		super(context);
+		callbacks = context;
 		this.context = context;
 		sgd = new ScaleGestureDetector(context,this);
 		gd = new GestureDetector(context,this);
@@ -44,6 +54,8 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 		dirt.setBounds(0, 0, 2944, 1840);
 		selection = context.getResources().getDrawable(R.drawable.decal_select_building);
 		selection.setBounds(-25, 15, 178 - 25, 144 + 15);
+		hammer = context.getResources().getDrawable(R.drawable.decal_building_valid);
+		hammer.setBounds(-25, 0, 178 - 25, 114);
 		selected = null;
 		// water.setBounds(0,0,896,560);
 		buildings = new ArrayList<VisObject>();
@@ -57,9 +69,11 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 		setWillNotDraw(false);
 		Log.v(TAG,"constructed");
 	}
-	public void setState(LouState state2) {
+	public void setState(LouState state2, RPC rpc) {
 		this.state = state2;
-		if (state.currentCity.visData.size() > 0) gotVisData();
+		this.rpc = rpc;
+		City c = state.currentCity;
+		if ((c != null) && c.hasVisData()) gotVisData();
 	}
 	void adjustMax() {
 		maxx = (int) ((2944*zoom) - getWidth());
@@ -137,6 +151,14 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 			c.translate(selected.rect.left,selected.rect.top);
 			selection.draw(c);
 			c.restore();
+		}
+		if (newBuilding != null) {
+			if (!c.quickReject(newBuilding, Canvas.EdgeType.BW)) {
+				c.save();
+				c.translate(newBuilding.left, newBuilding.top);
+				hammer.draw(c);
+				c.restore();
+			}
 		}
 		
 		int i,j;
@@ -297,20 +319,80 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 		// TODO Auto-generated method stub
 		
 	}
+	Runnable lastevent = null;
 	@Override
 	public boolean onSingleTapUp(MotionEvent e) {
+		if (lastevent != null) {
+			h.removeCallbacks(lastevent);
+			lastevent = null;
+		}
 		Log.v(TAG,"onSingleTapUp scrollx:"+getScrollX()+" scrolly:"+getScrollY()+" zoom:"+zoom+" width:"+getWidth()+" height:"+getHeight()+" maxx:"+maxx+" maxy:"+maxy);
-		float x = (getScrollX() + e.getX()) / zoom;
-		float y = (getScrollY() + e.getY()) / zoom;
+		int x = (int) ((getScrollX() + e.getX()) / zoom);
+		int y = (int) ((getScrollY() + e.getY()) / zoom);
 		Log.v(TAG,"x:"+x+" y:"+y);
 		Iterator<VisObject> i = buildings.iterator();
 		while (i.hasNext()) {
 			VisObject o = i.next();
 			if (!o.rect.contains(x, y)) continue;
 			selected = o;
+			x -= x % 128;
+			y -= y % 80;
+			int row = (y/80)+512;
+			int col = x/128;
+			currentCoord = (row * 256) + col;
 			o.selected();
 			invalidate();
+			callbacks.showUpgradeMenu(true);
+			callbacks.showBuildMenu(false);
+			if (o instanceof LouStructure) {
+				final LouStructure s = (LouStructure)o;
+				lastevent = new Runnable() {
+					@Override
+					public void run() {
+						rpc.GetBuildingInfo(s.base, new RPCDone() {
+							@Override
+							public void requestDone(JSONObject reply) {
+								try {
+									Log.v(TAG,reply.toString(1));
+									// reply.i == 20 (warehouse)
+									// reply.ml[0].m, array of how much of each resource it can hold
+									// reply.ml[1].m resources for next level
+									// reply.t == upgrade time
+									// reply.demo.t == domo time
+									// reply.down.t == downgrade time
+								} catch (JSONException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+							}
+						});
+					}
+				};
+				h.postDelayed(lastevent, 5000);
+			}
+			newBuilding = null;
+			return true;
 		}
-		return true;
+		// grid units: x=128, y=80
+		x -= x % 128;
+		y -= y % 80;
+		makeMenu(x,y);
+		invalidate();
+		return false;
+	}
+	int currentCoord;
+	void makeMenu(int x, int y) {
+		newBuilding = new RectF(x,y,128,80);
+		selected = null;
+		int row = (y/80)+512;
+		int col = x/128;
+		currentCoord = (row * 256) + col;
+		Log.v(TAG,"GetUpgradeInfo("+((y/80)+512)+","+(x/128)+","+currentCoord+")");
+		callbacks.showBuildMenu(true);
+		callbacks.showUpgradeMenu(false);
+	}
+	public interface LayoutCallbacks {
+		void showBuildMenu(boolean enabled);
+		void showUpgradeMenu(boolean b);
 	}
 }

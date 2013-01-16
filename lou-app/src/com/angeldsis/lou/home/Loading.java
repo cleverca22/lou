@@ -32,9 +32,7 @@ public class Loading extends Fragment {
 		String cookie = container.getContext().getSharedPreferences("main",
 				Context.MODE_PRIVATE).getString("cookie", null);
 		if (cookie != null) { // restore cookie, check if its valid
-			Log.v(TAG, "found cookie " + cookie);
 			SessionKeeper.restore_cookie(cookie);
-			Log.v(TAG, "cookie restored?");
 			SessionKeeper.checkCookie(new CookieCallback() {
 				public void done(result r) {
 					if (r.worked) {

@@ -3,6 +3,7 @@ package com.angeldsis.lou.home;
 import java.util.Iterator;
 
 import com.angeldsis.lou.AccountWrap;
+import com.angeldsis.lou.LoggingIn;
 import com.angeldsis.lou.LouSessionMain;
 import com.angeldsis.lou.R;
 import com.angeldsis.lou.SessionKeeper;
@@ -41,7 +42,7 @@ public class ServerList extends Fragment {
 				@Override
 				public void onClick(View v) {
 					Log.v(TAG,"onClick("+a.world+")");
-					Intent login = new Intent(getActivity(), LouSessionMain.class);
+					Intent login = new Intent(getActivity(), LoggingIn.class);
 					login.putExtras((new AccountWrap(a)).toBundle());
 					startActivity(login);
 					Log.v(TAG, "doing login on world " + a.world);
