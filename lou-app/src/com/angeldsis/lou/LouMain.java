@@ -26,15 +26,15 @@ public class LouMain extends FragmentActivity {
 		super.onCreate(savedInstanceState);
 		// Debug.startMethodTracing();
 		
+		String deviceId = Secure.getString(getContentResolver(), Secure.ANDROID_ID);
+		mChecker = new LicenseChecker(this, new ServerManagedPolicy(this,
+				new AESObfuscator(SALT,getPackageName(),deviceId)),BASE64_PUBLIC_KEY);
+		mLicenseCheckerCallback = new MyLicenseCheckerCallback();
+		mChecker.checkAccess(mLicenseCheckerCallback);
 		if (savedInstanceState != null) return;
 		
 		setContentView(R.layout.main);
 		getSupportFragmentManager().beginTransaction().add(R.id.main_frame, new Loading()).commit();
-		String deviceId = Secure.getString(getContentResolver(), Secure.ANDROID_ID);
-		mLicenseCheckerCallback = new MyLicenseCheckerCallback();
-		mChecker = new LicenseChecker(this, new ServerManagedPolicy(this,
-						new AESObfuscator(SALT,getPackageName(),deviceId)),BASE64_PUBLIC_KEY);
-		mChecker.checkAccess(mLicenseCheckerCallback);
 	}
 	protected void onStart() {
 		super.onStart();

@@ -13,10 +13,12 @@ import java.util.Iterator;
 import org.json2.JSONObject;
 
 import com.angeldsis.louapi.ChatMsg;
+import com.angeldsis.louapi.IncomingAttack;
 import com.angeldsis.louapi.LouSession;
 import com.angeldsis.louapi.LouSession.result;
 import com.angeldsis.louapi.LouState;
 import com.angeldsis.louapi.LouState.City;
+import com.angeldsis.louapi.LouVisData;
 import com.angeldsis.louapi.RPC;
 import com.angeldsis.louapi.RPC.RPCDone;
 
@@ -233,9 +235,21 @@ public class SessionKeeper extends Service {
 		public void vidDataUpdated() {
 			if (cb != null) cb.visDataUpdated();
 		}
+		public void onVisObjAdded(LouVisData v) {
+			if (cb != null) cb.onVisObjAdded(v);
+		}
+		public void onNewAttack(IncomingAttack a) {
+			boolean handled = false;
+			if (cb != null) handled = cb.onNewAttack(a);
+			if (!handled) {
+				Log.v(TAG,"new incoming attack!!!");
+			}
+		}
 	}
 	public interface Callbacks {
 		void visDataReset();
+		boolean onNewAttack(IncomingAttack a);
+		void onVisObjAdded(LouVisData v);
 		void loginDone();
 		void visDataUpdated();
 		void cityListChanged();

@@ -68,7 +68,7 @@ public abstract class RPC extends Thread {
 			}
 		});
 	}
-	public void UpgradeBuilding(final City c, final int coord, final int structureid) {
+	public void UpgradeBuilding(final City c, final int coord, final int structureid, final UpgradeStarted cb) {
 		post(new Runnable() {
 			@Override
 			public void run() {
@@ -82,6 +82,12 @@ public abstract class RPC extends Thread {
 						@Override
 						void requestDone(rpcreply r) throws JSONException {
 							Log.v(TAG,r.reply.toString(1));
+							runOnUiThread(new Runnable() {
+								@Override
+								public void run() {
+									cb.started();
+								}
+							});
 						}
 					},5);
 				} catch (JSONException e) {
@@ -89,6 +95,9 @@ public abstract class RPC extends Thread {
 				}
 			}
 		});
+	}
+	public interface UpgradeStarted {
+		void started();
 	}
 	public void GetBuildingUpgradeInfo(final City c,final int coord) {
 		post(new Runnable() {
@@ -168,10 +177,10 @@ public abstract class RPC extends Thread {
 			e.printStackTrace();
 		}
 	}
-	private InputStream doRPC(final String function,final JSONObject request, final RPC parent, final RPCCallback rpcCallback, final int retry) throws JSONException {
+	private void doRPC(final String function,final JSONObject request, final RPC parent, final RPCCallback rpcCallback, final int retry) throws JSONException {
 		if (retry == 0) {
 			System.out.println("too many treies");
-			return null;
+			return;
 		}
 		if (function == "OpenSession") request.put("session", parent.account.sessionid);
 		else request.put("session", parent.instanceid);
@@ -220,7 +229,7 @@ public abstract class RPC extends Thread {
 			}
 		};
 		req2.PostURL(urlbase + function, request.toString(), cb);
-		return null;
+		return;
 	}
 	/** creates an instance of a class implementing HttpRequest */
 	class rpcreply {
@@ -320,36 +329,6 @@ public abstract class RPC extends Thread {
 				int step = item.getInt("s");
 				state.currentCity.resources[i-1].set(d,b,m,step);
 			}
-			if (D.has("iuo")) {
-				Object iuo2 = D.get("iuo");
-				if (iuo2 != JSONObject.NULL) {
-					JSONArray iuo = (JSONArray) iuo2;
-					//Log.v(TAG, iuo.toString(1));
-					for (x = 0; x < iuo.length(); x++) {
-						// incoming attacks on current city
-						JSONObject X = iuo.getJSONObject(x);
-						Log.v(TAG,X.toString(1));
-						int city = X.getInt("c");
-						int alliance = X.getInt("a");
-						int stepMoongate = X.getInt("ms");
-						boolean isMoongate = X.getBoolean("m");
-						int id = X.getInt("i");
-						int type = X.getInt("t");
-						int state2 = X.getInt("s");
-						String cityName = X.getString("cn"); // source city
-						int player = X.getInt("p");
-						String allianceName = X.getString("an"); // source alliance
-						int start = X.getInt("ss");
-						String playerName = X.getString("pn"); // source player name
-						int end = X.getInt("es");
-						Log.v(TAG,"attack incoming to current city, from "+playerName);
-						Log.v(TAG,"time left: "+(end - state.getServerStep()));
-						// FIXME, actually use these fields
-					}
-				}
-				else Log.v(TAG,"no attacks 2!");
-			}
-			else Log.v(TAG,"no attacks?");
 			state.processCityPacket(D);
 			runOnUiThread(new Runnable () {public void run() {
 			gotCityData();
@@ -387,6 +366,7 @@ public abstract class RPC extends Thread {
 			Log.v(TAG,"unexpected Poll data "+C);
 		}
 	}
+	public abstract void onNewAttack(IncomingAttack a);
 	/** called when the session is ended, usually by logging in elsewhere **/
 	abstract public void onEjected();
 	/** queues a chat message like /a hello\n **/
@@ -444,6 +424,7 @@ public abstract class RPC extends Thread {
 				if (parsed != null) {
 					parsed.type = type;
 					c.addVisObj(parsed);
+					runOnUiThread(new visObjMade(parsed));
 				}
 			} else { // if it was found
 				runOnUiThread(new uiUpdate(parsed,structure));
@@ -452,7 +433,7 @@ public abstract class RPC extends Thread {
 		if (c.visreset == 1) {
 			c.visreset = 0;
 			runOnUiThread(new Runnable () {public void run() {
-			visDataReset();
+				visDataReset();
 			}});
 		} else {
 			runOnUiThread(new Runnable () {public void run() {
@@ -460,6 +441,14 @@ public abstract class RPC extends Thread {
 			}});
 		}
 	}
+	private class visObjMade implements Runnable {
+		LouVisData v;
+		visObjMade(LouVisData v) { this.v = v; }
+		public void run() {
+			RPC.this.onVisObjAdded(v);
+		}
+	}
+	public abstract void onVisObjAdded(LouVisData v);
 	private class uiUpdate implements Runnable {
 		LouVisData v;
 		JSONObject s;
@@ -487,9 +476,9 @@ public abstract class RPC extends Thread {
 			}
 			tick();
 			// FIXME, may cause multiple parallel requests if they take over 10sec
+			// nvm, Poll is now syncronys
 			if (polling) Poll();
 			try {
-				Log.v(TAG,"sleeping");
 				Thread.sleep(10000);
 			} catch (InterruptedException e) {
 			}

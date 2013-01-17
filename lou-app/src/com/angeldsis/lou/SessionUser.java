@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import com.angeldsis.lou.SessionKeeper.Callbacks;
 import com.angeldsis.lou.SessionKeeper.MyBinder;
 import com.angeldsis.louapi.ChatMsg;
+import com.angeldsis.louapi.IncomingAttack;
+import com.angeldsis.louapi.LouVisData;
 
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
@@ -89,7 +91,7 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 	/** ignore the event for most, if any subclass needs it, override
 	 */
 	public void onChat(ArrayList<ChatMsg> d) {}
-	public void onEjected() {}
+	public void onEjected() { Log.v(TAG,"onEjected"); }
 	public void onPlayerData() {}
 	public void cityChanged() {}
 	public void cityListChanged() {}
@@ -116,7 +118,7 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 		case R.id.city:
 			Log.v(TAG,"opening city view");
 			long heapSize = Runtime.getRuntime().maxMemory() / 1024 / 1024;
-			if (heapSize > 16) {
+			if (heapSize > 15) {
 				Intent i = new Intent(this,CityView.class);
 				i.putExtras(acct.toBundle());
 				startActivity(i);
@@ -141,4 +143,11 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 	}
 	@Override
 	public void loginDone() {}
+	@Override
+	public void onVisObjAdded(LouVisData v) {}
+	@Override
+	public boolean onNewAttack(IncomingAttack a) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

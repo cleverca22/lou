@@ -31,7 +31,7 @@ public class BuildMenu extends DialogFragment {
 		Bundle b = getArguments();
 		cityid = b.getLong("cityid");
 		coord = b.getInt("coord");
-		setStyle(DialogFragment.STYLE_NORMAL,android.R.style.Theme_Holo_Dialog);
+		setStyle(DialogFragment.STYLE_NO_TITLE,android.R.style.Theme_Holo_Dialog);
 	}
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -39,12 +39,16 @@ public class BuildMenu extends DialogFragment {
 		View v = inflater.inflate(R.layout.build_dialog, container,false);
 		link_button(v,R.id.cottage,4);
 		link_button(v,R.id.marketplace,5);
+		link_button(v,R.id.sawmill,7);
 		link_button(v,R.id.hideout,9);
+		link_button(v,R.id.stonemason,10);
+		link_button(v,R.id.foundry,11);
 		link_button(v,R.id.townhouse,13);
 		link_button(v,R.id.barracks,14);
 		link_button(v,R.id.guardhouse,15);
 		link_button(v,R.id.training_ground,16);
 		link_button(v,R.id.warehouse,20);
+		link_button(v,R.id.ranger,41);
 		link_button(v,R.id.woodcutter,47);
 		link_button(v,R.id.quary,48);
 		link_button(v,R.id.iron_mine,49);
@@ -55,7 +59,7 @@ public class BuildMenu extends DialogFragment {
 		((ImageButton)v.findViewById(id)).setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				((CityView)getActivity()).do_build(type, coord);
+				((CityView)getActivity()).do_build(cityid,type, coord);
 				dismiss();
 			}
 		});

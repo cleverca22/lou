@@ -6,8 +6,9 @@ import android.os.Handler;
 
 import com.angeldsis.louapi.Account;
 import com.angeldsis.louapi.ChatMsg;
-import com.angeldsis.louapi.HttpRequest;
+import com.angeldsis.louapi.IncomingAttack;
 import com.angeldsis.louapi.LouState;
+import com.angeldsis.louapi.LouVisData;
 import com.angeldsis.louapi.RPC;
 
 public class RPCWrap extends RPC {
@@ -57,5 +58,13 @@ public class RPCWrap extends RPC {
 	@Override
 	public void runOnUiThread(Runnable r) {
 		handler.post(r);
+	}
+	@Override
+	public void onVisObjAdded(LouVisData v) {
+		callbacks.onVisObjAdded(v);
+	}
+	@Override
+	public void onNewAttack(IncomingAttack a) {
+		callbacks.onNewAttack(a);
 	}
 }

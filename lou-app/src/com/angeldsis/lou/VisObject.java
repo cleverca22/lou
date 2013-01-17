@@ -1,6 +1,7 @@
 package com.angeldsis.lou;
 
 import android.graphics.RectF;
+import android.view.ViewGroup;
 
 public abstract class VisObject {
 	public RectF rect;
@@ -12,4 +13,5 @@ public abstract class VisObject {
 	abstract void dumpInfo();
 	abstract String getType();
 	abstract void selected();
+	abstract void delete(ViewGroup v);
 }

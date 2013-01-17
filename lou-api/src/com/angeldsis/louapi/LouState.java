@@ -190,7 +190,41 @@ public class LouState implements Serializable {
 	public void setRPC(RPC rpc2) {
 		rpc = rpc2;
 	}
-	public void processCityPacket(JSONObject p) {
+	public void processCityPacket(JSONObject p) throws JSONException {
+		int x;
+		if (p.has("iuo")) {
+			Object iuo2 = p.get("iuo");
+			if (iuo2 != JSONObject.NULL) {
+				JSONArray iuo = (JSONArray) iuo2;
+				//Log.v(TAG, iuo.toString(1));
+				for (x = 0; x < iuo.length(); x++) {
+					// incoming attacks on current city
+					JSONObject X = iuo.getJSONObject(x);
+					int id = X.getInt("i");
+					Log.v(TAG,X.toString(1));
+					IncomingAttack a = null;
+					Iterator<IncomingAttack> i = this.incoming_attacks.iterator();
+					while (i.hasNext()) {
+						IncomingAttack a2 = i.next();
+						if (a2.id == id) {
+							a = a2;
+							break;
+						}
+					}
+					if (a == null) {
+						// new attack
+						a = new IncomingAttack(this,id);
+						a.updateCityType(X);
+						this.incoming_attacks.add(a);
+						rpc.runOnUiThread(new NewAttackEvent(a));
+					} else {
+						a.updateCityType(X);
+					}
+				}
+			}
+			else Log.v(TAG,"no attacks 2!");
+		}
+		else Log.v(TAG,"no attacks?");
 		JSONArray ti = p.optJSONArray("ti");
 		JSONArray to = p.optJSONArray("to");
 		if (ti != null) {
@@ -200,6 +234,15 @@ public class LouState implements Serializable {
 		if (to != null) {
 			//Log.v(TAG,"to:"+to.length());
 			ArrayList<Trade> trade_out = parseTrades(to);
+		}
+	}
+	private class NewAttackEvent implements Runnable {
+		IncomingAttack a;
+		NewAttackEvent(IncomingAttack a ) {
+			this.a = a;
+		}
+		public void run() {
+			rpc.onNewAttack(a);
 		}
 	}
 	private ArrayList<Trade> parseTrades(JSONArray list) {

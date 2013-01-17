@@ -9,6 +9,7 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
 public class LouStructure extends VisObject implements Hook {
@@ -22,8 +23,6 @@ public class LouStructure extends VisObject implements Hook {
 		this.base = base;
 		base.hook = this;
 		rect = new RectF(base.x,base.y,base.x+128,base.y+128);
-		Log.v(TAG,"x:"+(((float)base.x)/((float)128)));
-		Log.v(TAG,"y:"+base.y/160);
 		//setFocusable(true);
 		//setFocusableInTouchMode(true);
 		level = new TextView(context,null,android.R.attr.textAppearanceMedium);
@@ -49,6 +48,9 @@ public class LouStructure extends VisObject implements Hook {
 			break;
 		case 10:
 			res = R.drawable.building_stonecutter;
+			break;
+		case 11:
+			res = R.drawable.building_iron_furnace;
 			break;
 		case 12:
 			res = R.drawable.building_townhall;
@@ -91,6 +93,9 @@ public class LouStructure extends VisObject implements Hook {
 			break;
 		case 809:
 			res = R.drawable.wall_tower_ranger_l;
+			break;
+		case 1065:
+			res = R.drawable.wall_tower_ranger_r;
 			break;
 		}
 		if (res == -1) {
@@ -163,5 +168,9 @@ public class LouStructure extends VisObject implements Hook {
 	@Override
 	void selected() {
 		Log.v(TAG,"structure selected");
+	}
+	@Override
+	public void delete(ViewGroup v) {
+		v.removeView(level);
 	}
 }

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.RectF;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.view.ViewGroup;
 
 import com.angeldsis.louapi.CityBuilding;
 
@@ -220,5 +221,10 @@ public class CityFortification extends VisObject {
 	@Override
 	void selected() {
 		Log.v(TAG,"wall selected");
+	}
+	@Override
+	void delete(ViewGroup v) {
+		// TODO Auto-generated method stub
+		
 	}
 }

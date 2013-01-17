@@ -168,6 +168,7 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 			if (c.quickReject(b.rect, Canvas.EdgeType.BW)) {
 				//skipped++;
 				//Log.v(TAG,"drawing "+b.getType());
+				if (b.images[0] == null) b.dumpInfo();
 				for (j = 0; j < b.images.length; j++ ) {
 					//Log.v(TAG,"images:"+b.images);
 					b.images[j].expire();
@@ -207,25 +208,43 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 		City self = state.currentCity;
 		for (x = 0; x < self.visData.size(); x++) {
 			LouVisData current = self.visData.get(x);
-			switch (current.type) {
-			case 4:
-				LouStructure vg = new LouStructure(context,(CityBuilding)current,state);
-				vg.addViews(this);
-				buildings.add(vg);
-				break;
-			case 9:
-				ResFieldUI vg3 = new ResFieldUI(context,(CityResField)current);
-				buildings.add(vg3);
-				break;
-			case 10:
-				CityFortification vg2 = new CityFortification(context,(CityBuilding)current);
-				vg2.addViews(this);
-				buildings.add(vg2);
-				break;
-			}
+			onVisObjAdded(current,false);
 		}
 		onLayout(false, 0, 0, 0, 0);
 		requestLayout();
+	}
+	public void visDataReset() {
+		Iterator<VisObject> i = buildings.iterator();
+		while (i.hasNext()) {
+			VisObject v = i.next();
+			v.delete(this);
+			i.remove();
+		}
+	}
+	/** called when a new LouVisData is added by api, or at startup, on the array of them
+	 * @param v
+	 */
+	public void onVisObjAdded(LouVisData v, boolean doLayout) {
+		switch (v.type) {
+		case 4:
+			LouStructure vg = new LouStructure(context,(CityBuilding)v,state);
+			vg.addViews(this);
+			buildings.add(vg);
+			break;
+		case 9:
+			ResFieldUI vg3 = new ResFieldUI(context,(CityResField)v);
+			buildings.add(vg3);
+			break;
+		case 10:
+			CityFortification vg2 = new CityFortification(context,(CityBuilding)v);
+			vg2.addViews(this);
+			buildings.add(vg2);
+			break;
+		}
+		if (doLayout) {
+			onLayout(false, 0, 0, 0, 0);
+			requestLayout();
+		}
 	}
 	void onResume() {
 		updateAll();
@@ -269,7 +288,7 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 		
 		int xdiff = (int) (x3 - x);
 		int ydiff = (int) (y3 - y);
-		Log.v(TAG,"x:"+x+" y:"+y+" x2:"+x2+" y2:"+y2+" x3:"+x3+" y3:"+y3+" xdiff:"+xdiff+" ydiff:"+ydiff);
+		//Log.v(TAG,"x:"+x+" y:"+y+" x2:"+x2+" y2:"+y2+" x3:"+x3+" y3:"+y3+" xdiff:"+xdiff+" ydiff:"+ydiff);
 		scrollBy(-xdiff,-ydiff);
 
 		/*float ncX = arg0.getFocusX() * zoom;
@@ -342,14 +361,17 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 			currentCoord = (row * 256) + col;
 			o.selected();
 			invalidate();
-			callbacks.showUpgradeMenu(true);
-			callbacks.showBuildMenu(false);
 			if (o instanceof LouStructure) {
 				final LouStructure s = (LouStructure)o;
+				if (s.base.level < 10) {
+					callbacks.showUpgradeMenu(true);
+					callbacks.showBuildMenu(false);
+					callbacks.showClear(true);
+				}
 				lastevent = new Runnable() {
 					@Override
 					public void run() {
-						rpc.GetBuildingInfo(s.base, new RPCDone() {
+						/*rpc.GetBuildingInfo(s.base, new RPCDone() {
 							@Override
 							public void requestDone(JSONObject reply) {
 								try {
@@ -365,7 +387,7 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 									e.printStackTrace();
 								}
 							}
-						});
+						})*/;
 					}
 				};
 				h.postDelayed(lastevent, 5000);
@@ -390,9 +412,16 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 		Log.v(TAG,"GetUpgradeInfo("+((y/80)+512)+","+(x/128)+","+currentCoord+")");
 		callbacks.showBuildMenu(true);
 		callbacks.showUpgradeMenu(false);
+		callbacks.showClear(true);
 	}
 	public interface LayoutCallbacks {
 		void showBuildMenu(boolean enabled);
 		void showUpgradeMenu(boolean b);
+		void showClear(boolean b);
+	}
+	public void clearSelection() {
+		selected = null;
+		newBuilding = null;
+		invalidate();
 	}
 }
