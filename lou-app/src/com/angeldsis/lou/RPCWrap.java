@@ -67,4 +67,8 @@ public class RPCWrap extends RPC {
 	public void onNewAttack(IncomingAttack a) {
 		callbacks.onNewAttack(a);
 	}
+	@Override
+	public void onReportCountUpdate(int viewed, int unviewed) {
+		callbacks.onReportCountUpdate(viewed,unviewed);
+	}
 }

@@ -24,10 +24,12 @@ public abstract class RPC extends Thread {
 	boolean cont,polling,running;
 	private ArrayList<String> chat_queue;
 	private ArrayList<Runnable> queue;
+	AllianceAttackMonitor aam;
 
 	public RPC(Account acct, LouState state) {
 		this.account = acct;
 		this.state = state;
+		aam = new AllianceAttackMonitor(this);
 		requestid = 0;
 		urlbase = "http://prodgame"+acct.serverid+".lordofultima.com/"+acct.pathid+"/Presentation/Service.svc/ajaxEndpoint/";
 		chat_queue = new ArrayList<String>();
@@ -270,7 +272,6 @@ public abstract class RPC extends Thread {
 	public abstract void cityChanged();
 	public abstract void cityListChanged();
 	public void Poll() {
-		Log.v(TAG,"Poll()");
 		try {
 			JSONObject obj = new JSONObject();
 			obj.put("requestid", requestid);
@@ -285,6 +286,9 @@ public abstract class RPC extends Thread {
 			} else requests = requests + "\fCHAT:";
 			requests += "\fPLAYER:";
 			requests += "\fTIME:"+System.currentTimeMillis();
+			requests += "\fREPORT:";
+			requests += "\fALLIANCE:";
+			requests += aam.getRequestDetails();
 			obj.put("requests",requests);
 			doRPC("Poll",obj,this,new RPCCallback() {
 				void requestDone(rpcreply r) throws JSONException {
@@ -302,8 +306,8 @@ public abstract class RPC extends Thread {
 		}
 	}
 	void handlePollPacket(JSONObject p) throws JSONException {
+		boolean showName = true;
 		String C = p.getString("C");
-		Log.v(TAG,"Poll packet "+C);
 		if (C.equals("TIME")) {
 			JSONObject D = p.optJSONObject("D");
 			long refTime = D.optLong("Ref");
@@ -362,10 +366,28 @@ public abstract class RPC extends Thread {
 				onEjected();
 				stopLooping();
 			}
+		} else if (C.equals("REPORT")) {
+			JSONObject D = p.optJSONObject("D");
+			final int viewed = D.optInt("v");
+			final int unviewed = D.optInt("u");
+			runOnUiThread(new Runnable() {
+				public void run () {
+					onReportCountUpdate(viewed,unviewed);
+				}
+			});
+		} else if (C.equals("ALLIANCE")) {
+			JSONObject D = p.optJSONObject("D");
+			//Log.v(TAG,D.toString(1));
+			state.parseAllianceUpdate(D);
+			showName = false;
+		} else if (C.equals("ALL_AT")) {
+			aam.parseReply(p.optJSONObject("D"));
 		} else {
 			Log.v(TAG,"unexpected Poll data "+C);
 		}
+		if (showName) Log.v(TAG,"Poll packet "+C);
 	}
+	public abstract void onReportCountUpdate(int viewed,int unviewed);
 	public abstract void onNewAttack(IncomingAttack a);
 	/** called when the session is ended, usually by logging in elsewhere **/
 	abstract public void onEjected();
@@ -468,7 +490,6 @@ public abstract class RPC extends Thread {
 	public void run() {
 		cont = true;
 		while (cont) {
-			Log.v(TAG,"loop");
 			while (queue.size() > 0) {
 				Runnable r = queue.remove(0);
 				Log.v(TAG,"running queued item");

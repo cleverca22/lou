@@ -17,4 +17,11 @@
     <string name="low_ram">Sorry, but your device does not have enough RAM for the city view</string>
     <string name="ok">OK</string>
     <string name="alliance">[Alliance] </string>
+    <string name="type">Type</string>
+    <string name="defender">Defender</string>
+    <string name="target">Target</string>
+    <string name="attacker">Attacker</string>
+    <string name="attack_alliance">Alliance</string>
+    <string name="source">Source</string>
+    <string name="ts_attacker">TS Attacker</string>
 </resources>

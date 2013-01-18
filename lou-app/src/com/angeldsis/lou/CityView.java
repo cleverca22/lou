@@ -104,7 +104,8 @@ public class CityView extends SessionUser implements Callbacks, LayoutCallbacks 
 			return true;
 		case R.id.upgrade:
 			int typeid = ((LouStructure)mTest.mTest.selected).typeid;
-			session.rpc.UpgradeBuilding(session.state.currentCity, mTest.mTest.currentCoord, typeid, new UpgradeStarted() {
+			session.rpc.UpgradeBuilding(session.state.currentCity, mTest.mTest.currentCoord.toCoord(),
+					typeid, new UpgradeStarted() {
 				@Override
 				public void started() {
 					build.setEnabled(false);
@@ -126,7 +127,8 @@ public class CityView extends SessionUser implements Callbacks, LayoutCallbacks 
 		Fragment prev = getSupportFragmentManager().findFragmentByTag("dialog");
 		if (prev != null) ft.remove(prev);
 		ft.addToBackStack(null);
-		DialogFragment newFragment = BuildMenu.newInstance(session.state.currentCity,mTest.mTest.currentCoord);
+		DialogFragment newFragment = BuildMenu.newInstance(session.state.currentCity,
+				mTest.mTest.currentCoord.toCoord());
 		newFragment.show(ft, "dialog");
 	}
 	public void do_build(long cityid,int structureid,int coord) {

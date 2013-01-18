@@ -22,6 +22,7 @@ import com.angeldsis.louapi.LouVisData;
 import com.angeldsis.louapi.RPC;
 import com.angeldsis.louapi.RPC.RPCDone;
 
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -30,6 +31,7 @@ import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
@@ -40,11 +42,13 @@ public class SessionKeeper extends Service {
 	NotificationManager mNotificationManager;
 	private final IBinder binder = new MyBinder();
 	public static LouSession session2;
+	PowerManager.WakeLock wl,doing_network;
 	
 	// constansts for notification id's
 	// worldid (86) will be added to these to keep them unique
 	static final int STILL_OPEN = 0x1000;
 	static final int UNREAD_MESSAGE = 0x2000;
+	static final int INCOMING_ATTACK = 0x3000;
 
 	public class MyBinder extends Binder {
 		public SessionKeeper getService() {
@@ -64,6 +68,10 @@ public class SessionKeeper extends Service {
 		Logger.init(); // allows api to print to log
 		Log.v(TAG,"onCreate");
 		if (sessions == null) sessions = new ArrayList<Session>();
+		PowerManager pm = (PowerManager) this.getSystemService(POWER_SERVICE);
+		wl = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, "incoming attack");
+		// partial lock seems to not effect cpu freq scalling on the kindle
+		doing_network = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "lou logged in");
 	}
 	@Override
 	public void onDestroy() {
@@ -77,7 +85,7 @@ public class SessionKeeper extends Service {
 		Log.v(TAG,"onStartCommand "+a.world);
 		return START_NOT_STICKY;
 	}
-	NotificationCompat.Builder mBuilder,chatBuilder;
+	NotificationCompat.Builder mBuilder,chatBuilder,incomingAttackBuilder;
 	public class Session {
 		private static final String TAG = "Session";
 		RPC rpc;
@@ -103,7 +111,9 @@ public class SessionKeeper extends Service {
 					.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT, options);
 			mBuilder.setContentIntent(resultPendingIntent);
 			mBuilder.setContentText("LOU is still running "+acct.world);
-			mNotificationManager.notify(STILL_OPEN | acct.worldid, mBuilder.build());
+			// FIXME, this interface can only support 1 notif, replace it with one that opens an active session list
+			SessionKeeper.this.startForeground(STILL_OPEN | acct.worldid,mBuilder.build());
+			doing_network.acquire();
 			
 			state = new LouState();
 			Log.v(TAG,""+state.chat_history);
@@ -144,6 +154,9 @@ public class SessionKeeper extends Service {
 			if (cb != null) cb.gotCityData();
 		}
 		public void onChat(ArrayList<ChatMsg> d) {
+			for (ChatMsg m : d) {
+				Log.v(TAG,m.toString());
+			}
 			if (cb != null) cb.onChat(d);
 			else {
 				Log.v(TAG,"uncaught message");
@@ -215,9 +228,11 @@ public class SessionKeeper extends Service {
 		public void onEjected() {
 			alive = false;
 			if (cb != null) cb.onEjected();
-			mNotificationManager.cancel(STILL_OPEN | acct.worldid);
+			//mNotificationManager.cancel(STILL_OPEN | acct.worldid);
+			SessionKeeper.this.stopForeground(true);
 			sessions.remove(this);
 			rpc.stopLooping();
+			doing_network.release();
 		}
 		public void cityChanged() {
 			if (cb != null) cb.cityChanged();
@@ -225,9 +240,11 @@ public class SessionKeeper extends Service {
 		public void logout() {
 			rpc.stopPolling();
 			rpc.stopLooping();
-			mNotificationManager.cancel(STILL_OPEN | acct.worldid);
+			//mNotificationManager.cancel(STILL_OPEN | acct.worldid);
+			SessionKeeper.this.stopForeground(true);
 			alive = false;
 			sessions.remove(this);
+			doing_network.release();
 		}
 		public void cityListChanged() {
 			if (cb != null) cb.cityListChanged();
@@ -242,8 +259,16 @@ public class SessionKeeper extends Service {
 			boolean handled = false;
 			if (cb != null) handled = cb.onNewAttack(a);
 			if (!handled) {
-				Log.v(TAG,"new incoming attack!!!");
+				Log.v(TAG,"new incoming attack!!! "+a);
+				incomingAttackBuilder.setContentText(String.format("incoming attack from %s to %s", a.sourcePlayerName,a.targetCityName))
+					.setDefaults(Notification.DEFAULT_SOUND);;
+				Notification n = incomingAttackBuilder.build();
+				mNotificationManager.notify(INCOMING_ATTACK | acct.worldid, n);
+				wl.acquire(60000);
 			}
+		}
+		public void onReportCountUpdate(int viewed, int unviewed) {
+			Log.v(TAG,String.format("report update viewed:%d unviewed:%d",viewed,unviewed));
 		}
 	}
 	public interface Callbacks {
@@ -268,6 +293,10 @@ public class SessionKeeper extends Service {
 					.setOngoing(true);
 			chatBuilder = new NotificationCompat.Builder(SessionKeeper.this).setSmallIcon(R.drawable.ic_launcher)
 					.setContentTitle("Unread Message in LOU")
+					.setContentText("FIXME")
+					.setAutoCancel(true);
+			incomingAttackBuilder = new NotificationCompat.Builder(SessionKeeper.this).setSmallIcon(R.drawable.ic_launcher)
+					.setContentTitle("incoming attack!")
 					.setContentText("FIXME")
 					.setAutoCancel(true);
 			mNotificationManager = (NotificationManager) getSystemService(SessionKeeper.NOTIFICATION_SERVICE);
@@ -323,5 +352,8 @@ public class SessionKeeper extends Service {
 			Log.v(TAG,"session count: "+sessions.size());
 			if (sessions.size() == 0) stopSelf();
 		}
+	}
+	public void onLowMemory () {
+		Log.v(TAG,"onLowMemory");
 	}
 }

@@ -19,6 +19,7 @@ public class LouState implements Serializable {
 	public Counter gold;
 	public ManaCounter mana;
 	public ArrayList<IncomingAttack> incoming_attacks;
+	public ArrayList<IncomingAttack> incomingAllianceAttacks;
 	private int serverOffset, diff, stepTime;
 	long refTime;
 	public ArrayList<ChatMsg> chat_history;
@@ -28,8 +29,15 @@ public class LouState implements Serializable {
 	public LouState() {
 		init();
 	}
+	IncomingAttack findById(int id,ArrayList<IncomingAttack> list) {
+		for (IncomingAttack a : list) {
+			if (a.id == id) return a;
+		}
+		return null;
+	}
 	private void init() {
 		incoming_attacks = new ArrayList<IncomingAttack>();
+		incomingAllianceAttacks = new ArrayList<IncomingAttack>();
 		chat_history = new ArrayList<ChatMsg>();
 		gold = new Counter(this);
 		mana = new ManaCounter(this);
@@ -147,15 +155,28 @@ public class LouState implements Serializable {
 					// incoming attacks on current city
 					JSONObject X = iuo.getJSONObject(x);
 					//Log.v(TAG,X.toString(1));
-					IncomingAttack ia = new IncomingAttack(X);
-					Log.v(TAG,"attack incoming to "+ia.targetCityName+" from player "+ia.playerName);
-					Log.v(TAG,"time left: "+(ia.end - getServerStep()));
-					incoming_attacks.add(ia);
+					int id = X.getInt("i");
+					IncomingAttack a = null;
+					Iterator<IncomingAttack> i = this.incoming_attacks.iterator();
+					while (i.hasNext()) {
+						IncomingAttack a2 = i.next();
+						if (a2.id == id) {
+							a = a2;
+							break;
+						}
+					}
+					if (a == null) {
+						a = new IncomingAttack(this,id);
+						a.updatePlayerType(X);
+						incoming_attacks.add(a);
+						rpc.runOnUiThread(new NewAttackEvent(a));
+					} else {
+						a.updatePlayerType(X);
+					}
 				}
-			}
-			else Log.v(TAG,"no attacks 2!");
+			} else Log.v(TAG,"no attacks 2!");
 		}
-		else Log.v(TAG,"no attacks?");
+		//else Log.v(TAG,"no attacks?");
 	}
 	public void setTime(long refTime2, int stepTime, int diff, int serverOffset) {
 		refTime = refTime2;
@@ -295,5 +316,11 @@ public class LouState implements Serializable {
 		Log.v(TAG,"Restore");
 		init();
 		cities = (ArrayList<City>) in.readObject();
+	}
+	public void parseAllianceUpdate(JSONObject d) {
+		int ia = d.optInt("ia");
+		int oa = d.optInt("oa");
+		if (oa > 0) Log.v(TAG,String.format("outgoing:%d",oa));
+		rpc.aam.countsUpdated(ia,oa);
 	}
 }

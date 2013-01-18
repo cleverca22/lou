@@ -17,12 +17,14 @@ import com.angeldsis.louapi.RPC.RPCDone;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.GestureDetector.OnGestureListener;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.ScaleGestureDetector.OnScaleGestureListener;
@@ -42,6 +44,7 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 	GestureDetector gd;
 	Handler h = new Handler();
 	private RPC rpc;
+	StructureId currentCoord;
 	LayoutCallbacks callbacks;
 	public CityLayout(CityView context) {
 		super(context);
@@ -67,6 +70,7 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 		initializeScrollbars(a);
 		a.recycle();
 		setWillNotDraw(false);
+		setFocusable(true);
 		Log.v(TAG,"constructed");
 	}
 	public void setState(LouState state2, RPC rpc) {
@@ -152,13 +156,22 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 			selection.draw(c);
 			c.restore();
 		}
-		if (newBuilding != null) {
+		/*if (newBuilding != null) {
 			if (!c.quickReject(newBuilding, Canvas.EdgeType.BW)) {
 				c.save();
 				c.translate(newBuilding.left, newBuilding.top);
 				hammer.draw(c);
 				c.restore();
 			}
+		}*/
+		if (currentCoord != null) {
+			c.save();
+			RectF focus = currentCoord.toRectF();
+			c.translate(focus.left,focus.top);
+			coord_type t = getCoordType(currentCoord);
+			if (t == coord_type.empty) hammer.draw(c);
+			else selection.draw(c);
+			c.restore();
 		}
 		
 		int i,j;
@@ -354,13 +367,10 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 			VisObject o = i.next();
 			if (!o.rect.contains(x, y)) continue;
 			selected = o;
-			x -= x % 128;
-			y -= y % 80;
-			int row = (y/80)+512;
-			int col = x/128;
-			currentCoord = (row * 256) + col;
+			currentCoord = StructureId.fromXY(x, y);
 			o.selected();
 			invalidate();
+			requestFocusFromTouch();
 			if (o instanceof LouStructure) {
 				final LouStructure s = (LouStructure)o;
 				if (s.base.level < 10) {
@@ -396,23 +406,88 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 			return true;
 		}
 		// grid units: x=128, y=80
-		x -= x % 128;
-		y -= y % 80;
 		makeMenu(x,y);
-		invalidate();
 		return false;
 	}
-	int currentCoord;
 	void makeMenu(int x, int y) {
-		newBuilding = new RectF(x,y,128,80);
+		selectCoord(StructureId.fromXY(x, y));
 		selected = null;
-		int row = (y/80)+512;
-		int col = x/128;
-		currentCoord = (row * 256) + col;
 		Log.v(TAG,"GetUpgradeInfo("+((y/80)+512)+","+(x/128)+","+currentCoord+")");
 		callbacks.showBuildMenu(true);
 		callbacks.showUpgradeMenu(false);
 		callbacks.showClear(true);
+	}
+	enum coord_type {
+		invalid, empty, wall, building, tower;
+	}
+	private coord_type getCoordType(StructureId in) {
+		if ((in.row == 0) || (in.row == 22)) return coord_type.invalid;
+		if ((in.col == 0) || (in.col == 22)) return coord_type.invalid;
+		
+		if ((in.row == 1) || (in.row == 21) || (in.col == 1) || (in.col == 21)) {
+			// FIXME use row when matching by col
+			switch (in.col) {
+			case 1:
+			case 2:
+				return coord_type.invalid;
+			case 3:
+			case 5:
+			case 6:
+			case 7:
+			case 9:
+			case 10:
+			case 11:
+			case 12:
+			case 13:
+			case 15:
+			case 16:
+			case 17:
+			case 19:
+				return coord_type.wall;
+			case 4:
+			case 8:
+			case 14:
+			case 18:
+				return coord_type.tower;
+			}
+		}
+		if ((in.row == 2) && (in.col == 2)) return coord_type.wall;
+		if ((in.row == 11) || (in.col == 11)) {
+			// FIXME use row when matching by col
+			switch (in.col) {
+			case 2:
+			case 3:
+			case 4:
+			case 5:
+			case 6:
+			case 16:
+			case 17:
+			case 18:
+			case 19:
+			case 20:
+				return coord_type.wall;
+			}
+		}
+		return coord_type.empty;
+	}
+	private void selectCoord(StructureId in) {
+		boolean empty_slot = true;
+		if (empty_slot) {
+			newBuilding = in.toRectF();
+		}
+		currentCoord = in;
+		requestFocusFromTouch();
+		RectF viewport = new RectF(getScrollX()/zoom,getScrollY()/zoom,
+				(getScrollX()/zoom)+(getWidth()/zoom),(getScrollY()/zoom)+(getHeight()/zoom));
+		Log.v(TAG,viewport.toString());
+		if (!viewport.contains(newBuilding)) {
+			if (newBuilding.bottom > viewport.bottom) scrollBy(0,(int)((newBuilding.bottom - viewport.bottom)* zoom));
+			if (newBuilding.top < viewport.top) scrollBy(0,(int)((newBuilding.top - viewport.top)* zoom));
+			if (newBuilding.right > viewport.right) scrollBy((int)((newBuilding.right - viewport.right) * zoom),0);
+			if (newBuilding.left < viewport.left) scrollBy((int)((newBuilding.left - viewport.left)*zoom),0);
+		}
+		invalidate();
+		Log.v(TAG,String.format("selectCoord(%s)",in.toString()));
 	}
 	public interface LayoutCallbacks {
 		void showBuildMenu(boolean enabled);
@@ -423,5 +498,39 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 		selected = null;
 		newBuilding = null;
 		invalidate();
+	}
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		Log.v(TAG,"onKeyDown("+keyCode+","+event+")");
+		StructureId target = null;
+		switch (keyCode) {
+		case KeyEvent.KEYCODE_DPAD_DOWN:
+			if (currentCoord == null) {
+				target = new StructureId(0,0);
+			} else {
+				target = currentCoord.down();
+			}
+			break;
+		case KeyEvent.KEYCODE_DPAD_UP:
+			target = currentCoord.up();
+			break;
+		case KeyEvent.KEYCODE_DPAD_RIGHT:
+			target = currentCoord.right();
+			break;
+		case KeyEvent.KEYCODE_DPAD_LEFT:
+			target = currentCoord.left();
+			break;
+		default:
+			return false;
+		}
+		if (target != null) {
+			selectCoord(target);
+			return true;
+		} else clearSelection();
+		return false;
+	}
+	@Override
+	protected void onFocusChanged (boolean gainFocus, int direction, Rect previouslyFocusedRect) {
+		Log.v(TAG,String.format("onFocusChanged(%s,%d,%s)",gainFocus ? "true":"false",direction, previouslyFocusedRect));
 	}
 }

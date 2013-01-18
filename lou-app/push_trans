@@ -1,0 +1,3 @@
+#!/bin/bash
+scp res/values/strings.xml andoria.angeldsis.com:public_html/lou-translate/res/values/
+scp res/values-ja/strings.xml andoria.angeldsis.com:public_html/lou-translate/res/values-ja/
