@@ -2,26 +2,20 @@ package com.angeldsis.lounative;
 
 import java.util.ArrayList;
 
-import org.eclipse.swt.widgets.Display;
-import org.json.JSONArray;
-import org.json.JSONException;
-
 import com.angeldsis.louapi.Account;
 import com.angeldsis.louapi.ChatMsg;
-import com.angeldsis.louapi.HttpRequest;
+import com.angeldsis.louapi.IncomingAttack;
+import com.angeldsis.louapi.Log;
 import com.angeldsis.louapi.LouState;
+import com.angeldsis.louapi.LouVisData;
 import com.angeldsis.louapi.RPC;
 
 public class RPCWrap extends RPC {
+	private static String TAG = "RPCWrap";
 	private ChatWindow chat;
-	Display display;
-	public RPCWrap(Account acct, LouState state, Display display) {
+	private CoreSession core;
+	public RPCWrap(Account acct, LouState state) {
 		super(acct, state);
-		this.display = display;
-		// TODO Auto-generated constructor stub
-	}
-	public HttpRequest newHttpRequest() {
-		return new HttpRequestWrap();
 	}
 	@Override
 	public void visDataReset() {
@@ -30,8 +24,6 @@ public class RPCWrap extends RPC {
 	}
 	@Override
 	public void tick() {
-		// TODO Auto-generated method stub
-		
 	}
 	public void gotCityData() {
 	}
@@ -40,15 +32,10 @@ public class RPCWrap extends RPC {
 	}
 	@Override
 	public void onChat(final ArrayList<ChatMsg> d) {
-		display.syncExec(new Runnable() {
-			@Override
-			public void run() {
-				int i;
-				for (i = 0; i < d.size(); i++) {
-					chat.handle_msg(d.get(i));
-				}
-			}
-		});
+		int i;
+		for (i = 0; i < d.size(); i++) {
+			chat.handle_msg(d.get(i));
+		}
 	}
 	@Override
 	public void onPlayerData() {
@@ -63,16 +50,34 @@ public class RPCWrap extends RPC {
 	@Override
 	public void onEjected() {
 		// TODO Auto-generated method stub
-		System.out.println("ejected");
+		Log.e(TAG,"ejected");
 	}
 	@Override
 	public void cityListChanged() {
-		// TODO Auto-generated method stub
-		
+		Log.w(TAG, "cityListChanged");
 	}
 	@Override
 	public void visDataUpdated() {
-		// TODO Auto-generated method stub
-		
+		Log.w(TAG, "onVisDataUpdated");
+	}
+	@Override
+	public void runOnUiThread(Runnable r) {
+		LouMain.instance.display.asyncExec(r);
+	}
+	@Override
+	public void onReportCountUpdate(int viewed, int unviewed) {
+		Log.w(TAG,"onReportCountUpdate");
+		core.mw.onReportCountUpdate(viewed,unviewed);
+	}
+	@Override
+	public void onNewAttack(IncomingAttack a) {
+		Log.w(TAG,"onNewAttack");
+	}
+	@Override
+	public void onVisObjAdded(LouVisData v) {
+		Log.w(TAG,"onVisObjAdded");
+	}
+	public void setCoreSession(CoreSession coreSession) {
+		this.core = coreSession;
 	}
 }

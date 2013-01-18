@@ -20,6 +20,7 @@ import org.eclipse.swt.widgets.Tray;
 import org.eclipse.swt.widgets.TrayItem;
 
 import com.angeldsis.louapi.Account;
+import com.angeldsis.louapi.Log;
 import com.angeldsis.louapi.LouSession;
 
 public class WorldSelect extends Shell {
@@ -32,6 +33,10 @@ public class WorldSelect extends Shell {
 		Iterator<Account> i = session.servers.iterator();
 		while (i.hasNext()) {
 			Account a = i.next();
+			if (a.worldid == LouMain.instance.auto_world) {
+				new CoreSession(a,display);
+				return;
+			}
 			new Label(this,0).setText(a.world);
 			Button b = new Button(this,0);
 			b.setText("login");
@@ -51,6 +56,7 @@ public class WorldSelect extends Shell {
 		private Account a;
 		LoginAction(Account a) {
 			this.a = a;
+			Log.v("WorldSelect","account:"+a.worldid);
 		}
 		public void mouseDoubleClick(MouseEvent e) {
 		}

@@ -12,6 +12,7 @@ import org.eclipse.swt.widgets.Text;
 
 import com.angeldsis.louapi.LouSession;
 import com.angeldsis.louapi.LouSession.result;
+import org.eclipse.swt.layout.GridData;
 
 public class DoLogin extends Shell implements MouseListener {
 	Text user,pass;
@@ -22,14 +23,16 @@ public class DoLogin extends Shell implements MouseListener {
 		super(display);
 		this.session = session;
 		this.display = display;
-		setSize(473, 325);
+		setSize(473, 140);
 		setLayout(new GridLayout(2, false));
 		Label label = new Label(this, 0);
 		label.setText("username");
 		user = new Text(this, SWT.BORDER);
+		user.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		Label label_1 = new Label(this,0);
 		label_1.setText("password");
 		pass = new Text(this,SWT.BORDER | SWT.PASSWORD);
+		pass.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		btnSavePw = new Button(this, SWT.CHECK);
 		btnSavePw.setText("Save PW");

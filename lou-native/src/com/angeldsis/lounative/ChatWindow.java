@@ -38,6 +38,7 @@ public class ChatWindow extends Shell {
 	protected void checkSubclass() {}
 	public void handle_msg(ChatMsg c) {
 		text.setText(text.getText() + "\r\n" + c.toString());
+		forceActive();
 	}
 	public void sendMessage(MouseEvent e) {
 		rpc.QueueChat(msg_input.getText() + "\n");

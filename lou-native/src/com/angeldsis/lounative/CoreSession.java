@@ -1,11 +1,12 @@
 package com.angeldsis.lounative;
 
 import org.eclipse.swt.widgets.Display;
-import org.json.JSONObject;
+import org.json2.JSONObject;
 
 import com.angeldsis.louapi.Account;
 import com.angeldsis.louapi.Log;
 import com.angeldsis.louapi.LouState;
+import com.angeldsis.louapi.RPC.RPCDone;
 
 public class CoreSession {
 	static final String TAG = "CoreSession";
@@ -16,13 +17,14 @@ public class CoreSession {
 	public CoreSession(Account a, Display display) {
 		System.out.println("you picked "+a.world);
 		state = new LouState();
-		rpc = new RPCWrap(a,state,display);
-		rpc.OpenSession(true,rpc.new RPCDone() {
+		rpc = new RPCWrap(a,state);
+		state.setRPC(rpc);
+		rpc.OpenSession(true,new RPCDone() {
 			public void requestDone(JSONObject reply) {
 				Log.v(TAG,"session opened");
-				rpc.GetServerInfo(rpc.new RPCDone() {
+				rpc.GetServerInfo(new RPCDone() {
 					public void requestDone(JSONObject reply) {
-						rpc.GetPlayerInfo(rpc.new RPCDone() {
+						rpc.GetPlayerInfo(new RPCDone() {
 							@Override
 							public void requestDone(JSONObject reply) {
 								// state variable now has some data populated
@@ -32,11 +34,11 @@ public class CoreSession {
 					}
 				});
 			}
-		}, 0);
+		});
 		rpc.setChat(new ChatWindow(display,rpc));
+		rpc.setCoreSession(this);
 		mw = new MainWindow(display,this);
 	}
-
 	public void openCity() {
 		// TODO Auto-generated method stub
 	}

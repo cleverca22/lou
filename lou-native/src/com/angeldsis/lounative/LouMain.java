@@ -13,24 +13,30 @@ import com.angeldsis.louapi.Log;
 import com.angeldsis.louapi.LouSession;
 
 public class LouMain {
-	boolean cli;
+	static LouMain instance;
 	LouSession session;
+	Display display;
+	int auto_world;
 	public static void main(String[] args) throws Exception {
 		int i;
-		boolean cli = true;
+		int world = 0;
 		for (i = 0; i < args.length; i++) {
-			if (args[i].equals("-cli")) cli = true;
-			else if (args[i].equals("-nocli")) cli = false;
+			if (args[i].equals("--world")) {
+				i++;
+				world = Integer.parseInt(args[i]);
+			} else {
+				System.out.println("unknown argument:"+args[i]);
+			}
 		}
-		LouMain start = new LouMain();
-		start.init(cli);
+		LouMain.instance = new LouMain();
+		LouMain.instance.init(world);
 	}
-	private void init(boolean cli2) throws Exception {
+	private void init(int world) throws Exception {
 		Config.init();
 		Logger.init();
-		Display display = new Display();
-		cli = cli2;
+		display = new Display();
 		session = new LouSession();
+		auto_world = world;
 		Config config = Config.getConfig();
 		if (config.getRememberMe() != null) {
 			HttpCookie httpcookie = new HttpCookie("REMEMBER_ME_COOKIE",config.getRememberMe());
