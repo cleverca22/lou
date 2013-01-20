@@ -377,6 +377,10 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 					callbacks.showUpgradeMenu(true);
 					callbacks.showBuildMenu(false);
 					callbacks.showClear(true);
+				} else {
+					callbacks.showUpgradeMenu(false);
+					callbacks.showBuildMenu(false);
+					callbacks.showClear(true);
 				}
 				lastevent = new Runnable() {
 					@Override

@@ -26,8 +26,8 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 	static final String TAG = "SessionUser";
 	SessionKeeper mService;
 	boolean mBound;
-	AccountWrap acct;
-	SessionKeeper.Session session;
+	protected AccountWrap acct;
+	protected SessionKeeper.Session session;
 	boolean allow_login;
 	public void onCreate(Bundle sis) {
 		super.onCreate(sis);
@@ -54,7 +54,7 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 			session_ready();
 		}
 	}
-	void session_ready() {}
+	public void session_ready() {}
 	private ServiceConnection mConnection = new ServiceConnection() {
 		public void onServiceConnected(ComponentName className, IBinder service) {
 			MyBinder binder = (MyBinder)service;
@@ -150,4 +150,6 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 		// TODO Auto-generated method stub
 		return false;
 	}
+	@Override
+	public void onReportCountUpdate(int viewed, int unviewed) {}
 }

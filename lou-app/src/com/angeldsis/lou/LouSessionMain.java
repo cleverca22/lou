@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import com.angeldsis.lou.fragments.ResourceBar;
+import com.angeldsis.lou.reports.Reports;
 import com.angeldsis.louapi.ChatMsg;
 import com.angeldsis.louapi.LouState;
 import com.angeldsis.louapi.LouState.City;
@@ -18,6 +19,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -46,7 +48,7 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 		super.onStart();
 		Log.v(TAG,"onStart");
 	}
-	protected void session_ready() {
+	public void session_ready() {
 		Log.v(TAG,"session_ready");
 		if (session.alive == false) {
 			onEjected();
@@ -180,5 +182,18 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 			views.put(position, row);
 			return row;
 		}
+	}
+	@Override
+	public void onReportCountUpdate(int viewed, int unviewed) {
+		String msg = getResources().getString(R.string.reports, unviewed);
+		((Button)findViewById(R.id.reports)).setText(msg);
+		Log.v(TAG,"unviewed:"+unviewed);
+	}
+	public void openReports(View v) {
+		Log.v(TAG,"opening reports");
+		Bundle args = acct.toBundle();
+		Intent i = new Intent(this,Reports.class);
+		i.putExtras(args);
+		startActivity(i);
 	}
 }

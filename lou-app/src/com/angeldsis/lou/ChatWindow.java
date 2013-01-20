@@ -8,6 +8,7 @@ import java.util.Map;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -29,7 +30,14 @@ public class ChatWindow extends SessionUser {
 		LinearLayout l;
 		String tag;
 	}
+	enum Type { pm,channel };
+	class Channel {
+		Type type;
+		PM oldpm;
+		public ScrollView scrollView;
+	}
 	Map<String,PM> private_messages;
+	Map<String,Channel> channels;
 	private NameClicked nameClicker;
 	public void onCreate(Bundle b) {
 		super.onCreate(b);
@@ -38,26 +46,38 @@ public class ChatWindow extends SessionUser {
 		general = new LinearLayout(this);
 		alliance = new LinearLayout(this);
 		private_messages = new HashMap<String,PM>();
+		channels = new HashMap<String,Channel>();
+		
 		mTabHost = (TabHost)findViewById(R.id.tabhost);
 		mTabHost.setup();
+		
 		TabHost.TabSpec t1 = mTabHost.newTabSpec("general");
-		t1.setContent(new TabMaker(general));
+		Channel temp = new Channel();
+		temp.type = Type.channel;
+		t1.setContent(new TabMaker(general,temp));
 		t1.setIndicator("General");
 		mTabHost.addTab(t1);
+		channels.put("general",temp);
+		
+		temp = new Channel();
+		temp.type = Type.channel;
 		TabHost.TabSpec t2 = mTabHost.newTabSpec("alliance");
-		t2.setContent(new TabMaker(alliance));
+		t2.setContent(new TabMaker(alliance,temp));
 		t2.setIndicator("alliance");
 		mTabHost.addTab(t2);
+		channels.put("alliance", temp);
+		
 		nameClicker = new NameClicked();
 	}
 	class TabMaker implements TabHost.TabContentFactory {
 		LinearLayout l;
 		ScrollView s;
-		public TabMaker(LinearLayout general) {
+		public TabMaker(LinearLayout general, Channel channel) {
 			l = general;
 			l.setOrientation(LinearLayout.VERTICAL);
 			s = new ScrollView(ChatWindow.this);
 			s.addView(l);
+			channel.scrollView = s;
 		}
 		@Override
 		public View createTabContent(String tag) {
@@ -98,10 +118,13 @@ public class ChatWindow extends SessionUser {
 				p = new PM();
 				p.l = new LinearLayout(ChatWindow.this);
 				p.tag = tag;
+				Channel temp = new Channel();
+				temp.type = Type.pm;
 				TabHost.TabSpec s = mTabHost.newTabSpec(p.tag);
-				s.setContent(new TabMaker(p.l));
+				s.setContent(new TabMaker(p.l,temp));
 				s.setIndicator(p.tag);
 				mTabHost.addTab(s);
+				channels.put("pm_"+p.tag, temp);
 				private_messages.put(p.tag, p);
 			}
 		}
@@ -118,6 +141,10 @@ public class ChatWindow extends SessionUser {
 			sender.setOnClickListener(nameClicker);
 			sender.setClickable(true);
 			msg.setText(" "+c.m); // FIXME, padding
+			Channel currentChannel = null;
+			
+			if (c.c.equals("@A")) currentChannel = channels.get("alliance");
+			else if (c.c.equals("@C")) currentChannel = channels.get("general");
 			
 			l.addView(channel);
 			if (c.hascrown) {
@@ -142,11 +169,17 @@ public class ChatWindow extends SessionUser {
 					p = new PM();
 					p.l = new LinearLayout(this);
 					p.tag = c.s;
+					Channel temp = new Channel();
+					temp.type = Type.pm;
 					TabHost.TabSpec s = mTabHost.newTabSpec(p.tag);
-					s.setContent(new TabMaker(p.l));
+					s.setContent(new TabMaker(p.l,temp));
 					s.setIndicator(p.tag);
 					mTabHost.addTab(s);
+					channels.put("pm_"+p.tag, temp);
+					currentChannel = temp;
 					private_messages.put(p.tag, p);
+				} else {
+					currentChannel = channels.get("pm_"+p.tag);
 				}
 				if (c.c.equals("privateout")) sender.setText("clever: ");
 				else sender.setText(c.s+": ");
@@ -157,8 +190,21 @@ public class ChatWindow extends SessionUser {
 				channel.setText(c.c);
 				general.addView(l);
 			}
+			if (currentChannel != null) {
+				delayScroll.postDelayed(new Delayer(currentChannel.scrollView), 100);
+			}
 		}
 	}
+	class Delayer implements Runnable {
+		ScrollView s;
+		Delayer(ScrollView s) {
+			this.s = s;
+		}
+		public void run() {
+			s.smoothScrollBy(0, 100);
+		}
+	}
+	Handler delayScroll = new Handler();
 	public void sendMsg(View v) {
 		String tag = mTabHost.getCurrentTabTag();
 		EditText m = (EditText) findViewById(R.id.message);

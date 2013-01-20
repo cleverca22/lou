@@ -18,11 +18,10 @@ public class IncomingAttacks extends SessionUser {
 		super.onCreate(bundle);
 		setContentView(R.layout.incoming_attacks);
 	}
-	void session_ready() {
+	public void session_ready() {
 		Log.v(TAG,""+session.state.incoming_attacks.size());
 		TableLayout l = (TableLayout) findViewById(R.id.table);
 		addList(l,session.state.incoming_attacks);
-		addList(l,session.state.incomingAllianceAttacks);
 	}
 	void addList(ViewGroup parent,ArrayList<IncomingAttack> list) {
 		Iterator<IncomingAttack> i = list.iterator();
@@ -32,7 +31,8 @@ public class IncomingAttacks extends SessionUser {
 			((TextView)row.findViewWithTag("defender")).setText(a.defender);
 			setField(row,"target",a.targetCityName);
 			setField(row,"attacker",a.sourcePlayerName);
-			setField(row,"alliance",a.sourceAlliance.name);
+			if (a.sourceAlliance != null) setField(row,"alliance",a.sourceAlliance.name);
+			else setField(row,"alliance","null???");
 			setField(row,"source",a.sourceCityName);
 			setField(row,"tsattacker",""+a.total_strength_attacker);
 			parent.addView(row);

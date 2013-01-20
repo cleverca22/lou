@@ -27,7 +27,7 @@ public class ServerList extends Fragment {
 	public View onCreateView (LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		setHasOptionsMenu(true);
 		Log.v(TAG,"onCreateView");
-		Log.v(TAG,"found "+SessionKeeper.session2.servers.size());
+		Log.v(TAG,"found "+SessionKeeper.session2.servers.size()); // NullPointerException
 		ViewGroup root = (ViewGroup) inflater.inflate(R.layout.server_list, container,false);
 		ViewGroup top = (ViewGroup) root.findViewById(R.id.list);
 		Iterator<Account> i = SessionKeeper.session2.servers.iterator();

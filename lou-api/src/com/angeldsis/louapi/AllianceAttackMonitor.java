@@ -37,7 +37,7 @@ public class AllianceAttackMonitor {
 				JSONObject attack = a.optJSONObject(i);
 				System.out.println(attack.toString());
 				int id = attack.optInt("i");
-				IncomingAttack att = rpc.state.findById(id,rpc.state.incomingAllianceAttacks);
+				IncomingAttack att = rpc.state.findById(id,rpc.state.incoming_attacks);
 				if (att == null) { // its new
 					att = new IncomingAttack(rpc.state,id);
 					att.updateAllianceType(attack);
@@ -47,7 +47,7 @@ public class AllianceAttackMonitor {
 				}
 				newlist.add(att);
 			}
-			rpc.state.incomingAllianceAttacks = newlist;
+			rpc.state.incoming_attacks = newlist;
 		}
 		ia = a.length();
 	}

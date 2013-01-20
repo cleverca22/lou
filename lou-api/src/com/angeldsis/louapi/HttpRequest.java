@@ -38,8 +38,6 @@ public class HttpRequest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			Log.e(TAG,"IOException",e);
 			HttpReply r2 = new HttpReply();
 			r2.e = e;
 			cb.done(r2);

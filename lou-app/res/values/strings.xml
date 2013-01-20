@@ -24,4 +24,7 @@
     <string name="attack_alliance">Alliance</string>
     <string name="source">Source</string>
     <string name="ts_attacker">TS Attacker</string>
+    <string name="reports">Reports (%d)</string>
+    <string name="trapped">trapped</string>
+    <string name="fortified">fortified</string>
 </resources>

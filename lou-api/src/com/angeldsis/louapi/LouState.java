@@ -19,7 +19,6 @@ public class LouState implements Serializable {
 	public Counter gold;
 	public ManaCounter mana;
 	public ArrayList<IncomingAttack> incoming_attacks;
-	public ArrayList<IncomingAttack> incomingAllianceAttacks;
 	private int serverOffset, diff, stepTime;
 	long refTime;
 	public ArrayList<ChatMsg> chat_history;
@@ -37,7 +36,6 @@ public class LouState implements Serializable {
 	}
 	private void init() {
 		incoming_attacks = new ArrayList<IncomingAttack>();
-		incomingAllianceAttacks = new ArrayList<IncomingAttack>();
 		chat_history = new ArrayList<ChatMsg>();
 		gold = new Counter(this);
 		mana = new ManaCounter(this);
@@ -192,6 +190,9 @@ public class LouState implements Serializable {
 		//Log.v(TAG,"refTime: "+refTime+" diff:"+diff+" stepTime:"+stepTime+" d:"+d);
 		return (int) (d / stepTime);
 	}
+	public long stepToMilis(long step) {
+		return (step * stepTime)+ refTime + diff;
+	}
 	public void changeCity(City city) {
 		currentCity = city;
 		rpc.interrupt();
@@ -246,6 +247,8 @@ public class LouState implements Serializable {
 			else Log.v(TAG,"no attacks 2!");
 		}
 		else Log.v(TAG,"no attacks?");
+		JSONObject u = p.optJSONObject("u");
+		Log.v(TAG,"unit data:"+u);
 		JSONArray ti = p.optJSONArray("ti");
 		JSONArray to = p.optJSONArray("to");
 		if (ti != null) {
@@ -263,6 +266,7 @@ public class LouState implements Serializable {
 			this.a = a;
 		}
 		public void run() {
+			Log.v(TAG,"new attack being reported");
 			rpc.onNewAttack(a);
 		}
 	}

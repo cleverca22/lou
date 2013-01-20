@@ -46,9 +46,9 @@ public class SessionKeeper extends Service {
 	
 	// constansts for notification id's
 	// worldid (86) will be added to these to keep them unique
-	static final int STILL_OPEN = 0x1000;
-	static final int UNREAD_MESSAGE = 0x2000;
-	static final int INCOMING_ATTACK = 0x3000;
+	static final int STILL_OPEN = 0x100;
+	static final int UNREAD_MESSAGE = 0x200;
+	static final int INCOMING_ATTACK = 0x300;
 
 	public class MyBinder extends Binder {
 		public SessionKeeper getService() {
@@ -88,7 +88,7 @@ public class SessionKeeper extends Service {
 	NotificationCompat.Builder mBuilder,chatBuilder,incomingAttackBuilder;
 	public class Session {
 		private static final String TAG = "Session";
-		RPC rpc;
+		public RPC rpc;
 		LouState state;
 		AccountWrap acct;
 		Callbacks cb;
@@ -159,7 +159,7 @@ public class SessionKeeper extends Service {
 			}
 			if (cb != null) cb.onChat(d);
 			else {
-				Log.v(TAG,"uncaught message");
+				//Log.v(TAG,"uncaught message");
 				
 				Bundle options = acct.toBundle();
 				Intent resultIntent = new Intent(SessionKeeper.this,ChatWindow.class);
@@ -258,21 +258,30 @@ public class SessionKeeper extends Service {
 		public void onNewAttack(IncomingAttack a) {
 			boolean handled = false;
 			if (cb != null) handled = cb.onNewAttack(a);
+			Log.v(TAG,handled + " new incoming attack!!! "+a);
 			if (!handled) {
-				Log.v(TAG,"new incoming attack!!! "+a);
-				incomingAttackBuilder.setContentText(String.format("incoming attack from %s to %s", a.sourcePlayerName,a.targetCityName))
-					.setDefaults(Notification.DEFAULT_SOUND);;
+				String msg = String.format("incoming attack from %s to %s", a.sourcePlayerName,a.targetCityName);
+				if (a.targetIsMe) msg += ", you are the target";
+				long end = rpc.state.stepToMilis(a.end);
+				incomingAttackBuilder.setContentText(msg)
+					.setDefaults(Notification.DEFAULT_SOUND)
+					.setWhen(end);
+				long start = rpc.state.stepToMilis(a.start);
 				Notification n = incomingAttackBuilder.build();
-				mNotificationManager.notify(INCOMING_ATTACK | acct.worldid, n);
+				int id = (INCOMING_ATTACK | acct.worldid) + (a.id << 15);
+				Log.v(TAG,String.format("id:0x%x,worldid:%d, id:%d",id,acct.worldid,a.id));
+				mNotificationManager.notify(id, n);
 				wl.acquire(60000);
 			}
 		}
 		public void onReportCountUpdate(int viewed, int unviewed) {
-			Log.v(TAG,String.format("report update viewed:%d unviewed:%d",viewed,unviewed));
+			if (cb != null) cb.onReportCountUpdate(viewed,unviewed);
+			else Log.v(TAG,String.format("report update viewed:%d unviewed:%d",viewed,unviewed));
 		}
 	}
 	public interface Callbacks {
 		void visDataReset();
+		void onReportCountUpdate(int viewed, int unviewed);
 		boolean onNewAttack(IncomingAttack a);
 		void onVisObjAdded(LouVisData v);
 		void loginDone();
@@ -295,10 +304,12 @@ public class SessionKeeper extends Service {
 					.setContentTitle("Unread Message in LOU")
 					.setContentText("FIXME")
 					.setAutoCancel(true);
+			long[] pattern = { 100, 1000, 100, 1000 };
 			incomingAttackBuilder = new NotificationCompat.Builder(SessionKeeper.this).setSmallIcon(R.drawable.ic_launcher)
 					.setContentTitle("incoming attack!")
 					.setContentText("FIXME")
-					.setAutoCancel(true);
+					.setAutoCancel(true)
+					.setVibrate(pattern);
 			mNotificationManager = (NotificationManager) getSystemService(SessionKeeper.NOTIFICATION_SERVICE);
 			Logger.init();
 		}

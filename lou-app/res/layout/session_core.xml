@@ -67,6 +67,14 @@
 
     </LinearLayout>
 
+    <Button
+        android:id="@+id/reports"
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="openReports"
+        android:text="@string/reports" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content" >

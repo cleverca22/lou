@@ -60,7 +60,96 @@ public abstract class RPC extends Thread {
 						@Override
 						void requestDone(rpcreply r) throws JSONException,
 								Exception {
-							callback.requestDone(r.reply);
+							callback.requestDone((JSONObject) r.reply);
+						}
+					},5);
+				} catch (JSONException e) {
+					// FIXME
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+	public void ReportGetHeader(final String sPlayerName,final int city, final int start,final int end,
+			final int sort, final boolean ascending, final int mask, final ReportHeaderCallback cb) {
+		post(new Runnable() {
+			public void run() {
+				try {
+					JSONObject obj = new JSONObject();
+					obj.put("sPlayerName", sPlayerName);
+					obj.put("city", city);
+					obj.put("start", start);
+					obj.put("end",end);
+					obj.put("sort",sort);
+					obj.put("ascending",ascending);
+					obj.put("mask",mask);
+					doRPC("ReportGetHeader",obj,RPC.this,new RPCCallback() {
+						@Override
+						void requestDone(rpcreply r) throws JSONException,
+								Exception {
+							JSONArray headers = (JSONArray) r.reply;
+							final ReportHeader[] list = new ReportHeader[headers.length()];
+							int i;
+							for (i = 0; i < headers.length(); i++) {
+								list[i] = new ReportHeader(headers.optJSONObject(i));
+							}
+							runOnUiThread(new Runnable() {
+								public void run() {
+									cb.done(list);
+								}
+							});
+						}
+					},5);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+	public void GetReport(final int reportid,final ReportCallback cb) {
+		post(new Runnable() {
+			public void run() {
+				try {
+					JSONObject obj = new JSONObject();
+					obj.put("id", reportid);
+					doRPC("GetReport",obj,RPC.this,new RPCCallback() {
+						@Override
+						void requestDone(rpcreply r) throws JSONException,
+								Exception {
+							final Report report = new Report((JSONObject) r.reply);
+							runOnUiThread(new Runnable() {
+								public void run() {
+									cb.done(report);
+								}
+							});
+						}
+					},5);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+	public interface ReportCallback {
+		void done(Report report);
+	}
+	public interface ReportHeaderCallback {
+		void done(ReportHeader[] list);
+	}
+	public void GetSharedReport(final String sharestring) {
+		post(new Runnable () {
+			public void run() {
+				try {
+					JSONObject obj = new JSONObject();
+					obj.put("id",sharestring);
+					doRPC("GetSharedReport",obj,RPC.this,new RPCCallback() {
+						@Override
+						void requestDone(rpcreply r) throws JSONException,
+								Exception {
+							Log.v(TAG,((JSONObject)r.reply).toString(1));
+							Report rr = new Report((JSONObject) r.reply);
 						}
 					},5);
 				} catch (JSONException e) {
@@ -83,7 +172,7 @@ public abstract class RPC extends Thread {
 					doRPC("UpgradeBuilding",obj,RPC.this,new RPCCallback() {
 						@Override
 						void requestDone(rpcreply r) throws JSONException {
-							Log.v(TAG,r.reply.toString(1));
+							//Log.v(TAG,r.reply.toString(1));
 							runOnUiThread(new Runnable() {
 								@Override
 								public void run() {
@@ -113,7 +202,7 @@ public abstract class RPC extends Thread {
 						@Override
 						void requestDone(rpcreply r) throws JSONException,
 								Exception {
-							Log.v(TAG,r.reply.toString(1));
+							//Log.v(TAG,r.reply.toString(1));
 						}
 					},5);
 				} catch (JSONException e) {
@@ -149,14 +238,15 @@ public abstract class RPC extends Thread {
 				@Override
 				void requestDone(rpcreply reply) throws JSONException,Exception {
 					Log.v(TAG,account.sessionid+" http code:"+reply.http_code);
-					int r = reply.reply.getInt("r");
-					Log.v(TAG,reply.reply.toString(1));
+					JSONObject r2 = (JSONObject) reply.reply;
+					int r = r2.getInt("r");
+					Log.v(TAG,r2.toString(1));
 					if (r < 0) {
 						Thread.sleep(1000);
 						OpenSession(reset,callback2,retry_count+1);
 						return;
 					}
-					instanceid = reply.reply.getString("i");
+					instanceid = r2.getString("i");
 					callback2.requestDone(null);
 				}
 			},5);
@@ -172,7 +262,7 @@ public abstract class RPC extends Thread {
 			doRPC("GetServerInfo",obj,this,new RPCCallback() {
 				void requestDone(rpcreply reply) throws JSONException {
 					//Log.v(TAG+".GetServerInfo",reply.reply.toString(1));
-					rpcDone.requestDone(reply.reply);
+					rpcDone.requestDone((JSONObject) reply.reply);
 				}
 			},5);
 		} catch (JSONException e) {
@@ -194,7 +284,7 @@ public abstract class RPC extends Thread {
 					if (reply.e instanceof UnknownHostException) {
 						Log.w(TAG,"dns error, retrying");
 					} else {
-						Log.e(TAG, "exception from http req, retrying",reply.e);
+						Log.e(TAG, "exception from http req, retrying "+retry+" more times",reply.e);
 					}
 					try {
 						doRPC(function,request,parent,rpcCallback,retry - 1);
@@ -210,9 +300,7 @@ public abstract class RPC extends Thread {
 					reply2.raw_reply = null;
 				} else {
 					try {
-						Object t = new JSONTokener(new InputStreamReader(reply.stream)).nextValue();
-						if (function.equals("Poll")) reply2.replyArray = (JSONArray) t;
-						else reply2.reply = (JSONObject) t;
+						reply2.reply = new JSONTokener(new InputStreamReader(reply.stream)).nextValue();
 					} catch (JSONException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -235,10 +323,9 @@ public abstract class RPC extends Thread {
 	}
 	/** creates an instance of a class implementing HttpRequest */
 	class rpcreply {
-		public JSONObject reply;
+		public Object reply;
 		public int http_code;
 		public InputStream raw_reply;
-		public JSONArray replyArray;
 	}
 	private abstract class RPCCallback {
 		abstract void requestDone(rpcreply r) throws JSONException, Exception;
@@ -252,9 +339,9 @@ public abstract class RPC extends Thread {
 			doRPC("GetPlayerInfo",obj,this,new RPCCallback () {
 				@Override
 				void requestDone(rpcreply r) throws JSONException, Exception {
-					state.processPlayerInfo(r.reply);
+					state.processPlayerInfo((JSONObject) r.reply);
 					//Log.v(TAG+".GetPlayerInfo",r.reply.toString(1));
-					rpcDone.requestDone(r.reply);
+					rpcDone.requestDone((JSONObject) r.reply);
 					runOnUiThread(new Runnable() {
 						public void run() {
 							cityListChanged();
@@ -293,9 +380,10 @@ public abstract class RPC extends Thread {
 			doRPC("Poll",obj,this,new RPCCallback() {
 				void requestDone(rpcreply r) throws JSONException {
 					int x;
-					if (r.replyArray == null) return;
-					for (x = 0; x < r.replyArray.length(); x++) {
-						JSONObject obj = (JSONObject) r.replyArray.get(x);
+					if (r.reply == null) return;
+					JSONArray reply = (JSONArray) r.reply;
+					for (x = 0; x < reply.length(); x++) {
+						JSONObject obj = (JSONObject) reply.get(x);
 						handlePollPacket(obj);
 					}
 				}
@@ -338,6 +426,7 @@ public abstract class RPC extends Thread {
 			gotCityData();
 			}});
 		} else if (C.equals("CHAT")) {
+			showName = false;
 			JSONArray D = p.getJSONArray("D");
 			int i;
 			final ArrayList<ChatMsg> recent = new ArrayList<ChatMsg>(); 
