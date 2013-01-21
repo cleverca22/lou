@@ -18,6 +18,7 @@ import com.angeldsis.louapi.Report.ReportHalf;
 import com.angeldsis.louapi.Report.UnitInfo;
 
 public class ShowReport extends SessionUser implements ReportCallback {
+	private static final String TAG = "ShowReport";
 	ViewGroup side1,side2;
 	@Override
 	public void onCreate(Bundle sis) {
@@ -38,11 +39,25 @@ public class ShowReport extends SessionUser implements ReportCallback {
 	}
 	@Override
 	public void done(Report report) {
-		Log.v("ShowReport",report.toString());
-		setField(R.id.share,report.share);
-		setField(R.id.when,(new Date(report.d)).toString());
-		setupHalf(side1,report.attacker,R.string.trapped);
-		setupHalf(side2,report.defender,R.string.fortified);
+		if (report.reportHeader.generalType == Report.types.general.combat) {
+			switch (report.reportHeader.combatType) {
+			case Report.types.combat.scout:
+			case Report.types.combat.raidDungeon:
+			case Report.types.combat.plunder:
+				Log.v("ShowReport",report.toString());
+				setField(R.id.share,report.share);
+				setField(R.id.when,(new Date(report.reportHeader.timestamp)).toString());
+				setField(R.id.objType,report.objType);
+				setField(R.id.type,"type:"+report.reportHeader.generalType);
+				setupHalf(side1,report.attacker,R.string.trapped);
+				setupHalf(side2,report.defender,R.string.fortified);
+				break;
+			default:
+				Log.v(TAG,"unknown combat type: "+report.reportHeader.combatType);
+			}
+		} else {
+			Log.e(TAG,"not a combat report");
+		}
 	}
 	private void setupHalf(ViewGroup side, ReportHalf half, int altered_id) {
 		((TextView)side.findViewById(R.id.player_name)).setText(half.player);

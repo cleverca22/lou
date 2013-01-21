@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.TimeZone;
 
 import org.json2.JSONArray;
 import org.json2.JSONException;
@@ -19,11 +20,14 @@ public class LouState implements Serializable {
 	public Counter gold;
 	public ManaCounter mana;
 	public ArrayList<IncomingAttack> incoming_attacks;
-	private int serverOffset, diff, stepTime;
+	private int diff, stepTime;
 	long refTime;
 	public ArrayList<ChatMsg> chat_history;
 	RPC rpc;
+	public TimeZone tz;
 	boolean fetchVis = false;
+	public int unviewed_reports;
+	public int viewed_reports;
 
 	public LouState() {
 		init();
@@ -180,8 +184,10 @@ public class LouState implements Serializable {
 		refTime = refTime2;
 		this.stepTime = stepTime;
 		this.diff = diff;
-		this.serverOffset = serverOffset;
 		Log.v(TAG,"ref:"+refTime2+" stepTime:"+stepTime+" diff:"+diff+" serverOffset"+serverOffset);
+		// FIXME, do this 'properly'
+		int hours_diff = serverOffset / 1000 / 3600;
+		tz = TimeZone.getTimeZone("GMT"+hours_diff);
 	}
 	// not sure entirely what these are for yet, so i'm reproducing them exactly
 	public int getServerStep() {

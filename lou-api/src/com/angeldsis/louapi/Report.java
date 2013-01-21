@@ -3,22 +3,37 @@ package com.angeldsis.louapi;
 import java.util.Date;
 
 import org.json2.JSONArray;
+import org.json2.JSONException;
 import org.json2.JSONObject;
 
 public class Report {
 	int fame;
 	public ReportHalf attacker, defender;
-	public String share;
-	public long d;
-	public Report(JSONObject r) {
+	public String share,objType;
+	public ReportHeader reportHeader;
+	public static class types {
+		public static class general {
+			public static final int combat = 1, trade = 2, city = 3, alliance = 4, enlightenment = 5;
+		}
+		public static class combat {
+			public static final int scout=1, plunder=2, assault=3, support=4, seige=5, raidDungeon=8, settle=9, raidBoss=10;
+		}
+	}
+	public Report(LouState state,JSONObject r) {
 		fame = r.optInt("f");
 		JSONArray a = r.optJSONArray("a");
+		reportHeader = new ReportHeader(state,r.optJSONObject("h"));
+		Log.v("Report",reportHeader.toString());
+		try {
+			Log.v("Report",r.toString(1));
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		attacker = new ReportHalf(a.optJSONObject(0));
-		defender = new ReportHalf(a.optJSONObject(1));
-		JSONObject h = r.optJSONObject("h"); // contains attacker data, including unix timestamp
-		d = h.optLong("d");
-		long d = h.optLong("d");
-		Log.v("Report",(new Date(d)).toString());
+		JSONObject defenderData = a.optJSONObject(1);
+		if (defenderData != null) defender = new ReportHalf(defenderData);
+		//Log.v("Report",(new Date(reportHeader.timestamp)).toString());
 		int si = r.optInt("si");
 		int cs = r.optInt("cs");
 		int v = r.optInt("v");
@@ -37,9 +52,11 @@ public class Report {
 		public ReportHalf(JSONObject h) {
 			JSONArray u = h.optJSONArray("u");
 			int i;
-			units = new UnitInfo[u.length()];
-			for (i=0; i < u.length(); i++) {
-				units[i] = new UnitInfo(u.optJSONObject(i));
+			if (u != null) {
+				units = new UnitInfo[u.length()];
+				for (i=0; i < u.length(); i++) {
+					units[i] = new UnitInfo(u.optJSONObject(i));
+				}
 			}
 			int co = h.optInt("co");
 			int ai = h.optInt("ai");

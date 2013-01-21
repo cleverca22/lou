@@ -91,7 +91,7 @@ public abstract class RPC extends Thread {
 							final ReportHeader[] list = new ReportHeader[headers.length()];
 							int i;
 							for (i = 0; i < headers.length(); i++) {
-								list[i] = new ReportHeader(headers.optJSONObject(i));
+								list[i] = new ReportHeader(state,headers.optJSONObject(i));
 							}
 							runOnUiThread(new Runnable() {
 								public void run() {
@@ -117,7 +117,7 @@ public abstract class RPC extends Thread {
 						@Override
 						void requestDone(rpcreply r) throws JSONException,
 								Exception {
-							final Report report = new Report((JSONObject) r.reply);
+							final Report report = new Report(state,(JSONObject) r.reply);
 							runOnUiThread(new Runnable() {
 								public void run() {
 									cb.done(report);
@@ -149,7 +149,7 @@ public abstract class RPC extends Thread {
 						void requestDone(rpcreply r) throws JSONException,
 								Exception {
 							Log.v(TAG,((JSONObject)r.reply).toString(1));
-							Report rr = new Report((JSONObject) r.reply);
+							Report rr = new Report(state,(JSONObject) r.reply);
 						}
 					},5);
 				} catch (JSONException e) {
@@ -459,6 +459,8 @@ public abstract class RPC extends Thread {
 			JSONObject D = p.optJSONObject("D");
 			final int viewed = D.optInt("v");
 			final int unviewed = D.optInt("u");
+			state.viewed_reports = viewed;
+			state.unviewed_reports = unviewed;
 			runOnUiThread(new Runnable() {
 				public void run () {
 					onReportCountUpdate(viewed,unviewed);

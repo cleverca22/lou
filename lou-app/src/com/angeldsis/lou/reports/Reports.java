@@ -14,7 +14,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.ViewSwitcher;
@@ -25,12 +24,13 @@ public class Reports extends SessionUser implements ReportHeaderCallback, OnItem
 	ReportListAdapter mAdapter;
 	ReportHeader[] list;
 	boolean flipped = false;
+	long load_start;
 	@Override
 	public void onCreate(Bundle sis) {
 		super.onCreate(sis);
 		if (sis == null) {
-			setContentView(R.layout.report_list);
 		}
+		setContentView(R.layout.report_list);
 		mAdapter = new ReportListAdapter(this);
 		ListView listview = (ListView) findViewById(R.id.reports);
 		listview.setAdapter(mAdapter);
@@ -44,7 +44,9 @@ public class Reports extends SessionUser implements ReportHeaderCallback, OnItem
 		if (refreshing) {
 			return;
 		}
-		session.rpc.ReportGetHeader("kashikoi",-1,0,99,1,false,200575,this);
+		load_start = System.currentTimeMillis();
+		// 0->99 == 100 rows (inclusive it seems)
+		session.rpc.ReportGetHeader("kashikoi",-1,0,999,1,false,200575,this);
 	}
 	@Override
 	public void done(ReportHeader[] list) {
@@ -62,26 +64,28 @@ public class Reports extends SessionUser implements ReportHeaderCallback, OnItem
 		ReportListAdapter(Context c) {
 			super(c,0);
 		}
+		@Override public long getItemId(int position) {
+			return getItem(position).id;
+		}
 		public View getView(int position, View convertView, ViewGroup parent) {
 			//Log.v(TAG,String.format("getView(%d,%s,%s)",position,convertView,parent));
 			ReportHeader h = getItem(position);
-
-			TextView col1 = new TextView(Reports.this);
-			col1.setText(h.toString());
-			TextView col2 = new TextView(Reports.this);
-			col2.setText(h.getTime().toString());
 			
-			LinearLayout row = new LinearLayout(Reports.this);
-			row.addView(col1);
-			row.addView(col2);
+			ViewGroup row = (ViewGroup) Reports.this.getLayoutInflater().inflate(R.layout.report_row, parent,false);
+
+			TextView col1 = (TextView) row.findViewById(R.id.msg);
+			col1.setText(h.toString());
+			TextView col2 = (TextView) row.findViewById(R.id.stamp);
+			col2.setText(h.formatTime());
+			
 			return row;
 		}
 	}
 	@Override
-	public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
-		Log.v(TAG,String.format("onItemClick(%s,%s,%d,%d)",arg0,arg1,arg2,arg3));
+	public void onItemClick(AdapterView<?> arg0, View arg1, int position, long id) {
+		Log.v(TAG,String.format("onItemClick(%s,%s,%d,%d)",arg0,arg1,position,id));
 		Bundle args = acct.toBundle();
-		args.putInt("reportid", list[arg2].id);
+		args.putInt("reportid", (int) id);
 		Intent i = new Intent(this,ShowReport.class);
 		i.putExtras(args);
 		startActivity(i);
