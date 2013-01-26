@@ -1,7 +1,5 @@
 package com.angeldsis.louapi;
 
-import java.util.Date;
-
 import org.json2.JSONArray;
 import org.json2.JSONException;
 import org.json2.JSONObject;
@@ -19,17 +17,20 @@ public class Report {
 			public static final int scout=1, plunder=2, assault=3, support=4, seige=5, raidDungeon=8, settle=9, raidBoss=10;
 		}
 	}
-	public Report(LouState state,JSONObject r) {
+	public Report(JSONObject r) {
 		fame = r.optInt("f");
 		JSONArray a = r.optJSONArray("a");
-		reportHeader = new ReportHeader(state,r.optJSONObject("h"));
-		Log.v("Report",reportHeader.toString());
+		reportHeader = new ReportHeader(r.optJSONObject("h"));
+		//Log.v("Report",reportHeader.toString());
 		try {
-			Log.v("Report",r.toString(1));
+			if (reportHeader.generalType == types.general.alliance) {
+				Log.v("Report",r.toString(1));
+			}
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		// FIXME, a contains WAY WAY more then 2 when supporting troops are present
 		attacker = new ReportHalf(a.optJSONObject(0));
 		JSONObject defenderData = a.optJSONObject(1);
 		if (defenderData != null) defender = new ReportHalf(defenderData);
@@ -62,11 +63,14 @@ public class Report {
 			int ai = h.optInt("ai");
 			int r = h.optInt("h");
 			// city name+id "c": [{"n": "New world","i": 24510739}]
-			JSONObject c = h.optJSONArray("c").optJSONObject(0);
-			if (c != null) {
-				cityname = c.optString("n");
-				coord = c.optInt("i");
-			} else Log.v("Report", h.toString());
+			JSONArray c1 = h.optJSONArray("c");
+			if (c1 != null) {
+				JSONObject c = c1.optJSONObject(0);
+				if (c != null) {
+					cityname = c.optString("n");
+					coord = c.optInt("i");
+				} else Log.v("Report", h.toString());
+			} else Log.v("Report",h.toString());
 			int p = h.optInt("p");
 			String alliance = h.optString("a");
 			player = h.optString("pn");

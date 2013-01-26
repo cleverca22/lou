@@ -4,23 +4,29 @@ import org.json2.JSONException;
 import org.json2.JSONObject;
 
 public class ChatMsg {
-	public String s,c,m;
+	public String sender,channel,message,tag;
 	public boolean hascrown;
+	public long ts;
 	public ChatMsg(JSONObject C) throws JSONException {
-		s = C.getString("s").substring(1);
-		c = C.getString("c");
-		m = C.getString("m");
+		sender = C.getString("s").substring(1);
+		channel = C.getString("c");
+		message = C.getString("m");
 		if (C.getString("s").substring(0, 1).equals("C")) hascrown = true;
 		else hascrown = false;
+		if (channel.equals("@A")) tag = "@A";
+		else if (channel.equals("privatein") || channel.equals("privateout")) tag = "pm_"+sender;
+		else tag = "@C";
+	}
+	public ChatMsg() {
 	}
 	public String toString() {
-		if (c.equals("@A")) {
-			return "[Alliance] ["+s+"] "+m;
-		} else if (c.equals("privatein")) {
-			return "[PM] ["+s+"] "+m;
-		} else if (c.equals("privateout")) {
-			return "[PM to "+s+"] "+m;
+		if (channel.equals("@A")) {
+			return "[Alliance] ["+sender+"] "+message;
+		} else if (channel.equals("privatein")) {
+			return "[PM] ["+sender+"] "+message;
+		} else if (channel.equals("privateout")) {
+			return "[PM to "+sender+"] "+message;
 		}
-		return s+" "+c+" "+m;
+		return sender+" "+channel+" "+message;
 	}
 }

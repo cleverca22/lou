@@ -18,7 +18,7 @@ public class IncomingAttack extends Observable {
 	public Alliance sourceAlliance;
 	private LouState state;
 	public String sourceCityName;
-	public int total_strength_attacker;
+	public int total_strength_attacker,total_strength_defender,tc;
 	public boolean targetIsMe;
 	/*public IncomingAttack(JSONObject X) throws JSONException {
 	}*/
@@ -79,13 +79,13 @@ public class IncomingAttack extends Observable {
 		// 5==internal attack or beseiged, probly not type
 		int type = a.optInt("t");
 
-		int tc = a.optInt("tc"); // cityid
+		tc = a.optInt("tc"); // cityid
 		targetCityName = a.optString("tcn");
 
 		sourceCityName = a.optString("cn");
 		sourceAlliance = Alliance.get(a.optInt("a"), a.optString("an"));
 		total_strength_attacker = a.optInt("ta");
-		int total_strength_defender = a.optInt("td");
+		total_strength_defender = a.optInt("td");
 		defender = a.optString("tpn");
 		start = a.optInt("ss");
 		sourcePlayerName = a.optString("pn");
@@ -107,6 +107,7 @@ public class IncomingAttack extends Observable {
 		notifyObservers(this);
 	}
 	void printTimes() {
+		if (state == null) return;
 		Date start = new Date(state.stepToMilis(this.start));
 		Date detected = new Date(state.stepToMilis(this.spotted));
 		Date end = new Date(state.stepToMilis(this.end));

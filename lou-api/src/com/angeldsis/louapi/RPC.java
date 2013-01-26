@@ -13,6 +13,7 @@ import org.json2.JSONTokener;
 
 import com.angeldsis.louapi.HttpRequest.HttpReply;
 import com.angeldsis.louapi.LouState.City;
+import com.angeldsis.louapi.data.SubRequest;
 
 public abstract class RPC extends Thread {
 	static String TAG = "RPC";
@@ -70,6 +71,28 @@ public abstract class RPC extends Thread {
 			}
 		});
 	}
+	// FIXME, untested
+	public void DemolishBuilding(final LouVisData v, final RPCDone callback) {
+		post(new Runnable() {
+			public void run() {
+				try {
+					JSONObject obj = new JSONObject();
+					obj.put("cityid",v.getCity().cityid);
+					obj.put("buildingid", v.visId);
+					doRPC("DemolishBuilding",obj,RPC.this,new RPCCallback() {
+						@Override
+						void requestDone(rpcreply r) throws JSONException,
+								Exception {
+							callback.requestDone((JSONObject) r.reply);
+						}
+					},5);
+				} catch (JSONException e) {
+					// FIXME
+					e.printStackTrace();
+				}
+			}
+		});
+	}
 	public void ReportGetHeader(final String sPlayerName,final int city, final int start,final int end,
 			final int sort, final boolean ascending, final int mask, final ReportHeaderCallback cb) {
 		post(new Runnable() {
@@ -91,7 +114,7 @@ public abstract class RPC extends Thread {
 							final ReportHeader[] list = new ReportHeader[headers.length()];
 							int i;
 							for (i = 0; i < headers.length(); i++) {
-								list[i] = new ReportHeader(state,headers.optJSONObject(i));
+								list[i] = new ReportHeader(headers.optJSONObject(i));
 							}
 							runOnUiThread(new Runnable() {
 								public void run() {
@@ -107,6 +130,87 @@ public abstract class RPC extends Thread {
 			}
 		});
 	}
+	public void SubstitutionAcceptReq(final int subid, final int playerid) {
+		post(new Runnable() {
+			public void run() {
+				try {
+					JSONObject obj = new JSONObject();
+					obj.put("id", subid);
+					obj.put("pid", playerid);
+					doRPC("SubstitutionAcceptReq",obj,RPC.this,new RPCCallback() {
+						public void requestDone(rpcreply r) {
+							Log.v(TAG,r.reply.toString());
+						}
+					},5);
+				} catch (JSONException e) {
+					e.printStackTrace(); /// FIXME
+				}
+			}
+		});
+	}
+	/** run on a SubRequest with role=giver
+	 * @param s
+	 */
+	public void SubstitutionCancleReq(final SubRequest s) {
+		post(new Runnable() {
+			public void run() {
+				try {
+					JSONObject obj = new JSONObject();
+					obj.put("id", s.id);
+					obj.put("pid", s.giver.getId());
+					doRPC("SubstitutionCancleReq",obj,RPC.this,new RPCCallback() {
+						public void requestDone(rpcreply r) {
+							Log.v(TAG,r.reply.toString());
+						}
+					},5);
+				} catch (JSONException e) {
+					e.printStackTrace(); /// FIXME
+				}
+			}
+		});
+	}
+	public void SubstitutionCreateReq(final String name) {
+		post(new Runnable() {
+			public void run() {
+				try {
+					JSONObject obj = new JSONObject();
+					obj.put("name", name);
+					doRPC("SubstitutionCreateReq",obj,RPC.this,new RPCCallback() {
+						public void requestDone(rpcreply r) {
+							Log.v(TAG,r.reply.toString());
+						}
+					},5);
+				} catch (JSONException e) {
+					e.printStackTrace(); /// FIXME
+				}
+			}
+		});
+	}
+	public void CreateSubstitutionSession(final SubRequest s) {
+		post(new Runnable() {
+			public void run() {
+				try {
+					JSONObject obj = new JSONObject();
+					obj.put("id", s.id);
+					obj.put("pid", s.giver.getId());
+					doRPC("CreateSubstitutionSession",obj,RPC.this,new RPCCallback() {
+						public void requestDone(final rpcreply r) {
+							Log.v(TAG,r.reply.toString());
+							runOnUiThread(new Runnable() {
+								public void run() {
+									String sessionid = (String) r.reply;
+									startSubstituteSession(sessionid);
+								}
+							});
+						}
+					},5);
+				} catch (JSONException e) {
+					e.printStackTrace(); /// FIXME
+				}
+			}
+		});
+	}
+	public abstract void startSubstituteSession(String sessionid);
 	public void GetReport(final int reportid,final ReportCallback cb) {
 		post(new Runnable() {
 			public void run() {
@@ -117,7 +221,7 @@ public abstract class RPC extends Thread {
 						@Override
 						void requestDone(rpcreply r) throws JSONException,
 								Exception {
-							final Report report = new Report(state,(JSONObject) r.reply);
+							final Report report = new Report((JSONObject) r.reply);
 							runOnUiThread(new Runnable() {
 								public void run() {
 									cb.done(report);
@@ -149,7 +253,7 @@ public abstract class RPC extends Thread {
 						void requestDone(rpcreply r) throws JSONException,
 								Exception {
 							Log.v(TAG,((JSONObject)r.reply).toString(1));
-							Report rr = new Report(state,(JSONObject) r.reply);
+							Report rr = new Report((JSONObject) r.reply);
 						}
 					},5);
 				} catch (JSONException e) {
@@ -374,7 +478,9 @@ public abstract class RPC extends Thread {
 			requests += "\fPLAYER:";
 			requests += "\fTIME:"+System.currentTimeMillis();
 			requests += "\fREPORT:";
+			requests += "\fSERVER:";
 			requests += "\fALLIANCE:";
+			requests += "\fSUBSTITUTION:";
 			requests += aam.getRequestDetails();
 			obj.put("requests",requests);
 			doRPC("Poll",obj,this,new RPCCallback() {
@@ -473,6 +579,9 @@ public abstract class RPC extends Thread {
 			showName = false;
 		} else if (C.equals("ALL_AT")) {
 			aam.parseReply(p.optJSONObject("D"));
+		} else if (C.equals("SUBSTITUTION")) {
+			JSONObject D = p.optJSONObject("D");
+			state.parseSubs(D);
 		} else {
 			Log.v(TAG,"unexpected Poll data "+C);
 		}
@@ -621,4 +730,8 @@ public abstract class RPC extends Thread {
 	public abstract void tick();
 	/** called when state.resources has been updated */
 	public abstract void gotCityData();
+	public abstract void onSubListChanged();
+	public void refreshConfig(boolean monitor) {
+		aam.refreshConfig(monitor);
+	}
 }

@@ -172,15 +172,15 @@ public class LouSession {
 				if (localName.equals("ul") && (classVal != null) && classVal.equals("server-list")) {
 					in_server_list = true;
 				} else if (localName.equals("form")) {
-					Log.v(TAG,"found a form");
 					String action = attributes.getValue("action");
+					Log.v(TAG,"found a form "+action);
 					Matcher m = actioncheck.matcher(action);
 					if (action.equals("/en/user/logout")) {
 						output.worked = true;
 					} else if (m.find()) {
 						acct.serverid = m.group(1);
 						acct.pathid = m.group(2);
-					} else Log.v(TAG,"action "+action);
+					} else Log.v(TAG,"unknown action "+action);
 				} else if (in_server_list) {
 					if (localName.equals("li")) {
 						String id = attributes.getValue("id");
@@ -227,7 +227,7 @@ public class LouSession {
 			public int read(byte[] buffer, int offset, int count) throws IOException {
 				int size = super.read(buffer, offset, count);
 				if (size == -1) return size;
-				//Log.v(TAG,"sniff:"+new String(buffer,offset,size));
+				Log.v(TAG,"sniff:"+new String(buffer,offset,size));
 				return size;
 			}
 		};

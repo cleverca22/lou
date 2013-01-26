@@ -2,7 +2,7 @@ package com.angeldsis.louapi;
 
 public class Alliance {
 	public String name;
-	private int id;
+	public int id;
 	public Alliance(int id, String name) {
 		this.id = id;
 		this.name = name;

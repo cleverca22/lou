@@ -10,6 +10,7 @@ public class AllianceAttackMonitor {
 	private static final String TAG = "AllianceAttackMonitor";
 	int ia,oa,new_ia,new_oa;
 	RPC rpc;
+	boolean alwaysMonitor;
 	AllianceAttackMonitor(RPC rpc) {
 		this.rpc = rpc;
 		ia = oa = 0;
@@ -21,7 +22,7 @@ public class AllianceAttackMonitor {
 		}
 	}
 	public String getRequestDetails() {
-		if (ia != new_ia) {
+		if ((ia != new_ia) || alwaysMonitor) {
 			return "\fALL_AT:a";
 		}
 		return "";
@@ -50,5 +51,8 @@ public class AllianceAttackMonitor {
 			rpc.state.incoming_attacks = newlist;
 		}
 		ia = a.length();
+	}
+	public void refreshConfig(boolean monitor) {
+		alwaysMonitor = monitor;
 	}
 }

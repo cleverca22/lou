@@ -3,6 +3,8 @@ package com.angeldsis.louapi;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.TimeZone;
 
@@ -10,11 +12,14 @@ import org.json2.JSONArray;
 import org.json2.JSONException;
 import org.json2.JSONObject;
 
+import com.angeldsis.louapi.data.SubRequest;
+
 public class LouState implements Serializable {
 	private static final long serialVersionUID = 1L;
 	private static final String TAG = "LouState";
 	int AllianceId;
-	String AllianceName,Name;
+	String AllianceName;
+	public Player self;
 	public ArrayList<City> cities;
 	public City currentCity;
 	public Counter gold;
@@ -28,6 +33,7 @@ public class LouState implements Serializable {
 	boolean fetchVis = false;
 	public int unviewed_reports;
 	public int viewed_reports;
+	public ArrayList<SubRequest> subs;
 
 	public LouState() {
 		init();
@@ -43,8 +49,10 @@ public class LouState implements Serializable {
 		chat_history = new ArrayList<ChatMsg>();
 		gold = new Counter(this);
 		mana = new ManaCounter(this);
+		subs = new ArrayList<SubRequest>();
 	}
 	public void processPlayerInfo(JSONObject obj) throws JSONException {
+		Log.v(TAG,obj.toString(1));
 		JSONArray cities = obj.getJSONArray("Cities");
 		int x;
 		ArrayList<City> old = this.cities;
@@ -77,7 +85,7 @@ public class LouState implements Serializable {
 		currentCity = this.cities.get(0);
 		AllianceId = obj.getInt("AllianceId");
 		if (AllianceId > 0) AllianceName = obj.getString("AllianceName");
-		Name = obj.getString("Name");
+		self = Player.get(obj.optInt("Id"),obj.getString("Name"));
 	}
 	public class City implements Serializable {
 		private static final String TAG = "City";
@@ -332,5 +340,53 @@ public class LouState implements Serializable {
 		int oa = d.optInt("oa");
 		if (oa > 0) Log.v(TAG,String.format("outgoing:%d",oa));
 		rpc.aam.countsUpdated(ia,oa);
+	}
+	public void parseSubs(JSONObject d) {
+		synchronized (subs) {
+			try {
+				Log.v(TAG,d.toString(1));
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			JSONArray r = d.optJSONArray("r");
+			int i;
+			subs.clear();
+			for (i=0; i<r.length(); i++) {
+				JSONObject s2 = r.optJSONObject(i);
+				SubRequest s = new SubRequest();
+				Date t = new Date(s2.optLong("t"));
+				s.state = s2.optInt("s");
+				int p0 = s2.optInt("p0"); // the giver (account to be controlled
+				int p1 = s2.optInt("p1"); // the receiver
+				String n = s2.optString("n"); // name of giver
+				if (p0 == self.getId()) {
+					s.giver = self;
+					s.receiver = Player.get(p1, n);
+				} else {
+					s.giver = Player.get(p0, n);
+					s.receiver = self;
+				}
+				s.role = SubRequest.Role.receiver;
+				s.id = s2.optInt("id");
+				// when accepting a sub, (acting as receiver) call SubstitutionAcceptReq(id,p0);
+				// once you have a sub, call CreateSubstitutionSession(id,pid);
+				subs.add(s);
+			}
+		}
+		rpc.runOnUiThread(new Runnable() {
+			public void run() {
+				rpc.onSubListChanged();
+			}
+		});
+	}
+	public String stepToString(int end) {
+		Date d = new Date(stepToMilis(end));
+		Calendar c = Calendar.getInstance(tz);
+		c.setTime(d);
+		return String.format("%02d.%02d %02d:%02d:%02d",c.get(Calendar.MONTH)+1,
+				c.get(Calendar.DAY_OF_MONTH),
+				c.get(Calendar.HOUR_OF_DAY),c.get(Calendar.MINUTE),
+				c.get(Calendar.SECOND));
 	}
 }
