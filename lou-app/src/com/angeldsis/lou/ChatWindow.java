@@ -16,6 +16,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.ScrollView;
 import android.widget.TabHost;
 import android.widget.TextView;
@@ -25,27 +26,22 @@ import com.angeldsis.louapi.ChatMsg;
 public class ChatWindow extends SessionUser {
 	static final String TAG = "ChatWindow";
 	private TabHost mTabHost;
-	LinearLayout general,alliance;
-	class PM {
-		LinearLayout l;
-		String tag;
-	}
 	enum Type { pm,channel };
 	class Channel {
 		Type type;
-		PM oldpm;
-		public ScrollView scrollView;
+		ScrollView scrollView;
+		LinearLayout oldmessagelist;
+		String tag;
+		public LinearLayout wrapper;
+		public ListView newmessagelist;
 	}
-	Map<String,PM> private_messages;
 	Map<String,Channel> channels;
 	private NameClicked nameClicker;
 	public void onCreate(Bundle b) {
 		super.onCreate(b);
 		if (Build.VERSION.SDK_INT > 13) initApi14();
 		setContentView(R.layout.chat_window);
-		general = new LinearLayout(this);
-		alliance = new LinearLayout(this);
-		private_messages = new HashMap<String,PM>();
+		//private_messages = new HashMap<String,PM>();
 		channels = new HashMap<String,Channel>();
 		
 		mTabHost = (TabHost)findViewById(R.id.tabhost);
@@ -54,7 +50,7 @@ public class ChatWindow extends SessionUser {
 		TabHost.TabSpec t1 = mTabHost.newTabSpec("general");
 		Channel temp = new Channel();
 		temp.type = Type.channel;
-		t1.setContent(new TabMaker(general,temp));
+		t1.setContent(new TabMaker(temp));
 		t1.setIndicator("General");
 		mTabHost.addTab(t1);
 		channels.put("general",temp);
@@ -62,7 +58,7 @@ public class ChatWindow extends SessionUser {
 		temp = new Channel();
 		temp.type = Type.channel;
 		TabHost.TabSpec t2 = mTabHost.newTabSpec("alliance");
-		t2.setContent(new TabMaker(alliance,temp));
+		t2.setContent(new TabMaker(temp));
 		t2.setIndicator("alliance");
 		mTabHost.addTab(t2);
 		channels.put("alliance", temp);
@@ -70,26 +66,32 @@ public class ChatWindow extends SessionUser {
 		nameClicker = new NameClicked();
 	}
 	class TabMaker implements TabHost.TabContentFactory {
-		LinearLayout l;
-		ScrollView s;
-		public TabMaker(LinearLayout general, Channel channel) {
-			l = general;
-			l.setOrientation(LinearLayout.VERTICAL);
-			s = new ScrollView(ChatWindow.this);
-			s.addView(l);
-			channel.scrollView = s;
+		Channel c;
+		public TabMaker(Channel channel) {
+			c = channel;
+			
+			c.oldmessagelist = new LinearLayout(ChatWindow.this);
+			c.oldmessagelist.setOrientation(LinearLayout.VERTICAL);
+			
+			c.newmessagelist = new ListView(ChatWindow.this);
+			
+			c.wrapper = new LinearLayout(ChatWindow.this);
+			c.wrapper.addView(c.oldmessagelist);
+			c.wrapper.addView(c.newmessagelist);
+			
+			c.scrollView = new ScrollView(ChatWindow.this);
+			c.scrollView.addView(c.wrapper);
 		}
 		@Override
 		public View createTabContent(String tag) {
-			return s;
+			return c.scrollView;
 		}
 	}
 	public void onStart() {
 		super.onStart();
 	}
 	public void session_ready() {
-		general.removeAllViews();
-		alliance.removeAllViews();
+		for (Channel c : channels.values()) c.oldmessagelist.removeAllViews();
 		onChat(session.state.chat_history);
 	}
 	@Override
@@ -113,19 +115,16 @@ public class ChatWindow extends SessionUser {
 		public void onClick(View v) {
 			TextView sender = (TextView) v;
 			String tag = sender.getText().toString();
-			PM p = private_messages.get(tag);
-			if (p == null) {
-				p = new PM();
-				p.l = new LinearLayout(ChatWindow.this);
-				p.tag = tag;
-				Channel temp = new Channel();
-				temp.type = Type.pm;
-				TabHost.TabSpec s = mTabHost.newTabSpec(p.tag);
-				s.setContent(new TabMaker(p.l,temp));
-				s.setIndicator(p.tag);
+			Channel c = channels.get("pm_"+tag);
+			if (c == null) {
+				c = new Channel();
+				c.tag = tag;
+				c.type = Type.pm;
+				TabHost.TabSpec s = mTabHost.newTabSpec(c.tag);
+				s.setContent(new TabMaker(c));
+				s.setIndicator(c.tag);
 				mTabHost.addTab(s);
-				channels.put("pm_"+p.tag, temp);
-				private_messages.put(p.tag, p);
+				channels.put("pm_"+c.tag, c);
 			}
 		}
 	}
@@ -141,7 +140,7 @@ public class ChatWindow extends SessionUser {
 			sender.setOnClickListener(nameClicker);
 			sender.setClickable(true);
 			msg.setText(" "+c.m); // FIXME, padding
-			Channel currentChannel = null;
+			Channel currentChannel = channels.get("general");
 			
 			if (c.c.equals("@A")) currentChannel = channels.get("alliance");
 			else if (c.c.equals("@C")) currentChannel = channels.get("general");
@@ -161,34 +160,31 @@ public class ChatWindow extends SessionUser {
 				channel.setTextColor(green);
 				sender.setTextColor(green);
 				msg.setTextColor(green);
-				alliance.addView(l);
+				currentChannel.oldmessagelist.addView(l);
 			}
 			else if (c.c.equals("privatein") || c.c.equals("privateout")) {
-				PM p = private_messages.get(c.s);
-				if (p == null) {
-					p = new PM();
-					p.l = new LinearLayout(this);
-					p.tag = c.s;
-					Channel temp = new Channel();
-					temp.type = Type.pm;
-					TabHost.TabSpec s = mTabHost.newTabSpec(p.tag);
-					s.setContent(new TabMaker(p.l,temp));
-					s.setIndicator(p.tag);
+				Channel c2 = channels.get("pm_"+c.s);
+				if (c2 == null) {
+					c2 = new Channel();
+					c2.tag = c.s;
+					c2.type = Type.pm;
+					TabHost.TabSpec s = mTabHost.newTabSpec(c2.tag);
+					s.setContent(new TabMaker(c2));
+					s.setIndicator(c2.tag);
 					mTabHost.addTab(s);
-					channels.put("pm_"+p.tag, temp);
-					currentChannel = temp;
-					private_messages.put(p.tag, p);
+					channels.put("pm_"+c2.tag, c2);
+					currentChannel = c2;
 				} else {
-					currentChannel = channels.get("pm_"+p.tag);
+					currentChannel = c2;
 				}
-				if (c.c.equals("privateout")) sender.setText("clever: ");
+				if (c.c.equals("privateout")) sender.setText(session.state.self.getName()+": ");
 				else sender.setText(c.s+": ");
 				l.removeView(channel);
-				p.l.addView(l);
+				c2.oldmessagelist.addView(l);
 			}
 			else {
 				channel.setText(c.c);
-				general.addView(l);
+				currentChannel.oldmessagelist.addView(l);
 			}
 			if (currentChannel != null) {
 				delayScroll.postDelayed(new Delayer(currentChannel.scrollView), 100);
@@ -209,8 +205,9 @@ public class ChatWindow extends SessionUser {
 		String tag = mTabHost.getCurrentTabTag();
 		EditText m = (EditText) findViewById(R.id.message);
 		String buffer = m.getText().toString();
-		if (tag.equals("alliance")) buffer = "/a "+buffer;
-		else if (private_messages.containsKey(tag)) {
+		if (buffer.charAt(0) == '/') {} 
+		else if (tag.equals("alliance")) buffer = "/a "+buffer;
+		else if (channels.containsKey("pm_"+tag)) {
 			buffer = "/whisper "+tag+" "+buffer;
 		}
 		session.rpc.QueueChat(buffer);
