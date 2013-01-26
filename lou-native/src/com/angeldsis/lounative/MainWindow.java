@@ -1,6 +1,8 @@
 package com.angeldsis.lounative;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -14,6 +16,7 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 
 import com.angeldsis.louapi.Log;
+import com.angeldsis.louapi.ReportDumper;
 
 public class MainWindow extends Shell {
 	static final private String TAG = "MainWindow";
@@ -35,7 +38,12 @@ public class MainWindow extends Shell {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				ReportDumper d = new ReportDumper(session.rpc);
-				d.dumpReports(new File("out.txt"));
+				try {
+					d.dumpReports(new FileOutputStream(new File("out.txt")));
+				} catch (FileNotFoundException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 			}
 		});
 		btnSaveAllReports.setText("Save All Reports");

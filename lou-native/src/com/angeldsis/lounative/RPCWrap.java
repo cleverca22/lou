@@ -80,4 +80,14 @@ public class RPCWrap extends RPC {
 	public void setCoreSession(CoreSession coreSession) {
 		this.core = coreSession;
 	}
+	@Override
+	public void onSubListChanged() {
+		core.onSubListChanged();
+	}
+	@Override
+	public void startSubstituteSession(String sessionid) {
+		// TODO Auto-generated method stub
+		Log.e(TAG, "startSubstituteSession");
+		// this needs to create a new CoreSession object
+	}
 }

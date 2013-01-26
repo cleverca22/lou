@@ -13,8 +13,11 @@ public class CoreSession {
 	LouState state;
 	RPCWrap rpc;
 	MainWindow mw;
+	SubsList subListWindow;
+	Display display;
 
 	public CoreSession(Account a, Display display) {
+		this.display = display;
 		System.out.println("you picked "+a.world);
 		state = new LouState();
 		rpc = new RPCWrap(a,state);
@@ -41,5 +44,12 @@ public class CoreSession {
 	}
 	public void openCity() {
 		// TODO Auto-generated method stub
+	}
+	public void onSubListChanged() {
+		if (subListWindow == null) {
+			subListWindow = new SubsList(rpc,display);
+			subListWindow.open();
+		}
+		subListWindow.onSubListChanged();
 	}
 }
