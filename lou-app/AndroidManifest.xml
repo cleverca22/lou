@@ -25,5 +25,7 @@
         <activity android:name="LoggingIn"></activity>
         <activity android:name=".reports.Reports"></activity>
         <activity android:name=".reports.ShowReport"></activity>
+        <activity android:name="Options"></activity>
+        <activity android:name="Settings"></activity>
     </application>
 </manifest>

@@ -4,7 +4,6 @@ import java.util.Iterator;
 
 import com.angeldsis.lou.AccountWrap;
 import com.angeldsis.lou.LoggingIn;
-import com.angeldsis.lou.LouSessionMain;
 import com.angeldsis.lou.R;
 import com.angeldsis.lou.SessionKeeper;
 import com.angeldsis.louapi.Account;
@@ -33,23 +32,32 @@ public class ServerList extends Fragment {
 		Iterator<Account> i = SessionKeeper.session2.servers.iterator();
 		while (i.hasNext()) {
 			final Account a = i.next();
-			ViewGroup row = (ViewGroup) inflater.inflate(R.layout.one_server, top,false);
-			TextView t = (TextView) row.findViewWithTag("server_name");
-			t.setText(a.world);
-			Button b = (Button) row.findViewWithTag("button");
-			Log.v(TAG,b.toString());
-			b.setOnClickListener(new OnClickListener() {
-				@Override
-				public void onClick(View v) {
-					Log.v(TAG,"onClick("+a.world+")");
-					Intent login = new Intent(getActivity(), LoggingIn.class);
-					login.putExtras((new AccountWrap(a)).toBundle());
-					startActivity(login);
-					Log.v(TAG, "doing login on world " + a.world);
-				}
-			});
-			top.addView(row);
-			Log.v(TAG,"inflated row "+a.world);
+			if (a.offline) {
+				ViewGroup row = (ViewGroup) inflater.inflate(R.layout.offline_server, top,false);
+				TextView t = (TextView) row.findViewById(R.id.servername);
+				t.setText(a.world);
+				top.addView(row);
+			} else {
+				ViewGroup row = (ViewGroup) inflater.inflate(R.layout.one_server, top,false);
+				TextView t = (TextView) row.findViewWithTag("server_name");
+				t.setText(a.world);
+				Button b = (Button) row.findViewWithTag("button");
+				Log.v(TAG,b.toString());
+				b.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View v) {
+						Log.v(TAG,"onClick("+a.world+")");
+						Intent login = new Intent(getActivity(), LoggingIn.class);
+						login.putExtras((new AccountWrap(a)).toBundle());
+						startActivity(login);
+						Log.v(TAG, "doing login on world " + a.world);
+					}
+				});
+				top.addView(row);
+				Log.v(TAG,"inflated row "+a.world);
+				Log.v(TAG,"serverid:"+a.serverid);
+				Log.v(TAG,"offline: "+a.offline);
+			}
 		}
 		return root;
 	}

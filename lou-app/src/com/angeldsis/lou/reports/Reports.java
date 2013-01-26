@@ -1,8 +1,13 @@
 package com.angeldsis.lou.reports;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+
 import com.angeldsis.lou.R;
 import com.angeldsis.lou.SessionUser;
 import com.angeldsis.louapi.RPC.ReportHeaderCallback;
+import com.angeldsis.louapi.ReportDumper;
 import com.angeldsis.louapi.ReportHeader;
 
 import android.content.Context;
@@ -76,7 +81,7 @@ public class Reports extends SessionUser implements ReportHeaderCallback, OnItem
 			TextView col1 = (TextView) row.findViewById(R.id.msg);
 			col1.setText(h.toString());
 			TextView col2 = (TextView) row.findViewById(R.id.stamp);
-			col2.setText(h.formatTime());
+			col2.setText(h.formatTime(session.rpc.state.tz)); // NullPointerException
 			
 			return row;
 		}
@@ -89,5 +94,15 @@ public class Reports extends SessionUser implements ReportHeaderCallback, OnItem
 		Intent i = new Intent(this,ShowReport.class);
 		i.putExtras(args);
 		startActivity(i);
+	}
+	public void doExport(View v) {
+		try {
+			FileOutputStream f = this.openFileOutput("export", MODE_PRIVATE);
+			ReportDumper d = new ReportDumper(session.rpc);
+			d.dumpReports(f);
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

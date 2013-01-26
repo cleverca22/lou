@@ -1,6 +1,7 @@
 package com.angeldsis.lou;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 
 import com.angeldsis.louapi.IncomingAttack;
@@ -34,7 +35,17 @@ public class IncomingAttacks extends SessionUser {
 			if (a.sourceAlliance != null) setField(row,"alliance",a.sourceAlliance.name);
 			else setField(row,"alliance","null???");
 			setField(row,"source",a.sourceCityName);
-			setField(row,"tsattacker",""+a.total_strength_attacker);
+			if (a.total_strength_attacker > 0) {
+				setField(row,"tsattacker",""+a.total_strength_attacker);
+			} else {
+				setField(row,"tsattacker","?");
+			}
+			if (a.total_strength_defender > 0) {
+				setField(row,"tsdefender",""+a.total_strength_defender);
+			} else {
+				setField(row,"tsdefender","?");
+			}
+			setField(row,"nextwave",""+session.rpc.state.stepToString(a.end));
 			parent.addView(row);
 		}
 	}

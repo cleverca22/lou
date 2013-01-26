@@ -12,6 +12,7 @@ import java.util.Iterator;
 
 import org.json2.JSONObject;
 
+import com.angeldsis.lou.chat.ChatHistory;
 import com.angeldsis.louapi.ChatMsg;
 import com.angeldsis.louapi.IncomingAttack;
 import com.angeldsis.louapi.LouSession;
@@ -27,6 +28,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Bundle;
@@ -39,6 +41,7 @@ import android.util.Log;
 public class SessionKeeper extends Service {
 	static final String TAG = "SessionKeeper";
 	ArrayList<Session> sessions;
+	int lastSessionid = 0;
 	NotificationManager mNotificationManager;
 	private final IBinder binder = new MyBinder();
 	public static LouSession session2;
@@ -78,6 +81,14 @@ public class SessionKeeper extends Service {
 		super.onDestroy();
 		Log.v(TAG,"onDestroyed");
 	}
+	void refreshConfig() {
+		// FIXME, must be called when settings change
+		SharedPreferences p = getSharedPreferences("com.angeldsis.lou_preferences",MODE_PRIVATE);
+		boolean monitor = p.getBoolean("monitor_alliance_attacks",true);
+		for (Session s : sessions) {
+			s.refreshConfig(monitor);
+		}
+	}
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		if (sessions == null) sessions = new ArrayList<Session>();
@@ -93,9 +104,14 @@ public class SessionKeeper extends Service {
 		AccountWrap acct;
 		Callbacks cb;
 		boolean alive = false;
-		Session(AccountWrap acct2) {
+		int sessionid;
+		public ChatHistory chat;
+		Session(AccountWrap acct2, int sessionid) {
 			Log.v(TAG,"new Session");
 			acct = acct2;
+			// FIXME give the playerid#
+			chat = new ChatHistory(SessionKeeper.this,acct2.worldid,0);
+			this.sessionid = sessionid;
 
 			Intent intent = new Intent(SessionKeeper.this,SessionKeeper.class);
 			intent.putExtras(acct.toBundle());
@@ -112,7 +128,7 @@ public class SessionKeeper extends Service {
 			mBuilder.setContentIntent(resultPendingIntent);
 			mBuilder.setContentText("LOU is still running "+acct.world);
 			// FIXME, this interface can only support 1 notif, replace it with one that opens an active session list
-			SessionKeeper.this.startForeground(STILL_OPEN | acct.worldid,mBuilder.build());
+			SessionKeeper.this.startForeground(STILL_OPEN | sessionid,mBuilder.build());
 			doing_network.acquire();
 			
 			state = new LouState();
@@ -140,6 +156,9 @@ public class SessionKeeper extends Service {
 				}
 			});
 			alive = true;
+		}
+		public void refreshConfig(boolean monitor) {
+			rpc.refreshConfig(monitor);
 		}
 		private void loginDone() {
 			if (cb != null) cb.loginDone();
@@ -173,8 +192,9 @@ public class SessionKeeper extends Service {
 				chatBuilder.setContentIntent(resultPendingIntent);
 
 				chatBuilder.setContentText(d.get(d.size()-1).toString());
-				mNotificationManager.notify(UNREAD_MESSAGE | acct.worldid, chatBuilder.build());
+				mNotificationManager.notify(UNREAD_MESSAGE | sessionid, chatBuilder.build());
 			}
+			chat.onChat(d);
 		}
 		public void setCallback(Callbacks cb1) {
 			cb = cb1;
@@ -228,11 +248,12 @@ public class SessionKeeper extends Service {
 		public void onEjected() {
 			alive = false;
 			if (cb != null) cb.onEjected();
-			//mNotificationManager.cancel(STILL_OPEN | acct.worldid);
+			//mNotificationManager.cancel(STILL_OPEN | sessionid);
 			SessionKeeper.this.stopForeground(true);
 			sessions.remove(this);
 			rpc.stopLooping();
 			doing_network.release();
+			teardown();
 		}
 		public void cityChanged() {
 			if (cb != null) cb.cityChanged();
@@ -240,11 +261,12 @@ public class SessionKeeper extends Service {
 		public void logout() {
 			rpc.stopPolling();
 			rpc.stopLooping();
-			//mNotificationManager.cancel(STILL_OPEN | acct.worldid);
+			//mNotificationManager.cancel(STILL_OPEN | sessionid);
 			SessionKeeper.this.stopForeground(true);
 			alive = false;
 			sessions.remove(this);
 			doing_network.release();
+			teardown();
 		}
 		public void cityListChanged() {
 			if (cb != null) cb.cityListChanged();
@@ -268,8 +290,8 @@ public class SessionKeeper extends Service {
 					.setWhen(end);
 				long start = rpc.state.stepToMilis(a.start);
 				Notification n = incomingAttackBuilder.build();
-				int id = (INCOMING_ATTACK | acct.worldid) + (a.id << 15);
-				Log.v(TAG,String.format("id:0x%x,worldid:%d, id:%d",id,acct.worldid,a.id));
+				int id = (INCOMING_ATTACK | sessionid) + (a.id << 15);
+				Log.v(TAG,String.format("id:0x%x,sessionid:%d, id:%d",id,sessionid,a.id));
 				mNotificationManager.notify(id, n);
 				wl.acquire(60000);
 			}
@@ -278,9 +300,23 @@ public class SessionKeeper extends Service {
 			if (cb != null) cb.onReportCountUpdate(viewed,unviewed);
 			else Log.v(TAG,String.format("report update viewed:%d unviewed:%d",viewed,unviewed));
 		}
+		public void onSubListChanged() {
+			if (cb != null) cb.onSubListChanged();
+		}
+		public void startSubstituteSession(String sessionid) {
+			AccountWrap acct2 = new AccountWrap(acct);
+			acct2.sessionid = sessionid;
+			acct2.id = lastSessionid++;
+			Session s2 = new Session(acct2,acct2.id);
+			sessions.add(s2);
+		}
+		private void teardown() {
+			chat.teardown();
+		}
 	}
 	public interface Callbacks {
 		void visDataReset();
+		void onSubListChanged();
 		void onReportCountUpdate(int viewed, int unviewed);
 		boolean onNewAttack(IncomingAttack a);
 		void onVisObjAdded(LouVisData v);
@@ -323,8 +359,9 @@ public class SessionKeeper extends Service {
 			}
 		}
 		if (allow_login) {
-			Session s2 = new Session(acct);
+			Session s2 = new Session(acct,lastSessionid++);
 			sessions.add(s2);
+			refreshConfig();
 			return s2;
 		} else return null; // not a login page, fail out
 	}

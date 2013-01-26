@@ -51,6 +51,7 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 				return;
 			}
 			session.setCallback(this);
+			Log.v(TAG,"calling session ready");
 			session_ready();
 		}
 	}
@@ -109,6 +110,7 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 		return super.onCreateOptionsMenu(menu);
 	}
 	public boolean onOptionsItemSelected(MenuItem item) {
+		Intent i;
 		switch (item.getItemId()) {
 		case R.id.open_chat:
 			Intent intent = new Intent(this,ChatWindow.class);
@@ -119,7 +121,7 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 			Log.v(TAG,"opening city view");
 			long heapSize = Runtime.getRuntime().maxMemory() / 1024 / 1024;
 			if (heapSize > 15) {
-				Intent i = new Intent(this,CityView.class);
+				i = new Intent(this,CityView.class);
 				i.putExtras(acct.toBundle());
 				startActivity(i);
 			} else {
@@ -129,6 +131,15 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 				AlertDialog d = b.create();
 				d.show();
 			}
+			return true;
+		case R.id.subs:
+			i = new Intent(this,Options.class);
+			i.putExtras(acct.toBundle());
+			startActivity(i);
+			return true;
+		case R.id.options:
+			i = new Intent(this,Settings.class);
+			startActivity(i);
 			return true;
 		case R.id.logout:
 			session.logout();
@@ -152,4 +163,8 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 	}
 	@Override
 	public void onReportCountUpdate(int viewed, int unviewed) {}
+	@Override
+	public void onSubListChanged() {
+		// TODO Auto-generated method stub
+	}
 }

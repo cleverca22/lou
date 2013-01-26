@@ -71,4 +71,12 @@ public class RPCWrap extends RPC {
 	public void onReportCountUpdate(int viewed, int unviewed) {
 		callbacks.onReportCountUpdate(viewed,unviewed);
 	}
+	@Override
+	public void onSubListChanged() {
+		callbacks.onSubListChanged();
+	}
+	@Override
+	public void startSubstituteSession(String sessionid) {
+		callbacks.startSubstituteSession(sessionid);
+	}
 }

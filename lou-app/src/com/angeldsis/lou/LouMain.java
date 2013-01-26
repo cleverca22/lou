@@ -35,6 +35,7 @@ public class LouMain extends FragmentActivity {
 		
 		setContentView(R.layout.main);
 		getSupportFragmentManager().beginTransaction().add(R.id.main_frame, new Loading()).commit();
+		setTheme(android.R.style.Theme_Holo_Dialog);
 	}
 	protected void onStart() {
 		super.onStart();

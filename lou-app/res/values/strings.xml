@@ -27,4 +27,9 @@
     <string name="reports">Reports (%d)</string>
     <string name="trapped">trapped</string>
     <string name="fortified">fortified</string>
+    <string name="export">export</string>
+    <string name="nextwave">Next Wave</string>
+    <string name="ts_defender">TS Defender</string>
+    <string name="offline">this server is currently offline:</string>
+    <string name="monitor_alliance_att">Monitor Alliance Attacks</string>
 </resources>

@@ -1,6 +1,8 @@
 package com.angeldsis.lou;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -13,6 +15,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -21,6 +25,7 @@ import android.widget.ScrollView;
 import android.widget.TabHost;
 import android.widget.TextView;
 
+import com.angeldsis.lou.chat.ChatHistory;
 import com.angeldsis.louapi.ChatMsg;
 
 public class ChatWindow extends SessionUser {
@@ -29,11 +34,12 @@ public class ChatWindow extends SessionUser {
 	enum Type { pm,channel };
 	class Channel {
 		Type type;
-		ScrollView scrollView;
-		LinearLayout oldmessagelist;
-		String tag;
+		//ScrollView scrollView;
+		//LinearLayout oldmessagelist;
+		String tag,key;
 		public LinearLayout wrapper;
 		public ListView newmessagelist;
+		ChatHistoryAdapter adapter;
 	}
 	Map<String,Channel> channels;
 	private NameClicked nameClicker;
@@ -50,6 +56,8 @@ public class ChatWindow extends SessionUser {
 		TabHost.TabSpec t1 = mTabHost.newTabSpec("general");
 		Channel temp = new Channel();
 		temp.type = Type.channel;
+		temp.tag = "general";
+		temp.key = "@C";
 		t1.setContent(new TabMaker(temp));
 		t1.setIndicator("General");
 		mTabHost.addTab(t1);
@@ -57,6 +65,8 @@ public class ChatWindow extends SessionUser {
 		
 		temp = new Channel();
 		temp.type = Type.channel;
+		temp.tag = "alliance";
+		temp.key = "@A";
 		TabHost.TabSpec t2 = mTabHost.newTabSpec("alliance");
 		t2.setContent(new TabMaker(temp));
 		t2.setIndicator("alliance");
@@ -70,45 +80,130 @@ public class ChatWindow extends SessionUser {
 		public TabMaker(Channel channel) {
 			c = channel;
 			
-			c.oldmessagelist = new LinearLayout(ChatWindow.this);
-			c.oldmessagelist.setOrientation(LinearLayout.VERTICAL);
+			//c.oldmessagelist = new LinearLayout(ChatWindow.this);
+			//c.oldmessagelist.setOrientation(LinearLayout.VERTICAL);
 			
 			c.newmessagelist = new ListView(ChatWindow.this);
+			c.adapter = new ChatHistoryAdapter();
+			c.newmessagelist.setAdapter(c.adapter);
+			LinearLayout.LayoutParams l = new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.MATCH_PARENT,1);
+			c.newmessagelist.setLayoutParams(l);
+			c.newmessagelist.setTranscriptMode(ListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
+			c.newmessagelist.setStackFromBottom(true);
 			
+			//c.scrollView = new ScrollView(ChatWindow.this);
+			//c.scrollView.addView(c.oldmessagelist);
+			//l = new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.MATCH_PARENT,1);
+			//c.scrollView.setLayoutParams(l);
+
 			c.wrapper = new LinearLayout(ChatWindow.this);
-			c.wrapper.addView(c.oldmessagelist);
+			//c.wrapper.addView(c.scrollView);
 			c.wrapper.addView(c.newmessagelist);
-			
-			c.scrollView = new ScrollView(ChatWindow.this);
-			c.scrollView.addView(c.wrapper);
 		}
 		@Override
 		public View createTabContent(String tag) {
-			return c.scrollView;
+			return c.wrapper;
+		}
+	}
+	class ChatHistoryAdapter extends BaseAdapter {
+		private ChatHistory source;
+		private Channel channel;
+		@Override
+		public int getCount() {
+			if (channel == null) {
+				Log.v(TAG,this.toString()+" getCount null");
+				return 0;
+			}
+			return source.getCount(channel.key);
+		}
+		@Override
+		public ChatMsg getItem(int position) {
+			//long start = System.currentTimeMillis();
+			ChatMsg c = source.getItem(channel.key,position);
+			//long end = System.currentTimeMillis();
+			//Log.v(TAG,"getItem took "+(end-start));
+			return c;
+		}
+		@Override
+		public long getItemId(int position) {
+			Log.v(TAG,"getItemId");
+			// TODO Auto-generated method stub
+			return 0;
+		}
+		@Override
+		public View getView(int position, View convertView, ViewGroup parent) {
+			// when scrolling, this only gets called for things coming into view, to re-make them
+			// if notifyDataSetChanged is called, this is re-ran for all visible elements
+			//long start = System.currentTimeMillis();
+			View returnme;
+			ChatWindow context = ChatWindow.this;
+			//Log.v(TAG,String.format("%s getView(%d,%s,%s)",channel.key,position,convertView,parent));
+			ChatMsg c = getItem(position);
+			TextView timestamp = new TextView(context);
+			TextView channel = new TextView(context);
+			TextView sender = new TextView(context);
+			TextView msg = new TextView(context);
+			LinearLayout l = new LinearLayout(context);
+			
+			Calendar c3 = Calendar.getInstance(session.state.tz);
+			c3.setTime(new Date(c.ts));
+			timestamp.setText(String.format("[%02d:%02d:%02d] ",c3.get(Calendar.HOUR_OF_DAY),c3.get(Calendar.MINUTE),c3.get(Calendar.SECOND)));
+			l.addView(timestamp);
+			
+			sender.setText(c.sender);
+			sender.setOnClickListener(nameClicker);
+			sender.setClickable(true);
+			msg.setText(" "+c.message); // FIXME, padding
+			
+			l.addView(channel);
+			if (c.hascrown) {
+				ImageView crown = new ImageView(context);
+				crown.setImageDrawable(context.getResources().getDrawable(R.drawable.icon_lou_public_other_world));
+				l.addView(crown);
+			}
+			l.addView(sender);
+			l.addView(msg);
+			
+			if (c.channel == null) {
+				returnme = l;
+			} else if (c.channel.equals("@A")) {
+				channel.setText(getString(R.string.alliance));
+				int green = context.getResources().getColor(R.color.chat_green);
+				channel.setTextColor(green);
+				sender.setTextColor(green);
+				msg.setTextColor(green);
+				returnme = l;
+			}
+			else if (c.channel.equals("privatein") || c.channel.equals("privateout")) {
+				if (c.channel.equals("privateout")) sender.setText(session.state.self.getName()+": ");
+				else sender.setText(c.sender+": ");
+				l.removeView(channel);
+				returnme = l;
+			}
+			else {
+				channel.setText(c.channel);
+				returnme = l;
+			}
+			//long end = System.currentTimeMillis();
+			//Log.v(TAG,"getView took "+(end-start)+"ms");
+			return returnme;
+		}
+		public void setSource(ChatHistory chat,Channel c) {
+			Log.v(TAG,this.toString()+" setSource");
+			source = chat;
+			channel = c;
+			this.notifyDataSetChanged();
 		}
 	}
 	public void onStart() {
 		super.onStart();
 	}
 	public void session_ready() {
-		for (Channel c : channels.values()) c.oldmessagelist.removeAllViews();
+		for (Channel c : channels.values()) {
+			//c.oldmessagelist.removeAllViews();
+			c.adapter.setSource(session.chat,c);
+		}
 		onChat(session.state.chat_history);
-	}
-	@Override
-	public void visDataReset() {
-		// TODO Auto-generated method stub
-	}
-	@Override
-	public void onPlayerData() {
-		// TODO Auto-generated method stub
-	}
-	@Override
-	public void gotCityData() {
-		// TODO Auto-generated method stub
-	}
-	@Override
-	public void tick() {
-		// TODO Auto-generated method stub
 	}
 	class NameClicked implements View.OnClickListener {
 		@Override
@@ -120,8 +215,11 @@ public class ChatWindow extends SessionUser {
 				c = new Channel();
 				c.tag = tag;
 				c.type = Type.pm;
+				c.key = "pm_"+tag;
+				Log.v(TAG,"new key for pm is "+c.key);
 				TabHost.TabSpec s = mTabHost.newTabSpec(c.tag);
 				s.setContent(new TabMaker(c));
+				c.adapter.setSource(session.chat, c);
 				s.setIndicator(c.tag);
 				mTabHost.addTab(s);
 				channels.put("pm_"+c.tag, c);
@@ -136,14 +234,33 @@ public class ChatWindow extends SessionUser {
 			TextView sender = new TextView(this);
 			TextView msg = new TextView(this);
 			LinearLayout l = new LinearLayout(this);
-			sender.setText(c.s);
+			sender.setText(c.sender);
 			sender.setOnClickListener(nameClicker);
 			sender.setClickable(true);
-			msg.setText(" "+c.m); // FIXME, padding
+			msg.setText(" "+c.message); // FIXME, padding
 			Channel currentChannel = channels.get("general");
 			
-			if (c.c.equals("@A")) currentChannel = channels.get("alliance");
-			else if (c.c.equals("@C")) currentChannel = channels.get("general");
+			if (c.channel.equals("@A")) currentChannel = channels.get("alliance");
+			else if (c.channel.equals("@C")) currentChannel = channels.get("general");
+			else if (c.channel.equals("privatein") || c.channel.equals("privateout")) {
+				currentChannel = channels.get("pm_"+c.sender);
+				if (currentChannel == null) {
+					currentChannel = new Channel();
+					Log.v(TAG,"made channel");
+					currentChannel.tag = c.sender;
+					currentChannel.key = "pm_"+c.sender;
+					currentChannel.type = Type.pm;
+					TabHost.TabSpec s = mTabHost.newTabSpec(currentChannel.tag);
+					s.setContent(new TabMaker(currentChannel));
+					currentChannel.adapter.setSource(session.chat, currentChannel);
+					Log.v(TAG,"source set");
+					s.setIndicator(currentChannel.tag);
+					mTabHost.addTab(s);
+					channels.put("pm_"+currentChannel.tag, currentChannel);
+				}
+			}
+			
+			currentChannel.adapter.notifyDataSetChanged();
 			
 			l.addView(channel);
 			if (c.hascrown) {
@@ -154,53 +271,14 @@ public class ChatWindow extends SessionUser {
 			l.addView(sender);
 			l.addView(msg);
 			
-			if (c.c.equals("@A")) {
-				channel.setText(getString(R.string.alliance));
-				int green = this.getResources().getColor(R.color.chat_green);
-				channel.setTextColor(green);
-				sender.setTextColor(green);
-				msg.setTextColor(green);
-				currentChannel.oldmessagelist.addView(l);
+			if (c.channel.equals("@A")) {
+				return;
 			}
-			else if (c.c.equals("privatein") || c.c.equals("privateout")) {
-				Channel c2 = channels.get("pm_"+c.s);
-				if (c2 == null) {
-					c2 = new Channel();
-					c2.tag = c.s;
-					c2.type = Type.pm;
-					TabHost.TabSpec s = mTabHost.newTabSpec(c2.tag);
-					s.setContent(new TabMaker(c2));
-					s.setIndicator(c2.tag);
-					mTabHost.addTab(s);
-					channels.put("pm_"+c2.tag, c2);
-					currentChannel = c2;
-				} else {
-					currentChannel = c2;
-				}
-				if (c.c.equals("privateout")) sender.setText(session.state.self.getName()+": ");
-				else sender.setText(c.s+": ");
-				l.removeView(channel);
-				c2.oldmessagelist.addView(l);
-			}
-			else {
-				channel.setText(c.c);
-				currentChannel.oldmessagelist.addView(l);
-			}
-			if (currentChannel != null) {
-				delayScroll.postDelayed(new Delayer(currentChannel.scrollView), 100);
+			else if (c.channel.equals("privatein") || c.channel.equals("privateout")) {
+				Channel c2 = channels.get("pm_"+c.sender);
 			}
 		}
 	}
-	class Delayer implements Runnable {
-		ScrollView s;
-		Delayer(ScrollView s) {
-			this.s = s;
-		}
-		public void run() {
-			s.smoothScrollBy(0, 100);
-		}
-	}
-	Handler delayScroll = new Handler();
 	public void sendMsg(View v) {
 		String tag = mTabHost.getCurrentTabTag();
 		EditText m = (EditText) findViewById(R.id.message);

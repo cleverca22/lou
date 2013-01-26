@@ -19,4 +19,7 @@ public class LoggingIn extends SessionUser {
 		startActivity(i);
 		finish();
 	}
+	public void session_ready() {
+		loginDone();
+	}
 }

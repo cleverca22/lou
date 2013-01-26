@@ -15,6 +15,7 @@ import android.widget.TextView;
 public class LouStructure extends VisObject implements Hook {
 	String TAG = "LouStructure";
 	TextView level;
+	ViewGroup progress1;
 	CityBuilding base;
 	LouState state;
 	int typeid;

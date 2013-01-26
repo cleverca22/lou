@@ -6,6 +6,7 @@ import com.angeldsis.louapi.Account;
 
 // helper methods to send an Account thru a Bundle
 public class AccountWrap extends Account {
+	public int id;
 	public AccountWrap() {
 	}
 	public AccountWrap(Account a) {
