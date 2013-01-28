@@ -140,6 +140,12 @@
                     android:layout_height="wrap_content"
                     android:src="@drawable/building_stonecutter" />
 
+                <ImageButton
+                    android:id="@+id/moonglow"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/building_mage_tower_large" />
+
             </LinearLayout>
 
             <LinearLayout

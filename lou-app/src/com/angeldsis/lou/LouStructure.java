@@ -68,8 +68,20 @@ public class LouStructure extends VisObject implements Hook {
 		case 16:
 			res = R.drawable.building_casern;
 			break;
+		case 17:
+			res = R.drawable.building_stables;
+			break;
 		case 20:
 			res = R.drawable.building_storage;
+			break;
+		case 21:
+			res = R.drawable.building_stronghold;
+			break;
+		case 36:
+			res = R.drawable.building_mage_tower_large;
+			break;
+		case 37:
+			res = R.drawable.building_temple;
 			break;
 		case 47:
 			res = R.drawable.building_hut_new;
@@ -102,6 +114,7 @@ public class LouStructure extends VisObject implements Hook {
 		if (res == -1) {
 			res = R.drawable.building_stonecutter;
 			Log.v(TAG,"unknown structure "+base.typeid);
+			level.setText(""+base.typeid);
 			//level.setText(""+base.typeid);
 		}
 		images = new LouImage[1];
