@@ -17,12 +17,13 @@ public class AllianceAttackMonitor {
 	}
 	public void countsUpdated(int ia, int oa) {
 		if (this.ia != ia) {
-			Log.v(TAG,"ia changed");
+//			Log.v(TAG,"ia changed");
 			new_ia = ia;
 		}
 	}
 	public String getRequestDetails() {
-		if ((ia != new_ia) || alwaysMonitor) {
+		if ((ia != new_ia) && alwaysMonitor) {
+			Log.v(TAG,"checking");
 			return "\fALL_AT:a";
 		}
 		return "";

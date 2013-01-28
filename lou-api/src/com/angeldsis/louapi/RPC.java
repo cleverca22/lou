@@ -816,4 +816,11 @@ public abstract class RPC extends Thread {
 			else target = System.currentTimeMillis() + (2000 - timepassed);
 		}
 	}
+	public void pollSoon() {
+		synchronized(this) {
+			queue.remove(poller);
+			poller.pollSoon();
+			queue.add(poller);
+		}
+	}
 }

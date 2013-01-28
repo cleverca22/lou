@@ -224,6 +224,7 @@ public class LouState implements Serializable {
 		currentCity.visData.clear();
 		currentCity.visreset = 1;
 		fetchVis = true;
+		rpc.pollSoon();
 		rpc.interrupt();
 	}
 	public void disableVis() {
