@@ -12,6 +12,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -108,6 +109,7 @@ public class ChatWindow extends SessionUser {
 	class ChatHistoryAdapter extends BaseAdapter {
 		private ChatHistory source;
 		private Channel channel;
+		private Calendar c3;
 		@Override
 		public int getCount() {
 			if (channel == null) {
@@ -137,67 +139,73 @@ public class ChatWindow extends SessionUser {
 			// when scrolling, this only gets called for things coming into view, to re-make them
 			// if notifyDataSetChanged is called, this is re-ran for all visible elements
 			//long start = System.currentTimeMillis();
-			View returnme;
-			ChatWindow context = ChatWindow.this;
+			
+			ViewGroup row = (ViewGroup) convertView;
+			if (row == null) {
+				LayoutInflater f = ChatWindow.this.getLayoutInflater();
+				row = (ViewGroup) f.inflate(R.layout.chat_row, parent,false);
+			}
 			ChatMsg c = getItem(position);
 			//Log.v(TAG,String.format("%s getView(%d,%s,%s) c=%s",channel.key,position,convertView,parent,c));
-			TextView timestamp = new TextView(context);
-			TextView channel = new TextView(context);
-			TextView sender = new TextView(context);
-			TextView msg = new TextView(context);
-			LinearLayout l = new LinearLayout(context);
+			TextView timestamp = (TextView) row.findViewById(R.id.timestamp);
+			TextView channel = (TextView) row.findViewById(R.id.channel);
+			TextView sender = (TextView) row.findViewById(R.id.sender);
+			TextView msg = (TextView) row.findViewById(R.id.msg);
 			
 			if (session == null) throw new IllegalStateException("session was null!");
 			if (session.state == null) throw new IllegalStateException("session.state was null!");
-			Calendar c3 = Calendar.getInstance(session.state.tz);
 			c3.setTime(new Date(c.ts));
-			timestamp.setText(String.format("[%02d:%02d:%02d] ",c3.get(Calendar.HOUR_OF_DAY),c3.get(Calendar.MINUTE),c3.get(Calendar.SECOND)));
-			l.addView(timestamp);
+			timestamp.setText(formatTime(c3));
 			
 			sender.setText(c.sender);
 			sender.setOnClickListener(nameClicker);
 			sender.setClickable(true);
 			msg.setText(" "+c.message); // FIXME, padding
 			
-			l.addView(channel);
-			if (c.hascrown) {
-				ImageView crown = new ImageView(context);
-				crown.setImageDrawable(context.getResources().getDrawable(R.drawable.icon_lou_public_other_world));
-				l.addView(crown);
-			}
-			l.addView(sender);
-			l.addView(msg);
+			ImageView crown = (ImageView) row.findViewById(R.id.crown);
+			if (c.hascrown) crown.setVisibility(View.VISIBLE);
+			else crown.setVisibility(View.INVISIBLE);
+			
+			channel.setVisibility(View.VISIBLE);
 			
 			if (c.channel == null) {
-				returnme = l;
 			} else if (c.channel.equals("@A")) {
 				channel.setText(getString(R.string.alliance));
-				int green = context.getResources().getColor(R.color.chat_green);
+				int green = getResources().getColor(R.color.chat_green);
 				channel.setTextColor(green);
 				sender.setTextColor(green);
 				msg.setTextColor(green);
-				returnme = l;
 			}
 			else if (c.channel.equals("privatein") || c.channel.equals("privateout")) {
 				if (c.channel.equals("privateout")) sender.setText(session.state.self.getName()+": ");
 				else sender.setText(c.sender+": ");
-				l.removeView(channel);
-				returnme = l;
+				channel.setVisibility(View.INVISIBLE);
 			}
 			else {
 				channel.setText(c.channel);
-				returnme = l;
 			}
 			//long end = System.currentTimeMillis();
 			//Log.v(TAG,"getView took "+(end-start)+"ms");
-			return returnme;
+			return row;
 		}
 		public void setSource(ChatHistory chat,Channel c) {
 			Log.v(TAG,this.toString()+" setSource");
 			source = chat;
 			channel = c;
 			this.notifyDataSetChanged();
+			c3 = Calendar.getInstance(session.state.tz);
 		}
+	}
+	String formatTime(Calendar c3) {
+		// i think this improves performance over the format
+		int t;
+		StringBuilder b = new StringBuilder(11);
+		b.append('[');
+		t = c3.get(Calendar.HOUR_OF_DAY); if (t < 10) b.append('0'); b.append(t);b.append(':');
+		t = c3.get(Calendar.MINUTE); if (t < 10) b.append('0'); b.append(t);b.append(':');
+		t = c3.get(Calendar.SECOND); if (t < 10) b.append('0'); b.append(t);b.append(']');
+		return b.toString();
+		//return String.format("[%02d:%02d:%02d] ",c3.get(Calendar.HOUR_OF_DAY),c3.get(Calendar.MINUTE),c3.get(Calendar.SECOND));
 	}
 	public void onStart() {
 		super.onStart();

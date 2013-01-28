@@ -227,7 +227,7 @@ public class LouSession {
 			public int read(byte[] buffer, int offset, int count) throws IOException {
 				int size = super.read(buffer, offset, count);
 				if (size == -1) return size;
-				Log.v(TAG,"sniff:"+new String(buffer,offset,size));
+				//Log.v(TAG,"sniff:"+new String(buffer,offset,size));
 				return size;
 			}
 		};

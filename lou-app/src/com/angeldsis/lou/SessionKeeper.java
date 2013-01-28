@@ -46,6 +46,7 @@ public class SessionKeeper extends Service {
 	private final IBinder binder = new MyBinder();
 	public static LouSession session2;
 	PowerManager.WakeLock wl,doing_network;
+	private static SessionKeeper self;
 	
 	// constansts for notification id's
 	// worldid (86) will be added to these to keep them unique
@@ -75,11 +76,16 @@ public class SessionKeeper extends Service {
 		wl = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, "incoming attack");
 		// partial lock seems to not effect cpu freq scalling on the kindle
 		doing_network = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "lou logged in");
+		self = this;
 	}
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
 		Log.v(TAG,"onDestroyed");
+		self = null;
+	}
+	static SessionKeeper getInstance() {
+		return self;
 	}
 	void refreshConfig() {
 		// FIXME, must be called when settings change

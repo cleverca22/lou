@@ -279,8 +279,8 @@ public abstract class RPC extends Thread {
 					obj.put("buildingType", structureid);
 					obj.put("isPaid", true);
 					doRPC("UpgradeBuilding",obj,RPC.this,new RPCCallback() {
-						@Override
-						void requestDone(rpcreply r) throws JSONException {
+						@Override void requestDone(rpcreply r) throws JSONException {
+							pollSoon();
 							//Log.v(TAG,r.reply.toString(1));
 							runOnUiThread(new Runnable() {
 								@Override
@@ -410,7 +410,11 @@ public abstract class RPC extends Thread {
 					reply2.raw_reply = null;
 				} else {
 					try {
+						long start = System.currentTimeMillis();
+						// averaging 100-200ms per call
 						reply2.reply = new JSONTokener(new InputStreamReader(reply.stream)).nextValue();
+						long end = System.currentTimeMillis();
+						Log.v(TAG, String.format("parsing took %dms",end-start));
 					} catch (JSONException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -734,6 +738,7 @@ public abstract class RPC extends Thread {
 				else {
 					Log.v(TAG, "no work found, maybe thread should stop?");
 				}
+				Log.v(TAG,"delay "+maxdelay);
 				Thread.sleep(maxdelay);
 			} catch (InterruptedException e) {
 			}
@@ -821,6 +826,7 @@ public abstract class RPC extends Thread {
 			queue.remove(poller);
 			poller.pollSoon();
 			queue.add(poller);
+			interrupt();
 		}
 	}
 }
