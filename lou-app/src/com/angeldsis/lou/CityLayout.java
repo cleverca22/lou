@@ -28,6 +28,7 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.ScaleGestureDetector.OnScaleGestureListener;
+import android.view.View;
 import android.view.ViewGroup;
 
 public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnGestureListener {
@@ -86,7 +87,7 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 		if (maxy < 0) maxy = 0;
 	}
 	protected void onLayout(boolean changed, int l, int t, int r, int b) {
-		Log.v(TAG,"onLayout");
+		//Log.v(TAG,"onLayout");
 		adjustMax();
 		int x;
 		for (x = 0; x < buildings.size(); x++) {
@@ -94,9 +95,15 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 			y.layout(zoom);
 		}
 	}
-	protected void onMeasure (int widthMeasureSpec, int heightMeasureSpec) {
+	@Override protected void onMeasure (int widthMeasureSpec, int heightMeasureSpec) {
 		Log.v(TAG,"onMeasure");
 		setMeasuredDimension(MeasureSpec.getSize(widthMeasureSpec),MeasureSpec.getSize(heightMeasureSpec));
+		for (VisObject v : buildings) {
+			// FIXME, give the width/height of the structure, at current zoom
+			int maxwidth = View.MeasureSpec.makeMeasureSpec(100, View.MeasureSpec.AT_MOST);
+			int maxheight = View.MeasureSpec.makeMeasureSpec(100, View.MeasureSpec.AT_MOST);
+			v.measure(maxwidth,maxheight);
+		}
 	}
 	public void scrollTo(int x,int y) {
 		if (x > maxx) x = maxx;
@@ -478,6 +485,11 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 		boolean empty_slot = true;
 		if (empty_slot) {
 			newBuilding = in.toRectF();
+			if (state.currentCity.queue.length == 16) {
+				// the build queue is full, you cant select empty cells
+				clearSelection();
+				return;
+			}
 		}
 		currentCoord = in;
 		requestFocusFromTouch();

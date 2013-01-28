@@ -68,8 +68,8 @@ public class RPCWrap extends RPC {
 		callbacks.onNewAttack(a);
 	}
 	@Override
-	public void onReportCountUpdate(int viewed, int unviewed) {
-		callbacks.onReportCountUpdate(viewed,unviewed);
+	public void onReportCountUpdate() {
+		callbacks.onReportCountUpdate();
 	}
 	@Override
 	public void onSubListChanged() {
@@ -78,5 +78,9 @@ public class RPCWrap extends RPC {
 	@Override
 	public void startSubstituteSession(String sessionid) {
 		callbacks.startSubstituteSession(sessionid);
+	}
+	@Override
+	protected int getMaxPoll() {
+		return callbacks.getMaxPoll();
 	}
 }

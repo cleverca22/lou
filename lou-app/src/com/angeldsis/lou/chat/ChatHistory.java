@@ -66,7 +66,6 @@ public class ChatHistory extends SQLiteOpenHelper {
 		m.channel = c.getString(1);
 		m.sender = c.getString(2);
 		m.hascrown = c.getInt(3) == 1 ? true : false;
-		Log.v("ChatHistory","crown is "+c.getInt(3));
 		m.message = c.getString(4);
 		m.tag = c.getString(5);
 		return m;

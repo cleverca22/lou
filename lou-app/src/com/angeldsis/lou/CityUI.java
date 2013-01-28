@@ -21,6 +21,7 @@ public class CityUI extends ViewGroup {
 	}
 	protected void onMeasure (int widthMeasureSpec, int heightMeasureSpec) {
 		setMeasuredDimension(MeasureSpec.getSize(widthMeasureSpec),MeasureSpec.getSize(heightMeasureSpec));
+		mTest.measure(widthMeasureSpec, heightMeasureSpec);
 	}
 	public void gotVisData() {
 		mTest.gotVisData();

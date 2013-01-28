@@ -14,12 +14,15 @@ public class LoggingIn extends SessionUser {
 	}
 	@Override
 	public void loginDone() {
+		Log.v(TAG,"loginDone");
 		Intent i = new Intent(this,LouSessionMain.class);
 		i.putExtras(acct.toBundle());
 		startActivity(i);
 		finish();
 	}
+	@Override
 	public void session_ready() {
-		loginDone();
+		Log.v(TAG,"session_ready "+session.loggingIn);
+		if (!session.loggingIn) loginDone();
 	}
 }

@@ -5,10 +5,12 @@ import com.angeldsis.lou.SessionKeeper.Callbacks;
 import com.angeldsis.lou.city.BuildMenu;
 import com.angeldsis.louapi.LouVisData;
 import com.angeldsis.louapi.RPC.UpgradeStarted;
+import com.angeldsis.louapi.data.BuildQueue;
 
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -18,6 +20,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.TextView;
 
 public class CityView extends SessionUser implements Callbacks, LayoutCallbacks {
 	private static final String TAG = "CityView";
@@ -25,6 +28,7 @@ public class CityView extends SessionUser implements Callbacks, LayoutCallbacks 
 	boolean vis_data_loaded;
 	private MenuItem build,upgrade,visible;
 	private boolean build_on,upgrade_on,visible_on;
+	boolean ticking;
 
 	public void onCreate(Bundle sis) {
 		super.onCreate(sis);
@@ -42,28 +46,39 @@ public class CityView extends SessionUser implements Callbacks, LayoutCallbacks 
 		mTest.setState(session.state,session.rpc);
 		if (session.state.currentCity != null) mTest.resource_bar.update(session.state.currentCity);
 		session.state.enableVis();
+		gotCityData();
+		ticking = true;
+		ticker.postDelayed(ticker2, 1000);
 	}
 	protected void onStart() {
 		super.onStart();
 		Log.v(TAG,"onStart");
 	}
 	protected void onStop() {
+		ticking = false;
 		super.onStop();
 		Log.v(TAG,"onStop");
+		vis_data_loaded = false; // not sure why this helps
 	}
-	public void tick() {
-		// called from the network thread, needs to re-dir to main one
-		Runnable resync = new Runnable() {
-			public void run() {
-				mTest.tick();
-			}
-		};
-		this.runOnUiThread(resync);
+	Runnable ticker2 = new Runnable() {
+		public void run() {
+			if (!ticking) return;
+			ticker.postDelayed(ticker2, 1000);
+			tick2();
+		}
+	};
+	public void tick2() {
+		mTest.tick();
+		updateQueueInfo();
 	}
+	Handler ticker = new Handler();
 	public void visDataReset() {
 		Log.v(TAG,"vis count "+session.rpc.state.currentCity.visData.size());
 		mTest.mTest.visDataReset();
-		if (!vis_data_loaded) gotVisDataInit();
+		if (!vis_data_loaded) {
+			Log.v(TAG,"got vis data is set");
+			gotVisDataInit();
+		}
 	}
 	void gotVisDataInit() {
 		vis_data_loaded = true;
@@ -76,6 +91,19 @@ public class CityView extends SessionUser implements Callbacks, LayoutCallbacks 
 	}
 	public void gotCityData() {
 		mTest.gotCityData();
+		updateQueueInfo();
+	}
+	private void updateQueueInfo() {
+		String ETC = "";
+		BuildQueue[] q = session.state.currentCity.queue;
+		if (q.length > 0) {
+			ETC = ""+(session.state.currentCity.build_queue_end - session.state.getServerStep());
+		}
+		
+		TextView queue = (TextView) findViewById(R.id.queuesize);
+		queue.setText(this.getResources().getString(R.string.queuesize,
+				session.state.currentCity.queue.length,
+				ETC));
 	}
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);

@@ -114,7 +114,9 @@ public class ChatWindow extends SessionUser {
 				Log.v(TAG,this.toString()+" getCount null");
 				return 0;
 			}
-			return source.getCount(channel.key);
+			int count = source.getCount(channel.key);
+			//Log.v(TAG,"getCount == "+count);
+			return count;
 		}
 		@Override
 		public ChatMsg getItem(int position) {
@@ -137,14 +139,16 @@ public class ChatWindow extends SessionUser {
 			//long start = System.currentTimeMillis();
 			View returnme;
 			ChatWindow context = ChatWindow.this;
-			//Log.v(TAG,String.format("%s getView(%d,%s,%s)",channel.key,position,convertView,parent));
 			ChatMsg c = getItem(position);
+			//Log.v(TAG,String.format("%s getView(%d,%s,%s) c=%s",channel.key,position,convertView,parent,c));
 			TextView timestamp = new TextView(context);
 			TextView channel = new TextView(context);
 			TextView sender = new TextView(context);
 			TextView msg = new TextView(context);
 			LinearLayout l = new LinearLayout(context);
 			
+			if (session == null) throw new IllegalStateException("session was null!");
+			if (session.state == null) throw new IllegalStateException("session.state was null!");
 			Calendar c3 = Calendar.getInstance(session.state.tz);
 			c3.setTime(new Date(c.ts));
 			timestamp.setText(String.format("[%02d:%02d:%02d] ",c3.get(Calendar.HOUR_OF_DAY),c3.get(Calendar.MINUTE),c3.get(Calendar.SECOND)));
@@ -283,11 +287,13 @@ public class ChatWindow extends SessionUser {
 		String tag = mTabHost.getCurrentTabTag();
 		EditText m = (EditText) findViewById(R.id.message);
 		String buffer = m.getText().toString();
+		if (buffer.length() == 0) return;
 		if (buffer.charAt(0) == '/') {} 
 		else if (tag.equals("alliance")) buffer = "/a "+buffer;
 		else if (channels.containsKey("pm_"+tag)) {
 			buffer = "/whisper "+tag+" "+buffer;
 		}
+		userActive();
 		session.rpc.QueueChat(buffer);
 		m.setText("");
 	}

@@ -36,6 +36,9 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 		Bundle args = msg.getExtras();
 		acct = new AccountWrap(args);
 	}
+	public void userActive() {
+		session.state.userActivity = true;
+	}
 	@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 	void initApi14() {
 		Log.v(TAG,"doing init for api 14+");
@@ -53,6 +56,7 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 			session.setCallback(this);
 			Log.v(TAG,"calling session ready");
 			session_ready();
+			userActive();
 		}
 	}
 	public void session_ready() {}
@@ -162,7 +166,7 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 		return false;
 	}
 	@Override
-	public void onReportCountUpdate(int viewed, int unviewed) {}
+	public void onReportCountUpdate() {}
 	@Override
 	public void onSubListChanged() {
 		// TODO Auto-generated method stub

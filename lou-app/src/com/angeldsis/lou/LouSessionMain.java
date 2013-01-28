@@ -64,6 +64,7 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 				city.setText(session.state.currentCity.name);
 			}
 			updateTickers();
+			onReportCountUpdate();
 		}
 	}
 	public void cityChanged() {
@@ -184,10 +185,10 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 		}
 	}
 	@Override
-	public void onReportCountUpdate(int viewed, int unviewed) {
-		String msg = getResources().getString(R.string.reports, unviewed);
+	public void onReportCountUpdate() {
+		String msg = getResources().getString(R.string.reports, session.state.unviewed_reports);
 		((Button)findViewById(R.id.reports)).setText(msg);
-		Log.v(TAG,"unviewed:"+unviewed);
+		Log.v(TAG,"unviewed:"+session.state.unviewed_reports);
 	}
 	public void openReports(View v) {
 		Log.v(TAG,"opening reports");

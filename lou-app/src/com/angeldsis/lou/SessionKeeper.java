@@ -85,6 +85,7 @@ public class SessionKeeper extends Service {
 		// FIXME, must be called when settings change
 		SharedPreferences p = getSharedPreferences("com.angeldsis.lou_preferences",MODE_PRIVATE);
 		boolean monitor = p.getBoolean("monitor_alliance_attacks",true);
+		Log.v(TAG,"updating monitor config to "+monitor);
 		for (Session s : sessions) {
 			s.refreshConfig(monitor);
 		}
@@ -103,11 +104,12 @@ public class SessionKeeper extends Service {
 		LouState state;
 		AccountWrap acct;
 		Callbacks cb;
-		boolean alive = false;
+		boolean alive = false,loggingIn;
 		int sessionid;
 		public ChatHistory chat;
 		Session(AccountWrap acct2, int sessionid) {
 			Log.v(TAG,"new Session");
+			loggingIn = true;
 			acct = acct2;
 			// FIXME give the playerid#
 			chat = new ChatHistory(SessionKeeper.this,acct2.worldid,0);
@@ -148,6 +150,7 @@ public class SessionKeeper extends Service {
 								public void requestDone(JSONObject reply) {
 									// state variable now has some data populated
 									rpc.startPolling();
+									loggingIn = false;
 									loginDone();
 								}
 							});
@@ -296,9 +299,9 @@ public class SessionKeeper extends Service {
 				wl.acquire(60000);
 			}
 		}
-		public void onReportCountUpdate(int viewed, int unviewed) {
-			if (cb != null) cb.onReportCountUpdate(viewed,unviewed);
-			else Log.v(TAG,String.format("report update viewed:%d unviewed:%d",viewed,unviewed));
+		public void onReportCountUpdate() {
+			if (cb != null) cb.onReportCountUpdate();
+			else Log.v(TAG,String.format("report update viewed:%d unviewed:%d",state.viewed_reports,state.unviewed_reports));
 		}
 		public void onSubListChanged() {
 			if (cb != null) cb.onSubListChanged();
@@ -313,11 +316,18 @@ public class SessionKeeper extends Service {
 		private void teardown() {
 			chat.teardown();
 		}
+		public int getMaxPoll() {
+			if (cb == null) return 150000;
+			else {
+				Log.v(TAG,"fast poll");
+				return 10000;
+			}
+		}
 	}
 	public interface Callbacks {
 		void visDataReset();
 		void onSubListChanged();
-		void onReportCountUpdate(int viewed, int unviewed);
+		void onReportCountUpdate();
 		boolean onNewAttack(IncomingAttack a);
 		void onVisObjAdded(LouVisData v);
 		void loginDone();

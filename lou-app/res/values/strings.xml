@@ -32,4 +32,5 @@
     <string name="ts_defender">TS Defender</string>
     <string name="offline">this server is currently offline:</string>
     <string name="monitor_alliance_att">Monitor Alliance Attacks</string>
+    <string name="queuesize">Queue size: %1$d ETC: %2$s</string>
 </resources>

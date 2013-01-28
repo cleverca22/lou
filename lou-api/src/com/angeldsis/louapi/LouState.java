@@ -12,6 +12,7 @@ import org.json2.JSONArray;
 import org.json2.JSONException;
 import org.json2.JSONObject;
 
+import com.angeldsis.louapi.data.BuildQueue;
 import com.angeldsis.louapi.data.SubRequest;
 
 public class LouState implements Serializable {
@@ -34,6 +35,7 @@ public class LouState implements Serializable {
 	public int unviewed_reports;
 	public int viewed_reports;
 	public ArrayList<SubRequest> subs;
+	public boolean userActivity;
 
 	public LouState() {
 		init();
@@ -95,6 +97,9 @@ public class LouState implements Serializable {
 		long cityid;
 		public ArrayList<LouVisData> visData;
 		public int visreset;
+		public BuildQueue[] queue;
+		public int build_queue_start;
+		public int build_queue_end;
 		City() {
 			resources = new Resource[4];
 			int i;
@@ -104,9 +109,10 @@ public class LouState implements Serializable {
 		void init() {
 			visData = new ArrayList<LouVisData>();
 			visreset = 1;
+			queue = new BuildQueue[0];
 		}
 		public String toString() {
-			return name;
+			return this.hashCode()+" "+name;
 		}
 		public void addVisObj(LouVisData parsed) {
 			visData.add(parsed);
@@ -227,7 +233,17 @@ public class LouState implements Serializable {
 		rpc = rpc2;
 	}
 	public void processCityPacket(JSONObject p) throws JSONException {
+		JSONArray q = p.optJSONArray("q");
 		int x;
+		if (q != null) {
+			BuildQueue[] queue = new BuildQueue[q.length()];
+			for (x=0; x < q.length(); x++) queue[x] = new BuildQueue(q.getJSONObject(x));
+			currentCity.queue = queue;
+		} else if ((q == null) && (currentCity.queue.length != 0)) currentCity.queue = new BuildQueue[0];
+		Log.v(TAG,""+currentCity);
+		currentCity.build_queue_start = p.optInt("bqs");
+		currentCity.build_queue_end = p.optInt("bqe");
+		
 		if (p.has("iuo")) {
 			Object iuo2 = p.get("iuo");
 			if (iuo2 != JSONObject.NULL) {

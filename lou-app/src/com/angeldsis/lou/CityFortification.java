@@ -227,4 +227,9 @@ public class CityFortification extends VisObject {
 		// TODO Auto-generated method stub
 		
 	}
+	@Override
+	void measure(int widthMeasureSpec, int heightMeasureSpec) {
+		// TODO Auto-generated method stub
+		
+	}
 }

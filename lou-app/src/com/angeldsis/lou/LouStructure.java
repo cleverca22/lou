@@ -128,8 +128,14 @@ public class LouStructure extends VisObject implements Hook {
 		int top = (int) (100 * zoom);
 		int right = (int) (90 * zoom);
 		int bottom = (int) (128 * zoom);
-		level.layout(selfx + left, selfy + top,
+		int width2 = level.getMeasuredWidth();
+		int height2 = level.getMeasuredHeight();
+		if ((width2 > 0) && (height2 > 0)) {
+			level.layout(selfx + left, selfy + top, selfx + left + width2, selfy + top + height2);
+		} else {
+			level.layout(selfx + left, selfy + top,
 				selfx + right, selfy + bottom);
+		}
 		//String crash = null;
 		//Log.v(TAG,""+crash.length());
 	}
@@ -162,8 +168,8 @@ public class LouStructure extends VisObject implements Hook {
 	public void tick() {
 		// FIXME, progress bar
 		if (base.s == 1) {
-			if (base.ss > 0) Log.v(TAG,"time left:"+(base.se - state.getServerStep()));
-			else Log.v(TAG,"in queue");
+			//if (base.ss > 0) Log.v(TAG,"time left:"+(base.se - state.getServerStep()));
+			//else Log.v(TAG,"in queue");
 		}
 	}
 	@Override
@@ -173,5 +179,9 @@ public class LouStructure extends VisObject implements Hook {
 	@Override
 	public void delete(ViewGroup v) {
 		v.removeView(level);
+	}
+	@Override
+	void measure(int widthMeasureSpec, int heightMeasureSpec) {
+		level.measure(widthMeasureSpec, heightMeasureSpec);
 	}
 }

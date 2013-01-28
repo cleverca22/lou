@@ -8,6 +8,7 @@ public class ChatMsg {
 	public boolean hascrown;
 	public long ts;
 	public ChatMsg(JSONObject C) throws JSONException {
+		Log.v("ChatMsg",C.toString());
 		sender = C.getString("s").substring(1);
 		channel = C.getString("c");
 		message = C.getString("m");
@@ -20,7 +21,9 @@ public class ChatMsg {
 	public ChatMsg() {
 	}
 	public String toString() {
-		if (channel.equals("@A")) {
+		if (channel == null) {
+			return "NULL ["+sender+"] "+message;
+		} else if (channel.equals("@A")) {
 			return "[Alliance] ["+sender+"] "+message;
 		} else if (channel.equals("privatein")) {
 			return "[PM] ["+sender+"] "+message;

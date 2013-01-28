@@ -5,6 +5,9 @@ import java.io.InputStreamReader;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.concurrent.DelayQueue;
+import java.util.concurrent.Delayed;
+import java.util.concurrent.TimeUnit;
 
 import org.json2.JSONArray;
 import org.json2.JSONException;
@@ -24,8 +27,9 @@ public abstract class RPC extends Thread {
 	int requestid;
 	boolean cont,polling,running;
 	private ArrayList<String> chat_queue;
-	private ArrayList<Runnable> queue;
+	private DelayQueue<MyTimer> queue;
 	AllianceAttackMonitor aam;
+	Poller poller;
 
 	public RPC(Account acct, LouState state) {
 		this.account = acct;
@@ -34,8 +38,9 @@ public abstract class RPC extends Thread {
 		requestid = 0;
 		urlbase = "http://prodgame"+acct.serverid+".lordofultima.com/"+acct.pathid+"/Presentation/Service.svc/ajaxEndpoint/";
 		chat_queue = new ArrayList<String>();
-		queue = new ArrayList<Runnable>();
+		queue = new DelayQueue<MyTimer>();
 		polling = false;
+		poller = new Poller();
 		synchronized(this) {
 			running = true;
 			start();
@@ -316,7 +321,8 @@ public abstract class RPC extends Thread {
 		});
 	}
 	private void post(Runnable r) {
-		queue.add(r);
+		MyTimer t = new MyTimer(r);
+		queue.add(t);
 		if (Thread.currentThread() != this) {
 			synchronized(this) {
 				if (running) interrupt();
@@ -463,6 +469,7 @@ public abstract class RPC extends Thread {
 	public abstract void cityChanged();
 	public abstract void cityListChanged();
 	public void Poll() {
+		Log.v(TAG,"Poll");
 		try {
 			JSONObject obj = new JSONObject();
 			obj.put("requestid", requestid);
@@ -474,6 +481,12 @@ public abstract class RPC extends Thread {
 			if (chat_queue.size() > 0) {
 				String msg = chat_queue.remove(0);
 				requests = requests + "\fCHAT:"+msg;
+				if (chat_queue.size() > 0) {
+					Log.v(TAG,"need to poll again");
+					queue.remove(poller);
+					poller.pollSoon();
+					queue.add(poller);
+				}
 			} else requests = requests + "\fCHAT:";
 			requests += "\fPLAYER:";
 			requests += "\fTIME:"+System.currentTimeMillis();
@@ -481,6 +494,10 @@ public abstract class RPC extends Thread {
 			requests += "\fSERVER:";
 			requests += "\fALLIANCE:";
 			requests += "\fSUBSTITUTION:";
+			if (state.userActivity) {
+				state.userActivity = false;
+				requests += "\fUA:";
+			}
 			requests += aam.getRequestDetails();
 			obj.put("requests",requests);
 			doRPC("Poll",obj,this,new RPCCallback() {
@@ -529,7 +546,7 @@ public abstract class RPC extends Thread {
 			}
 			state.processCityPacket(D);
 			runOnUiThread(new Runnable () {public void run() {
-			gotCityData();
+				gotCityData();
 			}});
 		} else if (C.equals("CHAT")) {
 			showName = false;
@@ -569,7 +586,7 @@ public abstract class RPC extends Thread {
 			state.unviewed_reports = unviewed;
 			runOnUiThread(new Runnable() {
 				public void run () {
-					onReportCountUpdate(viewed,unviewed);
+					onReportCountUpdate();
 				}
 			});
 		} else if (C.equals("ALLIANCE")) {
@@ -583,18 +600,23 @@ public abstract class RPC extends Thread {
 			JSONObject D = p.optJSONObject("D");
 			state.parseSubs(D);
 		} else {
-			Log.v(TAG,"unexpected Poll data "+C);
+			Log.v(TAG,"unexpected Poll data "+C+" "+p.toString());
 		}
 		if (showName) Log.v(TAG,"Poll packet "+C);
 	}
-	public abstract void onReportCountUpdate(int viewed,int unviewed);
+	public abstract void onReportCountUpdate();
 	public abstract void onNewAttack(IncomingAttack a);
 	/** called when the session is ended, usually by logging in elsewhere **/
 	abstract public void onEjected();
 	/** queues a chat message like /a hello\n **/
 	public void QueueChat(String message) {
-		chat_queue.add(message);
-		interrupt();
+		synchronized (this) {
+			chat_queue.add(message);
+			queue.remove(poller);
+			poller.pollSoon(); // adjusts the time of the event
+			queue.add(poller);
+			interrupt(); // makes the thread re-check it
+		}
 	}
 	public abstract void onChat(ArrayList<ChatMsg> recent);
 	/** called after state.gold and state.incoming_attacks is updated
@@ -687,29 +709,47 @@ public abstract class RPC extends Thread {
 			}
 		}
 	}
+	Runnable ticker = new Runnable () {
+		public void run() {
+			tick();
+		}
+	};
 	public void run() {
 		cont = true;
 		while (cont) {
-			while (queue.size() > 0) {
-				Runnable r = queue.remove(0);
-				Log.v(TAG,"running queued item");
+			MyTimer t;
+			while ((t = queue.poll()) != null) {
+				Runnable r = t.getRunnable();
 				r.run();
 			}
-			tick();
-			// FIXME, may cause multiple parallel requests if they take over 10sec
-			// nvm, Poll is now syncronys
-			if (polling) Poll();
+			runOnUiThread(ticker);
+			if (polling && !queue.contains(poller)) {
+				poller.setDelay(getMaxPoll());
+				queue.add(poller);
+			}
 			try {
-				Thread.sleep(10000);
+				t = queue.peek();
+				long maxdelay = 60000;
+				if (t != null) maxdelay = t.getDelay(TimeUnit.MILLISECONDS);
+				else {
+					Log.v(TAG, "no work found, maybe thread should stop?");
+				}
+				Thread.sleep(maxdelay);
 			} catch (InterruptedException e) {
 			}
 		}
 		Log.v(TAG,"dying");
 		running = false;
 	}
+	// Poll must occur more often then 5mins
+	protected abstract int getMaxPoll();
 	public void startPolling() {
 		polling = true;
 		synchronized(this) {
+			if (!queue.contains(poller)) {
+				poller.pollSoon();
+				queue.add(poller);
+			}
 			if (!running) {
 				running = true;
 				start();
@@ -728,10 +768,52 @@ public abstract class RPC extends Thread {
 	public abstract void visDataUpdated();
 	/** called when Poll happens */
 	public abstract void tick();
-	/** called when state.resources has been updated */
+	/** called when state.resources and queue have been updated */
 	public abstract void gotCityData();
 	public abstract void onSubListChanged();
 	public void refreshConfig(boolean monitor) {
 		aam.refreshConfig(monitor);
+	}
+	private class MyTimer implements Delayed {
+		Runnable r;
+		long target;
+		public MyTimer() {}
+		public MyTimer(Runnable r) {
+			this.r = r;
+			target = 0;
+		}
+		public void setDelay(int maxPoll) {
+			target = System.currentTimeMillis() + maxPoll;
+		}
+		public Runnable getRunnable() {
+			return r;
+		}
+		@Override
+		public int compareTo(Delayed arg0) {
+			// TODO Auto-generated method stub
+			Log.v(TAG,"compareTo");
+			return 0;
+		}
+		@Override
+		public long getDelay(TimeUnit arg0) {
+			return arg0.convert(target - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+		}
+	}
+	private class Poller extends MyTimer {
+		long lastpoll;
+		public Poller() {
+			r = new Runnable () {
+				public void run() {
+					lastpoll = System.currentTimeMillis();
+					Poll();
+				}
+			};
+			target = 0;
+		}
+		public void pollSoon() {
+			long timepassed = System.currentTimeMillis() - lastpoll;
+			if (timepassed > 2000) target = System.currentTimeMillis();
+			else target = System.currentTimeMillis() + (2000 - timepassed);
+		}
 	}
 }

@@ -14,4 +14,5 @@ public abstract class VisObject {
 	abstract String getType();
 	abstract void selected();
 	abstract void delete(ViewGroup v);
+	abstract void measure(int widthMeasureSpec, int heightMeasureSpec);
 }
