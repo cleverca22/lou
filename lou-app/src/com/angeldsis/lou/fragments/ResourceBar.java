@@ -6,19 +6,22 @@ import com.angeldsis.louapi.Resource;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.util.Log;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-public class ResourceBar {
+public class ResourceBar implements Runnable {
 	TextView[] counts;
 	TextView[] rates;
 	public View self;
 	City lastCity;
 	final static int[] countids = { R.id.woodC, R.id.stoneC, R.id.ironC, R.id.foodC };
-	final static int[] rateids = { R.id.woodR, R.id.stoneR, R.id.ironR, R.id.foodR }; 
+	final static int[] rateids = { R.id.woodR, R.id.stoneR, R.id.ironR, R.id.foodR };
+	Handler h = new Handler();
+	boolean posted = false;
+	
 	public ResourceBar(Activity context) {
 		self = context.getLayoutInflater().inflate(R.layout.resource_bar, null);
 	}
@@ -26,12 +29,6 @@ public class ResourceBar {
 		self = inflater.inflate(R.layout.resource_bar,container,false);
 		return self;
 	}
-/*	public void setLevels(int wood, int stone, int iron, int food) {
-		((TextView)getActivity().findViewById(R.id.woodC)).setText(""+wood);
-		((TextView)getActivity().findViewById(R.id.stoneC)).setText(""+stone);
-		((TextView)getActivity().findViewById(R.id.ironC)).setText(""+iron);
-		((TextView)getActivity().findViewById(R.id.foodC)).setText(""+food);
-	}*/
 	void init() {
 		if (counts != null) return;
 		rates = new TextView[4];
@@ -46,7 +43,7 @@ public class ResourceBar {
 		lastCity = city;
 		update();
 	}
-	public void update() {
+	private synchronized void update() {
 		init();
 		int x;
 		for (x = 0; x < 4; x++) {
@@ -68,5 +65,13 @@ public class ResourceBar {
 			}
 			counts[x].setTextColor(self.getContext().getResources().getColor(color));
 		}
+		if (!posted) {
+			h.postDelayed(this, 10000); // FIXME, make it adjustable?
+			posted = true;
+		}
+	}
+	@Override public synchronized void run() {
+		posted = false;
+		update();
 	}
 }

@@ -29,7 +29,6 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 	static final String TAG = "LouSessionMain";
 	ResourceBar resource_bar;
 	cityList mAdapter;
-	ArrayList<ResourceBar> bars;
 
 	public void onCreate(Bundle sis) {
 		super.onCreate(sis);
@@ -42,7 +41,6 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 		ListView list = (ListView) findViewById(R.id.cities);
 		list.setAdapter(mAdapter);
 		list.setOnItemClickListener(this);
-		bars = new ArrayList<ResourceBar>();
 	}
 	protected void onStart() {
 		super.onStart();
@@ -90,10 +88,6 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 		resource_bar.update(session.state.currentCity);
 		TextView city = (TextView) findViewById(R.id.current_city);
 		city.setText(session.state.currentCity.name);
-		
-		// Doesn't need to hit them all, but its easier then finding it
-		Iterator<ResourceBar> i = bars.iterator();
-		while (i.hasNext()) i.next().update();
 	}
 	public void tick() {
 		// called from the network thread, needs to re-dir to main one
@@ -121,8 +115,6 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 		TextView incoming = (TextView) findViewById(R.id.incoming_attacks);
 		incoming.setText("" + session.state.incoming_attacks.size());
 		if (session.state.currentCity != null) resource_bar.update(session.state.currentCity);
-		Iterator<ResourceBar> i = bars.iterator();
-		while (i.hasNext()) i.next().update();
 	}
 	public void showIncoming(View v) {
 		Intent i = new Intent(this,IncomingAttacks.class);
@@ -138,7 +130,6 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 	public void cityListChanged() {
 		Log.v(TAG,"cityListChanged()");
 		mAdapter.clear();
-		bars.clear();
 		Iterator<City> i = session.state.cities.iterator();
 		while (i.hasNext()) {
 			mAdapter.add(i.next());
@@ -174,7 +165,6 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 			//FragmentTransaction trans = getSupportFragmentManager().beginTransaction();
 			ResourceBar bar2 = new ResourceBar(LouSessionMain.this);
 			bar2.update(i);
-			bars.add(bar2); // FIXME, possible memory leak?
 			//bar.setId(0x1000 + position);
 			//trans.add(0x1000 + position, bar2);
 			//bar2.update(i);
