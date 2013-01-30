@@ -151,19 +151,20 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 	}
 	class cityList extends ArrayAdapter<City> {
 		// getView gets called at regular intervals, causing excessive recreation of objects
-		SparseArray<ViewGroup> views;
+		SparseArray<LinearLayout> views;
 		cityList(Context c) {
 			super(c,0);
-			views = new SparseArray<ViewGroup>();
+			views = new SparseArray<LinearLayout>();
 		}
 		public void clear() {
 			super.clear();
 			views.clear();
 		}
 		public View getView(int position, View convertView, ViewGroup parent) {
-			ViewGroup row = views.get(position);
+			LinearLayout row = views.get(position);
 			if (row != null) return row;
 			row = new LinearLayout(LouSessionMain.this);
+			row.setOrientation(LinearLayout.VERTICAL);
 			TextView name = new TextView(LouSessionMain.this);
 			City i = getItem(position);
 			name.setText(i.name);
