@@ -17,11 +17,11 @@ public class ChatHistory extends SQLiteOpenHelper {
 	public static int VERSION = 3;
 	private static final String tblFormat = "CREATE TABLE ChatLogs (time,channel,sender,crown,message,tag)";
 	ArrayList<String> openTags = new ArrayList<String>();
-	SparseArray<ChatMsg> cache;
+	//SparseArray<ChatMsg> cache;
 	
 	public ChatHistory(Context context,int world,int player) {
 		super(context, String.format(DBName,world,player), null, VERSION);
-		cache = new SparseArray<ChatMsg>();
+		//cache = new SparseArray<ChatMsg>();
 	}
 	public void onCreate(SQLiteDatabase db) {
 		db.execSQL(tblFormat);
@@ -60,7 +60,7 @@ public class ChatHistory extends SQLiteOpenHelper {
 		}
 	}
 	public ChatMsg getItem(String tag,int position) {
-		ChatMsg m = cache.get(position);
+		ChatMsg m = null; //cache.get(position);
 		if (m != null) return m;
 		
 		String[] args = {tag,""+position};
@@ -74,7 +74,7 @@ public class ChatHistory extends SQLiteOpenHelper {
 		m.hascrown = c.getInt(3) == 1 ? true : false;
 		m.message = c.getString(4);
 		m.tag = c.getString(5);
-		cache.put(position, m);
+		//cache.put(position, m);
 		return m;
 	}
 	public void teardown() {
