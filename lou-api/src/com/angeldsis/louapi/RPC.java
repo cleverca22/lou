@@ -738,6 +738,7 @@ public abstract class RPC extends Thread {
 				else {
 					Log.v(TAG, "no work found, maybe thread should stop?");
 				}
+				if (maxdelay < 0) maxdelay = 100;
 				Log.v(TAG,"delay "+maxdelay);
 				Thread.sleep(maxdelay);
 			} catch (InterruptedException e) {
