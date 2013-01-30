@@ -1,6 +1,7 @@
 package com.angeldsis.lou.chat;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import com.angeldsis.louapi.ChatMsg;
 
@@ -9,6 +10,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.support.v4.util.LruCache;
 import android.util.Log;
 import android.util.SparseArray;
 
@@ -17,6 +19,7 @@ public class ChatHistory extends SQLiteOpenHelper {
 	public static int VERSION = 3;
 	private static final String tblFormat = "CREATE TABLE ChatLogs (time,channel,sender,crown,message,tag)";
 	ArrayList<String> openTags = new ArrayList<String>();
+	HashMap<String,ChatCache> caches = new HashMap<String,ChatCache>();
 	//SparseArray<ChatMsg> cache;
 	
 	public ChatHistory(Context context,int world,int player) {
@@ -58,24 +61,18 @@ public class ChatHistory extends SQLiteOpenHelper {
 				openTags.add(c.tag);
 			}
 		}
+		// FIXME, store into caches
 	}
 	public ChatMsg getItem(String tag,int position) {
-		ChatMsg m = null; //cache.get(position);
-		if (m != null) return m;
-		
-		String[] args = {tag,""+position};
-		Cursor c = getReadableDatabase().rawQuery(
-				"SELECT time,channel,sender,crown,message,tag FROM ChatLogs WHERE tag = ? LIMIT ?,1",args);
-		if (!c.moveToNext()) return null;
-		m = new ChatMsg();
-		m.ts = c.getLong(0);
-		m.channel = c.getString(1);
-		m.sender = c.getString(2);
-		m.hascrown = c.getInt(3) == 1 ? true : false;
-		m.message = c.getString(4);
-		m.tag = c.getString(5);
-		//cache.put(position, m);
-		return m;
+		ChatCache cache;
+		synchronized (caches) {
+			cache = caches.get(tag);
+			if (cache == null) {
+				cache = new ChatCache(tag);
+				caches.put(tag, cache);
+			}
+		}
+		return cache.get(position);
 	}
 	public void teardown() {
 		SQLiteDatabase db = getWritableDatabase();
@@ -89,5 +86,27 @@ public class ChatHistory extends SQLiteOpenHelper {
 			db.insert("ChatLogs",null,data);
 		}
 		db.close();
+	}
+	private class ChatCache extends LruCache<Integer,ChatMsg> {
+		String tag;
+		public ChatCache(String tag) {
+			super(200);
+			this.tag = tag;
+		}
+		protected ChatMsg create(Integer position) {
+			ChatMsg m;
+			String[] args = {tag,""+position};
+			Cursor c = getReadableDatabase().rawQuery(
+					"SELECT time,channel,sender,crown,message,tag FROM ChatLogs WHERE tag = ? LIMIT ?,1",args);
+			if (!c.moveToNext()) return null;
+			m = new ChatMsg();
+			m.ts = c.getLong(0);
+			m.channel = c.getString(1);
+			m.sender = c.getString(2);
+			m.hascrown = c.getInt(3) == 1 ? true : false;
+			m.message = c.getString(4);
+			m.tag = c.getString(5);
+			return m;
+		}
 	}
 }
