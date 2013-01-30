@@ -8,9 +8,15 @@ import java.util.Iterator;
 import java.util.Map;
 
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.ImageSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -22,7 +28,6 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.ScrollView;
 import android.widget.TabHost;
 import android.widget.TextView;
 
@@ -43,7 +48,6 @@ public class ChatWindow extends SessionUser {
 		ChatHistoryAdapter adapter;
 	}
 	Map<String,Channel> channels;
-	private NameClicked nameClicker;
 	public void onCreate(Bundle b) {
 		super.onCreate(b);
 		if (Build.VERSION.SDK_INT > 13) initApi14();
@@ -73,8 +77,6 @@ public class ChatWindow extends SessionUser {
 		t2.setIndicator("alliance");
 		mTabHost.addTab(t2);
 		channels.put("alliance", temp);
-		
-		nameClicker = new NameClicked();
 	}
 	class TabMaker implements TabHost.TabContentFactory {
 		Channel c;
@@ -110,6 +112,10 @@ public class ChatWindow extends SessionUser {
 		private ChatHistory source;
 		private Channel channel;
 		private Calendar c3;
+		Drawable crown_drawable = getResources().getDrawable(R.drawable.icon_lou_public_other_world);
+		ChatHistoryAdapter() {
+			crown_drawable.setBounds(0, 0, crown_drawable.getIntrinsicWidth(), crown_drawable.getIntrinsicHeight());
+		}
 		@Override
 		public int getCount() {
 			if (channel == null) {
@@ -132,58 +138,92 @@ public class ChatWindow extends SessionUser {
 		public long getItemId(int position) {
 			Log.v(TAG,"getItemId");
 			// TODO Auto-generated method stub
-			return 0;
+			return position;
 		}
 		@Override
 		public View getView(int position, View convertView, ViewGroup parent) {
 			// when scrolling, this only gets called for things coming into view, to re-make them
 			// if notifyDataSetChanged is called, this is re-ran for all visible elements
 			//long start = System.currentTimeMillis();
+			SpannableStringBuilder b = new SpannableStringBuilder();
+			ChatMsg c = getItem(position);
+			Log.v(TAG,String.format("%s getView(%d,%s,%s) c=%s",channel.key,position,convertView,parent,c));
+			
+			if (session == null) throw new IllegalStateException("session was null!");
+			if (session.state == null) throw new IllegalStateException("session.state was null!");
+			c3.setTime(new Date(c.ts));
+			formatTime(c3,b);
+			b.append(' ');
+			int start,end,end1;
+			
+			if (c.channel == null) {
+				b.append(c.sender);
+				b.append(" ");
+				printBBcode(c.message,b);
+			} else if (c.channel.equals("@A")) {
+				start = b.length();
+				String all = getString(R.string.alliance);
+				end = start + all.length();
+				b.append(all);
+				int green = getResources().getColor(R.color.chat_green);
+				b.setSpan(new ForegroundColorSpan(green), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+				
+				if (c.hascrown) {
+					start = b.length();
+					b.append("\uFFFC");
+					end = b.length();
+					b.setSpan(new ImageSpan(crown_drawable), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+				}
+				start = b.length();
+				b.append(c.sender);
+				end1 = b.length();
+				
+				b.append(": ");
+				
+				printBBcode(c.message,b);
+				end = b.length();
+				
+				b.setSpan(new ForegroundColorSpan(green), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+				b.setSpan(new NameClicked(c.sender), start, end1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+			}
+			else if (c.channel.equals("privatein") || c.channel.equals("privateout")) {
+				if (c.hascrown) {
+					start = b.length();
+					b.append("\uFFFC");
+					end = b.length();
+					b.setSpan(new ImageSpan(crown_drawable), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+				}
+				
+				if (c.channel.equals("privateout")) b.append(session.state.self.getName()+": ");
+				else b.append(c.sender+": ");
+				printBBcode(c.message,b);
+			}
+			else {
+				b.append(c.channel);
+				b.append(' ');
+				if (c.hascrown) {
+					start = b.length();
+					b.append("\uFFFC");
+					end = b.length();
+					b.setSpan(new ImageSpan(crown_drawable), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+				}
+				start = b.length();
+				b.append(c.sender);
+				end1 = b.length();
+				if (c.sender.charAt(0) != '@') b.setSpan(new NameClicked(c.sender), start, end1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+				b.append(": ");
+				printBBcode(c.message,b);
+			}
 			
 			ViewGroup row = (ViewGroup) convertView;
 			if (row == null) {
 				LayoutInflater f = ChatWindow.this.getLayoutInflater();
 				row = (ViewGroup) f.inflate(R.layout.chat_row, parent,false);
 			}
-			ChatMsg c = getItem(position);
-			//Log.v(TAG,String.format("%s getView(%d,%s,%s) c=%s",channel.key,position,convertView,parent,c));
-			TextView timestamp = (TextView) row.findViewById(R.id.timestamp);
-			TextView channel = (TextView) row.findViewById(R.id.channel);
-			TextView sender = (TextView) row.findViewById(R.id.sender);
 			TextView msg = (TextView) row.findViewById(R.id.msg);
-			
-			if (session == null) throw new IllegalStateException("session was null!");
-			if (session.state == null) throw new IllegalStateException("session.state was null!");
-			c3.setTime(new Date(c.ts));
-			timestamp.setText(formatTime(c3));
-			
-			sender.setText(c.sender);
-			sender.setOnClickListener(nameClicker);
-			sender.setClickable(true);
-			msg.setText(" "+c.message); // FIXME, padding
-			
-			ImageView crown = (ImageView) row.findViewById(R.id.crown);
-			if (c.hascrown) crown.setVisibility(View.VISIBLE);
-			else crown.setVisibility(View.INVISIBLE);
-			
-			channel.setVisibility(View.VISIBLE);
-			
-			if (c.channel == null) {
-			} else if (c.channel.equals("@A")) {
-				channel.setText(getString(R.string.alliance));
-				int green = getResources().getColor(R.color.chat_green);
-				channel.setTextColor(green);
-				sender.setTextColor(green);
-				msg.setTextColor(green);
-			}
-			else if (c.channel.equals("privatein") || c.channel.equals("privateout")) {
-				if (c.channel.equals("privateout")) sender.setText(session.state.self.getName()+": ");
-				else sender.setText(c.sender+": ");
-				channel.setVisibility(View.INVISIBLE);
-			}
-			else {
-				channel.setText(c.channel);
-			}
+			msg.setText(b);
+			msg.setMovementMethod(LinkMovementMethod.getInstance());
 			//long end = System.currentTimeMillis();
 			//Log.v(TAG,"getView took "+(end-start)+"ms");
 			return row;
@@ -196,15 +236,19 @@ public class ChatWindow extends SessionUser {
 			c3 = Calendar.getInstance(session.state.tz);
 		}
 	}
-	String formatTime(Calendar c3) {
+	void printBBcode(String bbcode,SpannableStringBuilder b) {
+		b.append(bbcode);
+	}
+	void formatTime(Calendar c3, SpannableStringBuilder b) {
 		// i think this improves performance over the format
 		int t;
-		StringBuilder b = new StringBuilder(11);
+		//StringBuilder b = new StringBuilder(11);
 		b.append('[');
-		t = c3.get(Calendar.HOUR_OF_DAY); if (t < 10) b.append('0'); b.append(t);b.append(':');
-		t = c3.get(Calendar.MINUTE); if (t < 10) b.append('0'); b.append(t);b.append(':');
-		t = c3.get(Calendar.SECOND); if (t < 10) b.append('0'); b.append(t);b.append(']');
-		return b.toString();
+		// FIXME, try to find something better then ""+
+		t = c3.get(Calendar.HOUR_OF_DAY); if (t < 10) b.append('0'); b.append(""+t);b.append(':');
+		t = c3.get(Calendar.MINUTE); if (t < 10) b.append('0'); b.append(""+t);b.append(':');
+		t = c3.get(Calendar.SECOND); if (t < 10) b.append('0'); b.append(""+t);b.append(']');
+		//return b.toString();
 		//return String.format("[%02d:%02d:%02d] ",c3.get(Calendar.HOUR_OF_DAY),c3.get(Calendar.MINUTE),c3.get(Calendar.SECOND));
 	}
 	public void onStart() {
@@ -217,11 +261,15 @@ public class ChatWindow extends SessionUser {
 		}
 		onChat(session.state.chat_history);
 	}
-	class NameClicked implements View.OnClickListener {
+	class NameClicked extends ClickableSpan {
+		String name;
+		public NameClicked(String sender) {
+			name = sender;
+		}
 		@Override
 		public void onClick(View v) {
-			TextView sender = (TextView) v;
-			String tag = sender.getText().toString();
+			Log.v(TAG,"onClick");
+			String tag = name;
 			Channel c = channels.get("pm_"+tag);
 			if (c == null) {
 				c = new Channel();
@@ -241,13 +289,13 @@ public class ChatWindow extends SessionUser {
 	public void onChat(ArrayList<ChatMsg> recent) {
 		Iterator<ChatMsg> i = recent.iterator();
 		while (i.hasNext()) {
+			// FIXME, remove most of this code
 			ChatMsg c = i.next();
 			TextView channel = new TextView(this);
 			TextView sender = new TextView(this);
 			TextView msg = new TextView(this);
 			LinearLayout l = new LinearLayout(this);
 			sender.setText(c.sender);
-			sender.setOnClickListener(nameClicker);
 			sender.setClickable(true);
 			msg.setText(" "+c.message); // FIXME, padding
 			Channel currentChannel = channels.get("general");
