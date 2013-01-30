@@ -72,9 +72,12 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 			mBound = false;
 		}
 	};
-	public void startActivity (Intent intent, Bundle options) {
-		acct = new AccountWrap(options);
-	}
+	/*public void startActivity (Intent intent, Bundle options) {
+		Log.v(TAG,"options "+options);
+		Log.v(TAG,"options2 "+intent.getExtras());
+		Log.v(TAG,"acct "+acct);
+		if (options != null) acct = new AccountWrap(options);
+	}*/
 	protected void onStart() {
 		super.onStart();
 		Log.v(TAG,"onStart");
@@ -143,6 +146,7 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 			return true;
 		case R.id.options:
 			i = new Intent(this,Settings.class);
+			Log.v(TAG,"opening settings "+i);
 			startActivity(i);
 			return true;
 		case R.id.logout:
