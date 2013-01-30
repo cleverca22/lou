@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
     <item android:id="@+id/open_chat" android:title="@string/open_chat" android:showAsAction="ifRoom|withText"></item>
-    <item android:id="@+id/city" android:title="City" android:showAsAction="ifRoom|withText"></item><item android:id="@+id/subs" android:title="Substitute options"></item><item android:id="@+id/options" android:title="Options"></item><item android:id="@+id/logout" android:title="@string/logout"></item>
+    <item android:id="@+id/city" android:title="City" android:showAsAction="ifRoom|withText"></item>
+    <item android:id="@+id/subs" android:title="Substitute options"></item>
+    <item android:id="@+id/options" android:title="Options"></item>
+    <item android:id="@+id/getfunds" android:title="Buy Funds"></item><item android:id="@+id/logout" android:title="@string/logout"></item>
+    
 </menu>

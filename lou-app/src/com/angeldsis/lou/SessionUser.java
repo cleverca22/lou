@@ -7,12 +7,14 @@ import com.angeldsis.lou.SessionKeeper.MyBinder;
 import com.angeldsis.louapi.ChatMsg;
 import com.angeldsis.louapi.IncomingAttack;
 import com.angeldsis.louapi.LouVisData;
+import com.angeldsis.louapi.RPC.GetLockboxURLDone;
 
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -152,6 +154,17 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 		case R.id.logout:
 			session.logout();
 			finish();
+			return true;
+		case R.id.getfunds:
+			session.rpc.GetLockboxURL(new GetLockboxURLDone() {
+				@Override public void done(String reply) {
+					Log.v(TAG,"got url:"+reply);
+					Uri location = Uri.parse(reply);
+					Intent buyFunds = new Intent(Intent.ACTION_VIEW,location);
+					String title = "buying funds..."; // FIXME, translations
+					Intent chooser = Intent.createChooser(buyFunds,title);
+					startActivity(chooser);
+				}});
 			return true;
 		}
 		return super.onOptionsItemSelected(item);

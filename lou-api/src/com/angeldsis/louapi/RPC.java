@@ -76,6 +76,26 @@ public abstract class RPC extends Thread {
 			}
 		});
 	}
+	public void GetLockboxURL(final GetLockboxURLDone callback) {
+		post(new Runnable () {
+			public void run() {
+				try {
+					JSONObject obj = new JSONObject();
+					doRPC("GetLockboxURL",obj,RPC.this,new RPCCallback() {
+						@Override void requestDone(final rpcreply r) {
+							runOnUiThread(new Runnable() {
+								public void run() {
+									callback.done((String)r.reply);
+								}
+							});
+						}
+					},5);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
 	// FIXME, untested
 	public void DemolishBuilding(final LouVisData v, final RPCDone callback) {
 		post(new Runnable() {
@@ -829,5 +849,8 @@ public abstract class RPC extends Thread {
 			queue.add(poller);
 			interrupt();
 		}
+	}
+	public interface GetLockboxURLDone {
+		public void done(String reply);
 	}
 }
