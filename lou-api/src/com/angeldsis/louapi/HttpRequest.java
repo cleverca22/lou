@@ -15,8 +15,8 @@ public class HttpRequest {
 		try {
 			URL url = new URL(urlIN);
 			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-			conn.setReadTimeout(30000);
-			conn.setConnectTimeout(15000);
+			conn.setReadTimeout(60000);
+			conn.setConnectTimeout(60000);
 			conn.setRequestMethod("POST");
 			conn.setDoOutput(true);
 			HttpURLConnection.setFollowRedirects(false);
