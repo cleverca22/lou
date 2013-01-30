@@ -48,6 +48,9 @@ public class ChatWindow extends SessionUser {
 		ChatHistoryAdapter adapter;
 	}
 	Map<String,Channel> channels;
+	//Handler h = new Handler();
+	//boolean posted = false;
+	
 	public void onCreate(Bundle b) {
 		super.onCreate(b);
 		if (Build.VERSION.SDK_INT > 13) initApi14();
@@ -91,7 +94,7 @@ public class ChatWindow extends SessionUser {
 			c.newmessagelist.setAdapter(c.adapter);
 			LinearLayout.LayoutParams l = new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.MATCH_PARENT,1);
 			c.newmessagelist.setLayoutParams(l);
-			c.newmessagelist.setTranscriptMode(ListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
+			c.newmessagelist.setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
 			c.newmessagelist.setStackFromBottom(true);
 			
 			//c.scrollView = new ScrollView(ChatWindow.this);
@@ -112,9 +115,11 @@ public class ChatWindow extends SessionUser {
 		private ChatHistory source;
 		private Channel channel;
 		private Calendar c3;
+		//SparseArray<ChatMsg> cache;
 		Drawable crown_drawable = getResources().getDrawable(R.drawable.icon_lou_public_other_world);
 		ChatHistoryAdapter() {
 			crown_drawable.setBounds(0, 0, crown_drawable.getIntrinsicWidth(), crown_drawable.getIntrinsicHeight());
+			//cache = new SparseArray<ChatMsg>();
 		}
 		@Override
 		public int getCount() {
@@ -127,12 +132,30 @@ public class ChatWindow extends SessionUser {
 			return count;
 		}
 		@Override
-		public ChatMsg getItem(int position) {
-			//long start = System.currentTimeMillis();
-			ChatMsg c = source.getItem(channel.key,position);
-			//long end = System.currentTimeMillis();
-			//Log.v(TAG,"getItem took "+(end-start));
-			return c;
+		public ChatMsg getItem(final int position) {
+			/*ChatMsg c = cache.get(position);
+			if (c == null) {
+				new AsyncTask<Void,Void,ChatMsg>() {
+					@Override protected ChatMsg doInBackground(Void... params) {
+						cache.put(position,source.getItem(channel.key,position));
+						synchronized(h) {
+							if (posted) return null;
+							posted = true;
+							h.postDelayed(new Runnable() {
+								@Override public void run() {
+									synchronized(h) {
+										ChatHistoryAdapter.this.notifyDataSetChanged();
+										posted = false;
+									}
+								}
+							}, 1000);
+						}
+						return null;
+					}
+				}.execute();
+			}
+			return c;*/
+			return source.getItem(channel.key,position);
 		}
 		@Override
 		public long getItemId(int position) {
@@ -147,73 +170,77 @@ public class ChatWindow extends SessionUser {
 			//long start = System.currentTimeMillis();
 			SpannableStringBuilder b = new SpannableStringBuilder();
 			ChatMsg c = getItem(position);
-			Log.v(TAG,String.format("%s getView(%d,%s,%s) c=%s",channel.key,position,convertView,parent,c));
+			//Log.v(TAG,String.format("%s getView(%d,%s,%s) c=%s",channel.key,position,convertView,parent,c));
 			
-			if (session == null) throw new IllegalStateException("session was null!");
-			if (session.state == null) throw new IllegalStateException("session.state was null!");
-			c3.setTime(new Date(c.ts));
-			formatTime(c3,b);
-			b.append(' ');
-			int start,end,end1;
-			
-			if (c.channel == null) {
-				b.append(c.sender);
-				b.append(" ");
-				printBBcode(c.message,b);
-			} else if (c.channel.equals("@A")) {
-				start = b.length();
-				String all = getString(R.string.alliance);
-				end = start + all.length();
-				b.append(all);
-				int green = getResources().getColor(R.color.chat_green);
-				b.setSpan(new ForegroundColorSpan(green), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-				
-				if (c.hascrown) {
-					start = b.length();
-					b.append("\uFFFC");
-					end = b.length();
-					b.setSpan(new ImageSpan(crown_drawable), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-				}
-				start = b.length();
-				b.append(c.sender);
-				end1 = b.length();
-				
-				b.append(": ");
-				
-				printBBcode(c.message,b);
-				end = b.length();
-				
-				b.setSpan(new ForegroundColorSpan(green), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-				b.setSpan(new NameClicked(c.sender), start, end1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-			}
-			else if (c.channel.equals("privatein") || c.channel.equals("privateout")) {
-				if (c.hascrown) {
-					start = b.length();
-					b.append("\uFFFC");
-					end = b.length();
-					b.setSpan(new ImageSpan(crown_drawable), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-				}
-				
-				if (c.channel.equals("privateout")) b.append(session.state.self.getName()+": ");
-				else b.append(c.sender+": ");
-				printBBcode(c.message,b);
-			}
-			else {
-				b.append(c.channel);
+			if (c != null) {
+				if (session == null) throw new IllegalStateException("session was null!");
+				if (session.state == null) throw new IllegalStateException("session.state was null!");
+				c3.setTime(new Date(c.ts));
+				formatTime(c3,b);
 				b.append(' ');
-				if (c.hascrown) {
+				int start,end,end1;
+				
+				if (c.channel == null) {
+					b.append(c.sender);
+					b.append(" ");
+					printBBcode(c.message,b);
+				} else if (c.channel.equals("@A")) {
 					start = b.length();
-					b.append("\uFFFC");
+					String all = getString(R.string.alliance);
+					end = start + all.length();
+					b.append(all);
+					int green = getResources().getColor(R.color.chat_green);
+					b.setSpan(new ForegroundColorSpan(green), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+					
+					if (c.hascrown) {
+						start = b.length();
+						b.append("\uFFFC");
+						end = b.length();
+						b.setSpan(new ImageSpan(crown_drawable), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+					}
+					start = b.length();
+					b.append(c.sender);
+					end1 = b.length();
+					
+					b.append(": ");
+					
+					printBBcode(c.message,b);
 					end = b.length();
-					b.setSpan(new ImageSpan(crown_drawable), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+					
+					b.setSpan(new ForegroundColorSpan(green), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+					b.setSpan(new NameClicked(c.sender), start, end1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 				}
-				start = b.length();
-				b.append(c.sender);
-				end1 = b.length();
-				if (c.sender.charAt(0) != '@') b.setSpan(new NameClicked(c.sender), start, end1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-				b.append(": ");
-				printBBcode(c.message,b);
+				else if (c.channel.equals("privatein") || c.channel.equals("privateout")) {
+					if (c.hascrown) {
+						start = b.length();
+						b.append("\uFFFC");
+						end = b.length();
+						b.setSpan(new ImageSpan(crown_drawable), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+					}
+					
+					if (c.channel.equals("privateout")) b.append(session.state.self.getName()+": ");
+					else b.append(c.sender+": ");
+					printBBcode(c.message,b);
+				}
+				else {
+					b.append(c.channel);
+					b.append(' ');
+					if (c.hascrown) {
+						start = b.length();
+						b.append("\uFFFC");
+						end = b.length();
+						b.setSpan(new ImageSpan(crown_drawable), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+					}
+					start = b.length();
+					b.append(c.sender);
+					end1 = b.length();
+					if (c.sender.charAt(0) != '@') b.setSpan(new NameClicked(c.sender), start, end1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+	
+					b.append(": ");
+					printBBcode(c.message,b);
+				}
+			} else {
+				b.append("loading...");
 			}
 			
 			ViewGroup row = (ViewGroup) convertView;
