@@ -1,5 +1,6 @@
 package com.angeldsis.lou.home;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 
 import com.angeldsis.lou.AccountWrap;
@@ -7,6 +8,7 @@ import com.angeldsis.lou.LoggingIn;
 import com.angeldsis.lou.R;
 import com.angeldsis.lou.SessionKeeper;
 import com.angeldsis.louapi.Account;
+import com.angeldsis.louapi.LouSession;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -26,8 +28,15 @@ public class ServerList extends Fragment {
 	public View onCreateView (LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		setHasOptionsMenu(true);
 		Log.v(TAG,"onCreateView");
-		Log.v(TAG,"found "+SessionKeeper.session2.servers.size()); // NullPointerException
 		ViewGroup root = (ViewGroup) inflater.inflate(R.layout.server_list, container,false);
+		if (SessionKeeper.session2 == null) {
+			getActivity().getSupportFragmentManager().beginTransaction().add(R.id.main_frame, new Loading()).commit();
+			Log.v(TAG,"returning empty list");
+			return root;
+		}
+		LouSession sess = SessionKeeper.session2;
+		ArrayList<Account> accounts = sess.servers;
+		Log.v(TAG,"found "+accounts.size());
 		ViewGroup top = (ViewGroup) root.findViewById(R.id.list);
 		Iterator<Account> i = SessionKeeper.session2.servers.iterator();
 		while (i.hasNext()) {

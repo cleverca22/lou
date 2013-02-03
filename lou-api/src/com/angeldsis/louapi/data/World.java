@@ -5,6 +5,9 @@ import java.util.HashMap;
 import com.angeldsis.louapi.Alliance;
 import com.angeldsis.louapi.Player;
 
+/** manages shared objects within a world, like alliance
+ * and player caches
+ */
 public class World {
 	HashMap<Integer,Alliance> alliances = new HashMap<Integer,Alliance>();
 	HashMap<Integer,Player> players = new HashMap<Integer,Player>();

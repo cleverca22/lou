@@ -33,4 +33,6 @@
     <string name="offline">this server is currently offline:</string>
     <string name="monitor_alliance_att">Monitor Alliance Attacks</string>
     <string name="queuesize">Queue size: %1$d ETC: %2$s</string>
+    <string name="you_where_disconnected">You where disconnected from the server!</string>
+    <string name="homescreen">Go to homescreen</string>
 </resources>

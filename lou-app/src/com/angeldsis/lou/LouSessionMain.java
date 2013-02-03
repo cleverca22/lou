@@ -70,11 +70,6 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 		TextView city = (TextView) findViewById(R.id.current_city);
 		city.setText(session.state.currentCity.name);
 	}
-	public void onEjected() {
-		Log.v(TAG,"you have been logged out");
-		// FIXME give a better error
-		finish();
-	}
 	protected void onStop() {
 		super.onStop();
 		Log.v(TAG,"onStop");

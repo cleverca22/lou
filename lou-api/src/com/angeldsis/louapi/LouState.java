@@ -245,6 +245,7 @@ public class LouState implements Serializable {
 		Log.v(TAG,""+currentCity);
 		currentCity.build_queue_start = p.optInt("bqs");
 		currentCity.build_queue_end = p.optInt("bqe");
+		Log.v(TAG, String.format("bqs %d, bqe %d",currentCity.build_queue_start,currentCity.build_queue_end));
 		
 		if (p.has("iuo")) {
 			Object iuo2 = p.get("iuo");

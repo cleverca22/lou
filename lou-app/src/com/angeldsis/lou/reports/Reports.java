@@ -1,11 +1,13 @@
 package com.angeldsis.lou.reports;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.util.TimeZone;
 
 import com.angeldsis.lou.R;
 import com.angeldsis.lou.SessionUser;
+import com.angeldsis.louapi.LouState;
+import com.angeldsis.louapi.RPC;
 import com.angeldsis.louapi.RPC.ReportHeaderCallback;
 import com.angeldsis.louapi.ReportDumper;
 import com.angeldsis.louapi.ReportHeader;
@@ -30,6 +32,7 @@ public class Reports extends SessionUser implements ReportHeaderCallback, OnItem
 	ReportHeader[] list;
 	boolean flipped = false;
 	long load_start;
+	private TimeZone tz;
 	@Override
 	public void onCreate(Bundle sis) {
 		super.onCreate(sis);
@@ -41,8 +44,13 @@ public class Reports extends SessionUser implements ReportHeaderCallback, OnItem
 		listview.setAdapter(mAdapter);
 		listview.setOnItemClickListener(this);
 	}
+	@Override protected void onStart() {
+		//mAdapter.clear();
+		super.onStart();
+	}
 	@Override
 	public void session_ready() {
+		this.tz = session.rpc.state.tz;
 		refresh();
 	}
 	private void refresh() {
@@ -73,15 +81,23 @@ public class Reports extends SessionUser implements ReportHeaderCallback, OnItem
 			return getItem(position).id;
 		}
 		public View getView(int position, View convertView, ViewGroup parent) {
-			//Log.v(TAG,String.format("getView(%d,%s,%s)",position,convertView,parent));
+			Log.v(TAG,String.format("getView(%d,%s,%s) %d",position,convertView,parent,getCount()));
 			ReportHeader h = getItem(position);
 			
-			ViewGroup row = (ViewGroup) Reports.this.getLayoutInflater().inflate(R.layout.report_row, parent,false);
+			ViewGroup row;
+			if (convertView == null) {
+				row = (ViewGroup) Reports.this.getLayoutInflater().inflate(R.layout.report_row, parent,false);
+			} else {
+				row = (ViewGroup) convertView;
+			}
+			//if (session == null) return row; // FIXME
 
 			TextView col1 = (TextView) row.findViewById(R.id.msg);
 			col1.setText(h.toString());
 			TextView col2 = (TextView) row.findViewById(R.id.stamp);
-			col2.setText(h.formatTime(session.rpc.state.tz)); // NullPointerException
+			Log.v(TAG,"tz:"+tz);
+			String ts = h.formatTime(tz);
+			col2.setText(ts);
 			
 			return row;
 		}

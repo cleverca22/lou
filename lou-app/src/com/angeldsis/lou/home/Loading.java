@@ -21,12 +21,14 @@ public class Loading extends Fragment {
 	private static final String TAG = "LoadingFragment";
 	@Override
 	public View onCreateView (LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+		Log.v(TAG,"onCreateView");
 		stopped = false;
 		if ((SessionKeeper.session2 != null) && (SessionKeeper.session2.servers.size() > 0)) {
 			Log.v(TAG,"session already setup");
 			FragmentTransaction trans = getActivity().getSupportFragmentManager().beginTransaction();
 			trans.replace(R.id.main_frame, new ServerList());
 			trans.commit();
+			Log.v(TAG,"returning null");
 			return null;
 		}
 		String cookie = container.getContext().getSharedPreferences("main",

@@ -5,7 +5,7 @@ import org.json2.JSONException;
 import org.json2.JSONObject;
 
 public class Report {
-	int fame;
+	public int fame,claimPower,oldClaimPower;
 	public ReportHalf attacker, defender;
 	public String share,objType;
 	public ReportHeader reportHeader;
@@ -14,14 +14,19 @@ public class Report {
 			public static final int combat = 1, trade = 2, city = 3, alliance = 4, enlightenment = 5;
 		}
 		public static class combat {
-			public static final int scout=1, plunder=2, assault=3, support=4, seige=5, raidDungeon=8, settle=9, raidBoss=10;
+			public static final int scout=1, plunder=2, assault=3, support=4, siege=5, raidDungeon=8, settle=9, raidBoss=10;
 		}
 	}
 	public Report(JSONObject r) {
 		fame = r.optInt("f");
 		JSONArray a = r.optJSONArray("a");
 		reportHeader = new ReportHeader(r.optJSONObject("h"));
-		//Log.v("Report",reportHeader.toString());
+		try {
+			Log.v("Report",r.toString(1));
+		} catch (JSONException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		try {
 			if (reportHeader.generalType == types.general.alliance) {
 				Log.v("Report",r.toString(1));
@@ -38,7 +43,8 @@ public class Report {
 		int si = r.optInt("si");
 		int cs = r.optInt("cs");
 		int v = r.optInt("v");
-		int cp = r.optInt("cp");
+		oldClaimPower = r.optInt("cpo");
+		claimPower = r.optInt("cp");
 		JSONArray structures = r.optJSONArray("s");
 		int ap = r.optInt("ap");
 		JSONArray resources = r.optJSONArray("r");

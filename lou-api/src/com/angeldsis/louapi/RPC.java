@@ -1,5 +1,6 @@
 package com.angeldsis.louapi;
 
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.UnknownHostException;
@@ -17,8 +18,10 @@ import org.json2.JSONTokener;
 import com.angeldsis.louapi.HttpRequest.HttpReply;
 import com.angeldsis.louapi.LouState.City;
 import com.angeldsis.louapi.data.SubRequest;
+import com.angeldsis.louapi.world.WorldParser;
+import com.angeldsis.louapi.world.WorldParser.WorldCallbacks;
 
-public abstract class RPC extends Thread {
+public abstract class RPC extends Thread implements WorldCallbacks {
 	static String TAG = "RPC";
 	private Account account;
 	String instanceid;
@@ -30,8 +33,11 @@ public abstract class RPC extends Thread {
 	private DelayQueue<MyTimer> queue;
 	AllianceAttackMonitor aam;
 	Poller poller;
+	WorldParser worldParser;
 
 	public RPC(Account acct, LouState state) {
+		worldParser = new WorldParser();
+		
 		this.account = acct;
 		this.state = state;
 		aam = new AllianceAttackMonitor(this);
@@ -342,11 +348,14 @@ public abstract class RPC extends Thread {
 	}
 	private void post(Runnable r) {
 		MyTimer t = new MyTimer(r);
+		Log.v(TAG,"adding to queue");
 		queue.add(t);
 		if (Thread.currentThread() != this) {
 			synchronized(this) {
-				if (running) interrupt();
-				else {
+				if (running) {
+					Log.v(TAG,"interupting network thread");
+					interrupt();
+				} else {
 					Log.v(TAG,"starting thread for post");
 					running = true;
 					start();
@@ -413,6 +422,11 @@ public abstract class RPC extends Thread {
 				if (reply.e != null) {
 					if (reply.e instanceof UnknownHostException) {
 						Log.w(TAG,"dns error, retrying");
+					} else if (reply.e instanceof FileNotFoundException) {
+						Log.e(TAG, "wtf, file not found??");
+						stopPolling();
+						onEjected();
+						stopLooping();
 					} else {
 						Log.e(TAG, "exception from http req, retrying "+retry+" more times",reply.e);
 					}
@@ -522,6 +536,10 @@ public abstract class RPC extends Thread {
 				state.userActivity = false;
 				requests += "\fUA:";
 			}
+			if (worldParser != null) {
+				requests += "\fWORLD:"+worldParser.getRequestDetails();
+				Log.v(TAG,requests);
+			}
 			requests += aam.getRequestDetails();
 			obj.put("requests",requests);
 			doRPC("Poll",obj,this,new RPCCallback() {
@@ -553,6 +571,8 @@ public abstract class RPC extends Thread {
 		} else if (C.equals("VIS")) {
 			JSONObject D = p.getJSONObject("D");
 			parseVIS(D);
+		} else if (C.equals("WORLD")) {
+			if (worldParser != null) worldParser.parse(p,this);
 		} else if (C.equals("CITY")) {
 			// refer to webfrontend.data.City.js dispatchResults for more info
 			JSONObject D = p.getJSONObject("D");
@@ -576,11 +596,13 @@ public abstract class RPC extends Thread {
 			showName = false;
 			JSONArray D = p.getJSONArray("D");
 			int i;
-			final ArrayList<ChatMsg> recent = new ArrayList<ChatMsg>(); 
-			for (i = 0; i < D.length(); i++) {
-				ChatMsg c = new ChatMsg(D.getJSONObject(i));
-				state.chat_history.add(c);
-				recent.add(c);
+			final ArrayList<ChatMsg> recent = new ArrayList<ChatMsg>();
+			synchronized (state.chat_history) {
+				for (i = 0; i < D.length(); i++) {
+					ChatMsg c = new ChatMsg(D.getJSONObject(i));
+					state.chat_history.add(c);
+					recent.add(c);
+				}
 			}
 			runOnUiThread(new Runnable () {public void run() {
 			onChat(recent);
@@ -762,6 +784,7 @@ public abstract class RPC extends Thread {
 				Log.v(TAG,"delay "+maxdelay);
 				Thread.sleep(maxdelay);
 			} catch (InterruptedException e) {
+				Log.v(TAG,"who woke me!");
 			}
 		}
 		Log.v(TAG,"dying");
@@ -817,7 +840,11 @@ public abstract class RPC extends Thread {
 		@Override
 		public int compareTo(Delayed arg0) {
 			// TODO Auto-generated method stub
-			Log.v(TAG,"compareTo");
+			long self = getDelay(TimeUnit.MILLISECONDS);
+			long other = arg0.getDelay(TimeUnit.MILLISECONDS);
+			Log.v(TAG,String.format("compareTo %d %d",self,other));
+			if (other < self) return 1;
+			else if (other > self) return -1;
 			return 0;
 		}
 		@Override

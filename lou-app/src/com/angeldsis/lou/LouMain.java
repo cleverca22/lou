@@ -34,14 +34,13 @@ public class LouMain extends FragmentActivity {
 		if (savedInstanceState != null) return;
 		
 		setContentView(R.layout.main);
-		getSupportFragmentManager().beginTransaction().add(R.id.main_frame, new Loading()).commit();
+		getSupportFragmentManager().beginTransaction().replace(R.id.main_frame, new Loading()).commit();
 		setTheme(android.R.style.Theme_Holo_Dialog);
 	}
 	protected void onStart() {
 		super.onStart();
 		Log.v(TAG, "onStart");
 	}
-
 		// AudioTrack click = new
 		// AudioTrack(AudioManager.STREAM_MUSIC,44100,AudioTrack.CHANNEL_OUT_MONO,ENCODING_PCM_16BIT,20096,MODE_STATIC);
 		// byte[] data;

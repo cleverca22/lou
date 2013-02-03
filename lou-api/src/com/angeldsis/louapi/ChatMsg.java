@@ -8,7 +8,6 @@ public class ChatMsg {
 	public boolean hascrown;
 	public long ts;
 	public ChatMsg(JSONObject C) throws JSONException {
-		Log.v("ChatMsg",C.toString());
 		sender = C.getString("s").substring(1);
 		channel = C.getString("c");
 		message = C.getString("m");

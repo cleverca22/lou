@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.angeldsis.lou.AndroidEnums;
 import com.angeldsis.lou.R;
 import com.angeldsis.lou.SessionUser;
 import com.angeldsis.louapi.RPC.ReportCallback;
@@ -20,8 +21,7 @@ import com.angeldsis.louapi.Report.UnitInfo;
 public class ShowReport extends SessionUser implements ReportCallback {
 	private static final String TAG = "ShowReport";
 	ViewGroup side1,side2;
-	@Override
-	public void onCreate(Bundle sis) {
+	@Override public void onCreate(Bundle sis) {
 		super.onCreate(sis);
 		setContentView(R.layout.show_report);
 		ViewGroup sides = (ViewGroup) findViewById(R.id.sides);
@@ -31,7 +31,7 @@ public class ShowReport extends SessionUser implements ReportCallback {
 		sides.addView(side1);
 		sides.addView(side2);
 	}
-	public void session_ready() {
+	@Override public void session_ready() {
 		Intent msg = getIntent();
 		Bundle args = msg.getExtras();
 		int reportid = args.getInt("reportid");
@@ -44,6 +44,7 @@ public class ShowReport extends SessionUser implements ReportCallback {
 			case Report.types.combat.scout:
 			case Report.types.combat.raidDungeon:
 			case Report.types.combat.plunder:
+			case Report.types.combat.siege:
 				Log.v("ShowReport",report.toString());
 				setField(R.id.share,report.share);
 				setField(R.id.when,(new Date(report.reportHeader.timestamp)).toString());
@@ -75,15 +76,18 @@ public class ShowReport extends SessionUser implements ReportCallback {
 		int i;
 		Log.v("ShowReport","units count:"+units2.length);
 		for (i = 0; i < units2.length; i++) {
+			UnitInfo u = units2[i];
 			ViewGroup unit = (ViewGroup) getLayoutInflater().inflate(R.layout.unit_report, v,false);
-			((ImageView)unit.findViewById(R.id.image)).setImageResource(R.drawable.icon_units_berserker);
-			setField(unit,R.id.ordered,""+units2[i].ordered);
-			setField(unit,R.id.neutralized,""+units2[i].s);
-			setField(unit,R.id.lost,""+(units2[i].ordered - units2[i].survived));
-			setField(unit,R.id.survived,""+units2[i].survived);
+			int imageid = AndroidEnums.getUnitImage(u.type);
+			((ImageView)unit.findViewById(R.id.image)).setImageResource(imageid);
+			setField(unit,R.id.ordered,""+u.ordered);
+			setField(unit,R.id.neutralized,""+u.s);
+			setField(unit,R.id.lost,""+(u.ordered - u.survived));
+			setField(unit,R.id.survived,""+u.survived);
 			Log.v("ShowReport","count: "+v.getChildCount()+"v:"+v+"unit:"+unit);
 			v.addView(unit);
 			Log.v("ShowReport","count:"+v.getChildCount());
+			Log.v(TAG,String.format("type:%d s:%d ordered:%d survived:%d",u.type,u.s,u.ordered,u.survived));
 		}
 	}
 	private void setField(ViewGroup v,int id,String value) {

@@ -81,6 +81,16 @@ public class ChatWindow extends SessionUser {
 		mTabHost.addTab(t2);
 		channels.put("alliance", temp);
 	}
+	@Override protected void onSaveInstanceState(Bundle out) {
+		out.putString("currentTab", mTabHost.getCurrentTabTag());
+		super.onSaveInstanceState(out);
+	}
+	@Override protected void onRestoreInstanceState (Bundle savedInstanceState) {
+		String tab = savedInstanceState.getString("currentTab");
+		if (tab != null) mTabHost.setCurrentTabByTag(tab);
+		Log.v(TAG,savedInstanceState.toString());
+		super.onRestoreInstanceState(savedInstanceState);
+	}
 	class TabMaker implements TabHost.TabContentFactory {
 		Channel c;
 		public TabMaker(Channel channel) {
@@ -115,6 +125,7 @@ public class ChatWindow extends SessionUser {
 		private ChatHistory source;
 		private Channel channel;
 		private Calendar c3;
+		int lastCount = 0;
 		//SparseArray<ChatMsg> cache;
 		Drawable crown_drawable = getResources().getDrawable(R.drawable.icon_lou_public_other_world);
 		ChatHistoryAdapter() {
@@ -123,6 +134,9 @@ public class ChatWindow extends SessionUser {
 		}
 		@Override
 		public int getCount() {
+			return lastCount;
+		}
+		private int getRealCount() {
 			if (channel == null) {
 				Log.v(TAG,this.toString()+" getCount null");
 				return 0;
@@ -259,8 +273,12 @@ public class ChatWindow extends SessionUser {
 			Log.v(TAG,this.toString()+" setSource");
 			source = chat;
 			channel = c;
-			this.notifyDataSetChanged();
+			update();
 			c3 = Calendar.getInstance(session.state.tz);
+		}
+		public void update() {
+			lastCount = getRealCount();
+			notifyDataSetChanged();
 		}
 	}
 	void printBBcode(String bbcode,SpannableStringBuilder b) {
@@ -286,7 +304,9 @@ public class ChatWindow extends SessionUser {
 			//c.oldmessagelist.removeAllViews();
 			c.adapter.setSource(session.chat,c);
 		}
-		onChat(session.state.chat_history);
+		synchronized (session.state.chat_history) {
+			onChat(session.state.chat_history);
+		}
 	}
 	class NameClicked extends ClickableSpan {
 		String name;
@@ -347,7 +367,7 @@ public class ChatWindow extends SessionUser {
 				}
 			}
 			
-			currentChannel.adapter.notifyDataSetChanged();
+			currentChannel.adapter.update();
 			
 			l.addView(channel);
 			if (c.hascrown) {

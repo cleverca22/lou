@@ -3,6 +3,7 @@ package com.angeldsis.lou;
 import java.util.ArrayList;
 
 import android.os.Handler;
+import android.util.Log;
 
 import com.angeldsis.louapi.Account;
 import com.angeldsis.louapi.ChatMsg;
@@ -10,14 +11,15 @@ import com.angeldsis.louapi.IncomingAttack;
 import com.angeldsis.louapi.LouState;
 import com.angeldsis.louapi.LouVisData;
 import com.angeldsis.louapi.RPC;
+import com.angeldsis.louapi.world.Dungeon;
+import com.angeldsis.louapi.world.WorldParser.Cell;
 
 public class RPCWrap extends RPC {
-	Handler handler;
+	Handler handler = new Handler();
 	SessionKeeper.Session callbacks;
 	public RPCWrap(Account acct, LouState state,SessionKeeper.Session activity) {
 		super(acct, state);
 		this.callbacks = activity;
-		handler = new Handler();
 	}
 	@Override
 	public void visDataReset() {
@@ -37,6 +39,7 @@ public class RPCWrap extends RPC {
 	}
 	@Override
 	public void onChat(ArrayList<ChatMsg> d) {
+		Log.v("RPCWrap","onChat");
 		callbacks.onChat(d);
 	}
 	@Override
@@ -82,5 +85,15 @@ public class RPCWrap extends RPC {
 	@Override
 	protected int getMaxPoll() {
 		return callbacks.getMaxPoll();
+	}
+	@Override
+	public void cellUpdated(Cell c) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void dungeonUpdated(Dungeon d) {
+		// TODO Auto-generated method stub
+		
 	}
 }

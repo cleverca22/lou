@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import com.angeldsis.lou.SessionKeeper.Callbacks;
 import com.angeldsis.lou.SessionKeeper.MyBinder;
+import com.angeldsis.lou.home.DisconnectedDialog;
 import com.angeldsis.louapi.ChatMsg;
 import com.angeldsis.louapi.IncomingAttack;
 import com.angeldsis.louapi.LouVisData;
@@ -18,7 +19,10 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -101,7 +105,16 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 	/** ignore the event for most, if any subclass needs it, override
 	 */
 	public void onChat(ArrayList<ChatMsg> d) {}
-	public void onEjected() { Log.v(TAG,"onEjected"); }
+	public void onEjected() {
+		Log.v(TAG,"you have been logged out");
+		// FIXME give a better error
+		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+		Fragment prev = getSupportFragmentManager().findFragmentByTag("dialog");
+		if (prev != null) ft.remove(prev);
+		ft.addToBackStack(null);
+		DialogFragment f = DisconnectedDialog.newInstance();
+		f.show(ft, "dialog");
+	}
 	public void onPlayerData() {}
 	public void cityChanged() {}
 	public void cityListChanged() {}

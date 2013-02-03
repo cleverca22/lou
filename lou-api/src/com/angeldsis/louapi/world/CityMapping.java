@@ -7,9 +7,11 @@ public class CityMapping {
 	PalaceDamage,Points;
 	public boolean Castle,Water,Enlighted,PalaceUpgradeing;
 	public String name;
-	public int i;
-	public CityMapping(int i, BaseLou y) throws Exception {
+	public int i,col,row;
+	public CityMapping(int i, BaseLou y, int col, int row) throws Exception {
 		this.i = i;
+		this.col = col;
+		this.row = row;
 		type = 1;
 		f = y.read4Bytes();
 		Castle = ((f & 1) != 0);

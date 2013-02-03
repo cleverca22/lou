@@ -43,7 +43,7 @@ public class ReportHeader {
 				return l+": Assaulted by "+p;
 			case Report.types.combat.support:
 				return l+": Support from "+p+" arrived";
-			case Report.types.combat.seige:
+			case Report.types.combat.siege:
 				return l+": Seigged by "+p;
 			case Report.types.combat.settle:
 				return "Settle something something "+objType;

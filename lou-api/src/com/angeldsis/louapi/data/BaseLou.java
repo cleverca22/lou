@@ -1,11 +1,18 @@
 package com.angeldsis.louapi.data;
 
+import com.angeldsis.louapi.Log;
+
 public class BaseLou {
-	String data;
-	int offset;
+	public String data;
+	public int offset;
+	StringBuilder output;
 	public BaseLou(String x) {
 		data = x;
 		offset = 0;
+	}
+
+	public BaseLou() {
+		output = new StringBuilder();
 	}
 
 	public int readByte() throws Exception {
@@ -59,7 +66,6 @@ public class BaseLou {
 		int byte4 = readByte();
 		return byte1 + (byte2 * 0x5b) + (byte3 * 0x5b * 0x5b) + (byte4 * 0x5b * 0x5b * 0x5b);
 	}
-
 	public int readMultiBytes() throws Exception {
 		int bytes = 0;
 		int output = 0;
@@ -71,17 +77,60 @@ public class BaseLou {
 			output += readByte() * Math.pow(0x5b, bytes);
 			bytes++;
 		}
-		throw new Exception("- not found");
+		throw new Exception("- not found: "+data.substring(offset));
 	}
-
 	public String readRest() {
 		return data.substring(offset);
 	}
-
 	public int read3Bytes() throws Exception {
 		int byte1 = readByte();
 		int byte2 = readByte();
 		int byte3 = readByte();
 		return byte1 + (byte2 * 0x5b) + (byte3 * 0x5b * 0x5b);
+	}
+	public void write2Bytes(int in) throws Exception {
+		int byte1 = in % 0x5b;
+		int byte2 = in / 0x5b;
+		writeByte(byte1);
+		writeByte(byte2);
+	}
+	private void writeByte(int in) throws Exception {
+		//Log.v("BaseLou","writeByte("+in+")");
+		char out;
+		if ((in >= 0) && (in <=25)) out = (char) (in + 65);
+		else if ((in >= 26) && (in <= 51)) out = (char) (in + 71);
+		else if ((in >= 52) && (in <= 61)) out = (char) (in -4);
+		else if ((in >= 63) && (in <= 66)) out = (char) (in - 28);
+		else if ((in >= 67) && (in <= 71)) out = (char) (in - 27);
+		else if ((in >= 74) && (in <= 80)) out = (char) (in - 16);
+		else if ((in >= 82) && (in <= 85)) out = (char) (in + 11);
+		else if ((in >= 86) && (in <= 89)) out = (char) (in + 37);
+		else {
+			switch (in) {
+			case 62: out = 33;break;
+			case 72:
+				out = 46;
+				break;
+			case 73: out = 32;break;
+			case 81: out = 91;break;
+			case 90: out = 39;break;
+			default:
+				throw new Exception("unknown ascii conversion "+in);
+			}
+		}
+		output.append(out);
+	}
+	public void writeManyBytes(int i) throws Exception {
+		while (true) {
+			writeByte(i % 0x5b);
+			i = i / 0x5b;
+			if (i == 0) {
+				output.append('-');
+				return;
+			}
+		}
+	}
+	public String getOutput() {
+		return output.toString();
 	}
 }

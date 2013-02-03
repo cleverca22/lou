@@ -16,8 +16,10 @@ public class LoggingIn extends SessionUser {
 	public void loginDone() {
 		Log.v(TAG,"loginDone");
 		Intent i = new Intent(this,LouSessionMain.class);
+		Log.v(TAG,"opening main "+acct.toBundle());
 		i.putExtras(acct.toBundle());
 		startActivity(i);
+		Log.v(TAG,"running intent "+i);
 		finish();
 	}
 	@Override
