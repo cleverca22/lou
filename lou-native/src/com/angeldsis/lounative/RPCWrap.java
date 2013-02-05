@@ -9,6 +9,8 @@ import com.angeldsis.louapi.Log;
 import com.angeldsis.louapi.LouState;
 import com.angeldsis.louapi.LouVisData;
 import com.angeldsis.louapi.RPC;
+import com.angeldsis.louapi.world.Dungeon;
+import com.angeldsis.louapi.world.WorldParser.Cell;
 
 public class RPCWrap extends RPC {
 	private static String TAG = "RPCWrap";
@@ -65,11 +67,6 @@ public class RPCWrap extends RPC {
 		LouMain.instance.display.asyncExec(r);
 	}
 	@Override
-	public void onReportCountUpdate(int viewed, int unviewed) {
-		Log.w(TAG,"onReportCountUpdate");
-		core.mw.onReportCountUpdate(viewed,unviewed);
-	}
-	@Override
 	public void onNewAttack(IncomingAttack a) {
 		Log.w(TAG,"onNewAttack");
 	}
@@ -84,10 +81,23 @@ public class RPCWrap extends RPC {
 	public void onSubListChanged() {
 		core.onSubListChanged();
 	}
-	@Override
-	public void startSubstituteSession(String sessionid) {
+	@Override public void startSubstituteSession(String sessionid) {
 		// TODO Auto-generated method stub
 		Log.e(TAG, "startSubstituteSession");
 		// this needs to create a new CoreSession object
+	}
+	@Override public void cellUpdated(Cell c) {
+		// TODO Auto-generated method stub
+	}
+	@Override public void dungeonUpdated(Dungeon d) {
+		// TODO Auto-generated method stub
+	}
+	@Override public void onReportCountUpdate() {
+		Log.w(TAG,"onReportCountUpdate");
+		core.mw.onReportCountUpdate(state.viewed_reports,state.unviewed_reports);
+	}
+	@Override protected int getMaxPoll() {
+		// TODO Auto-generated method stub
+		return 10000;
 	}
 }
