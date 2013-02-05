@@ -6,9 +6,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Spannable;
@@ -36,6 +39,8 @@ import com.angeldsis.louapi.ChatMsg;
 
 public class ChatWindow extends SessionUser {
 	static final String TAG = "ChatWindow";
+	Pattern purl = Pattern.compile("^(.*)\\[url\\](.*)\\[/url\\](.*)$");
+	Pattern preport = Pattern.compile("^(.*)([A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4})(.*)$");
 	private TabHost mTabHost;
 	enum Type { pm,channel };
 	class Channel {
@@ -187,6 +192,7 @@ public class ChatWindow extends SessionUser {
 			//Log.v(TAG,String.format("%s getView(%d,%s,%s) c=%s",channel.key,position,convertView,parent,c));
 			
 			if (c != null) {
+				ArrayList<Span> spans = new ArrayList<Span>();
 				if (session == null) throw new IllegalStateException("session was null!");
 				if (session.state == null) throw new IllegalStateException("session.state was null!");
 				c3.setTime(new Date(c.ts));
@@ -197,7 +203,7 @@ public class ChatWindow extends SessionUser {
 				if (c.channel == null) {
 					b.append(c.sender);
 					b.append(" ");
-					printBBcode(c.message,b);
+					printBBcode(c.message,b,spans);
 				} else if (c.channel.equals("@A")) {
 					start = b.length();
 					String all = getString(R.string.alliance);
@@ -218,7 +224,7 @@ public class ChatWindow extends SessionUser {
 					
 					b.append(": ");
 					
-					printBBcode(c.message,b);
+					printBBcode(c.message,b,spans);
 					end = b.length();
 					
 					b.setSpan(new ForegroundColorSpan(green), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -234,7 +240,7 @@ public class ChatWindow extends SessionUser {
 					
 					if (c.channel.equals("privateout")) b.append(session.state.self.getName()+": ");
 					else b.append(c.sender+": ");
-					printBBcode(c.message,b);
+					printBBcode(c.message,b,spans);
 				}
 				else {
 					b.append(c.channel);
@@ -251,8 +257,9 @@ public class ChatWindow extends SessionUser {
 					if (c.sender.charAt(0) != '@') b.setSpan(new NameClicked(c.sender), start, end1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 	
 					b.append(": ");
-					printBBcode(c.message,b);
+					printBBcode(c.message,b,spans);
 				}
+				for (Span s : spans) s.apply(b);
 			} else {
 				b.append("loading...");
 			}
@@ -281,8 +288,70 @@ public class ChatWindow extends SessionUser {
 			notifyDataSetChanged();
 		}
 	}
-	void printBBcode(String bbcode,SpannableStringBuilder b) {
-		b.append(bbcode);
+	void printBBcode(String bbcode,SpannableStringBuilder builder,ArrayList<Span> spans) {
+		Matcher m = purl.matcher(bbcode);
+		if (m.find()) {
+			String a = m.group(1);
+			String b = m.group(2);
+			String c = m.group(3);
+			builder.append(a);
+			int start = builder.length();
+			builder.append(b);
+			int end = builder.length();
+			spans.add(new Span(new LinkClicked(b), start, end));
+			builder.append(c);
+			return;
+		}
+		m = preport.matcher(bbcode);
+		if (m.find()) {
+			String a = m.group(1);
+			String b = m.group(2);
+			String c = m.group(3);
+			builder.append(a);
+			int start = builder.length();
+			builder.append(b);
+			int end = builder.length();
+			spans.add(new Span(new ReportClicked(b), start, end));
+			builder.append(c);
+			return;
+		}
+		builder.append(bbcode);
+	}
+	static class Span {
+		Object o;
+		int start,end;
+		public Span(Object linkClicked, int start, int end) {
+			o = linkClicked;
+			this.start = start;
+			this.end = end;
+		}
+		public void apply(SpannableStringBuilder b) {
+			b.setSpan(o, start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+		}
+	}
+	class LinkClicked extends ClickableSpan {
+		String url;
+		public LinkClicked(String b) {
+			url = b;
+		}
+		@Override
+		public void onClick(View widget) {
+			Log.v(TAG,"url clicked "+url);
+			Uri location = Uri.parse(url);
+			Intent buyFunds = new Intent(Intent.ACTION_VIEW,location);
+			String title = "buying funds..."; // FIXME, translations
+			Intent chooser = Intent.createChooser(buyFunds,title);
+			startActivity(chooser);
+		}
+	}
+	class ReportClicked extends ClickableSpan {
+		String shareid;
+		ReportClicked(String r) {
+			shareid = r;
+		}
+		@Override public void onClick(View v) {
+			Log.v(TAG,"report clicked "+shareid);
+		}
 	}
 	void formatTime(Calendar c3, SpannableStringBuilder b) {
 		// i think this improves performance over the format
