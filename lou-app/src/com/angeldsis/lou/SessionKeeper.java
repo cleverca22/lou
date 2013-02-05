@@ -182,6 +182,7 @@ public class SessionKeeper extends Service {
 			if (cb != null) cb.gotCityData();
 		}
 		public void onChat(ArrayList<ChatMsg> d) {
+			chat.onChat(d);
 			for (ChatMsg m : d) {
 				Log.v(TAG,m.toString());
 			}
@@ -203,7 +204,6 @@ public class SessionKeeper extends Service {
 				chatBuilder.setContentText(d.get(d.size()-1).toString());
 				mNotificationManager.notify(UNREAD_MESSAGE | sessionid, chatBuilder.build());
 			}
-			chat.onChat(d);
 		}
 		public void setCallback(Callbacks cb1) {
 			cb = cb1;
