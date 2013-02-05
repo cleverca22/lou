@@ -2,6 +2,7 @@ package com.angeldsis.lou.home;
 
 import com.angeldsis.lou.R;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
@@ -27,5 +28,8 @@ public class DisconnectedDialog extends DialogFragment {
 			}
 		});
 		return v;
+	}
+	@Override public void onDismiss(DialogInterface dialog) {
+		getActivity().finish();
 	}
 }
