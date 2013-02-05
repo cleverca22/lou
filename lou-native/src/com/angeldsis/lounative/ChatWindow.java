@@ -37,7 +37,9 @@ public class ChatWindow extends Shell {
 	}
 	protected void checkSubclass() {}
 	public void handle_msg(ChatMsg c) {
-		text.setText(text.getText() + "\r\n" + c.toString());
+		String msg = text.getText() + "\r\n" + c.toString();
+		text.setText(msg);
+		text.setSelection(msg.length());
 		forceActive();
 	}
 	public void sendMessage(MouseEvent e) {
