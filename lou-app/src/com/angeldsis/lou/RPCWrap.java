@@ -19,6 +19,7 @@ public class RPCWrap extends RPC {
 	SessionKeeper.Session callbacks;
 	public RPCWrap(Account acct, LouState state,SessionKeeper.Session activity) {
 		super(acct, state);
+		Log.v("RPCWrap","handler is "+handler);
 		this.callbacks = activity;
 	}
 	@Override
@@ -39,7 +40,6 @@ public class RPCWrap extends RPC {
 	}
 	@Override
 	public void onChat(ArrayList<ChatMsg> d) {
-		Log.v("RPCWrap","onChat");
 		callbacks.onChat(d);
 	}
 	@Override

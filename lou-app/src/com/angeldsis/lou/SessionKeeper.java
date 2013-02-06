@@ -1,9 +1,11 @@
 package com.angeldsis.lou;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.StreamCorruptedException;
@@ -22,6 +24,7 @@ import com.angeldsis.louapi.LouState.City;
 import com.angeldsis.louapi.LouVisData;
 import com.angeldsis.louapi.RPC;
 import com.angeldsis.louapi.RPC.RPCDone;
+import com.google.gson.Gson;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -192,10 +195,13 @@ public class SessionKeeper extends Service {
 				
 				Bundle options = acct.toBundle();
 				Intent resultIntent = new Intent(SessionKeeper.this,ChatWindow.class);
+				Intent homeIntent = new Intent(SessionKeeper.this,LouSessionMain.class);
 				// FIXME, include chat details, to open tab
 				resultIntent.putExtras(options);
+				homeIntent.putExtras(options);
 				TaskStackBuilder stackBuilder = TaskStackBuilder.create(SessionKeeper.this);
 				stackBuilder.addParentStack(ChatWindow.class);
+				stackBuilder.addNextIntent(homeIntent);
 				stackBuilder.addNextIntent(resultIntent);
 				PendingIntent resultPendingIntent = stackBuilder
 						.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT, options);
@@ -216,12 +222,17 @@ public class SessionKeeper extends Service {
 			saveState();
 		}
 		private void saveState() {
+			Gson gson = new Gson();
 			FileOutputStream state;
 			try {
-				state = SessionKeeper.this.openFileOutput("state_save", MODE_PRIVATE);
-				ObjectOutputStream oos = new ObjectOutputStream(state);
-				oos.writeObject(this.state);
-				oos.close();
+				state = SessionKeeper.this.openFileOutput("state_save.tmp", MODE_PRIVATE);
+				String data1 = gson.toJson(this.state);
+				byte[] data2 = data1.getBytes();
+				state.write(data2);
+				state.close();
+				File source = SessionKeeper.this.getFileStreamPath("state_save.tmp");
+				File dest = SessionKeeper.this.getFileStreamPath("state_save");
+				source.renameTo(dest);
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -234,19 +245,12 @@ public class SessionKeeper extends Service {
 			FileInputStream state;
 			try {
 				state = SessionKeeper.this.openFileInput("state_save");
-				ObjectInputStream ois = new ObjectInputStream(state);
-				this.state = (LouState) ois.readObject();
+				Gson gson = new Gson();
+				this.state = gson.fromJson(new InputStreamReader(state), LouState.class);
 				
 				Iterator<City> i = this.state.cities.iterator();
 				while (i.hasNext()) i.next().fix(this.state);
 			} catch (FileNotFoundException e) {
-			} catch (StreamCorruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (ClassNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}

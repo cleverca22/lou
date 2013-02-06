@@ -174,9 +174,7 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 					Log.v(TAG,"got url:"+reply);
 					Uri location = Uri.parse(reply);
 					Intent buyFunds = new Intent(Intent.ACTION_VIEW,location);
-					String title = "buying funds..."; // FIXME, translations
-					Intent chooser = Intent.createChooser(buyFunds,title);
-					startActivity(chooser);
+					startActivity(buyFunds);
 				}});
 			return true;
 		}
