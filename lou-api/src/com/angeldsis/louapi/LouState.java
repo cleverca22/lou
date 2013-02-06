@@ -14,28 +14,28 @@ import org.json2.JSONObject;
 
 import com.angeldsis.louapi.data.BuildQueue;
 import com.angeldsis.louapi.data.SubRequest;
+import com.google.gson.annotations.SerializedName;
 
-public class LouState implements Serializable {
-	private static final long serialVersionUID = 1L;
+public class LouState {
 	private static final String TAG = "LouState";
-	int AllianceId;
-	String AllianceName;
-	public Player self;
-	public ArrayList<City> cities;
-	public City currentCity;
-	public Counter gold;
-	public ManaCounter mana;
-	public ArrayList<IncomingAttack> incoming_attacks;
-	private int diff, stepTime;
-	long refTime;
-	public ArrayList<ChatMsg> chat_history;
-	RPC rpc;
-	public TimeZone tz;
-	boolean fetchVis = false;
-	public int unviewed_reports;
-	public int viewed_reports;
-	public ArrayList<SubRequest> subs;
-	public boolean userActivity;
+	transient int AllianceId;
+	transient String AllianceName;
+	transient public Player self;
+	@SerializedName("cities") public ArrayList<City> cities;
+	transient public City currentCity;
+	transient public Counter gold;
+	transient public ManaCounter mana;
+	transient public ArrayList<IncomingAttack> incoming_attacks;
+	transient private int diff, stepTime;
+	transient long refTime;
+	transient public ArrayList<ChatMsg> chat_history;
+	transient RPC rpc;
+	transient public TimeZone tz;
+	transient boolean fetchVis = false;
+	transient public int unviewed_reports;
+	transient public int viewed_reports;
+	transient public ArrayList<SubRequest> subs;
+	transient public boolean userActivity;
 
 	public LouState() {
 		init();
@@ -89,17 +89,16 @@ public class LouState implements Serializable {
 		if (AllianceId > 0) AllianceName = obj.getString("AllianceName");
 		self = Player.get(obj.optInt("Id"),obj.getString("Name"));
 	}
-	public class City implements Serializable {
+	public class City {
 		private static final String TAG = "City";
-		private static final long serialVersionUID = 1L;
-		public Resource[] resources;
-		public String name;
-		long cityid;
-		public ArrayList<LouVisData> visData;
-		public int visreset;
-		public BuildQueue[] queue;
-		public int build_queue_start;
-		public int build_queue_end;
+		@SerializedName("r") public Resource[] resources;
+		@SerializedName("n") public String name;
+		@SerializedName("i") long cityid;
+		transient public ArrayList<LouVisData> visData;
+		transient public int visreset;
+		transient public BuildQueue[] queue;
+		transient public int build_queue_start;
+		transient public int build_queue_end;
 		City() {
 			resources = new Resource[4];
 			int i;
@@ -117,21 +116,10 @@ public class LouState implements Serializable {
 		public void addVisObj(LouVisData parsed) {
 			visData.add(parsed);
 		}
-		private void writeObject(java.io.ObjectOutputStream out) throws IOException {
-			out.writeObject(resources);
-			out.writeUTF(name);
-			out.writeLong(cityid);
-		}
-		private void readObject(java.io.ObjectInputStream in) throws IOException,
-		ClassNotFoundException {
-			resources = (Resource[]) in.readObject();
-			name = in.readUTF();
-			cityid = in.readLong();
-			init();
-		}
 		public void fix(LouState state) {
 			int i = 0;
 			for (i = 0; i < 4; i++) resources[i].fix(state,i);
+			init();
 		}
 		public long getCityid() {
 			return cityid;
@@ -343,16 +331,6 @@ public class LouState implements Serializable {
 			type = t.optInt("t");
 			state = t.optInt("s");
 		}
-	}
-	private void writeObject(java.io.ObjectOutputStream out) throws IOException {
-		Log.v(TAG,"Save");
-		out.writeObject(cities);
-	}
-	private void readObject(java.io.ObjectInputStream in) throws IOException,
-	ClassNotFoundException {
-		Log.v(TAG,"Restore");
-		init();
-		cities = (ArrayList<City>) in.readObject();
 	}
 	public void parseAllianceUpdate(JSONObject d) {
 		int ia = d.optInt("ia");

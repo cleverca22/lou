@@ -3,15 +3,17 @@ package com.angeldsis.louapi;
 import java.io.IOException;
 import java.io.Serializable;
 
+import com.google.gson.annotations.SerializedName;
+
 public class Resource implements Serializable {
 	static final String[] names = {"wood","stone","iron","food"};
 	private static final long serialVersionUID = 1L;
-	double delta; // gain per step
-	double base; // last value
-	long step; // value of step at that time
-	int max;
-	LouState state;
-	private String name;
+	@SerializedName("d") double delta; // gain per step
+	@SerializedName("b") double base; // last value
+	@SerializedName("s") long step; // value of step at that time
+	@SerializedName("m") int max;
+	transient LouState state;
+	@SerializedName("n") private String name;
 	Resource(LouState state, int type) {
 		this.state = state;
 		step = state.getServerStep();
