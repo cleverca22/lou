@@ -34,6 +34,14 @@ import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
 
 public class LouSession {
+	public static class NewServer {
+
+		protected String server;
+		protected String clazz;
+		protected String id;
+		protected String name;
+
+	}
 	static final String TAG = "LouSession";
 	static URL base;
 	public CookieManager mCookieManager;
@@ -162,24 +170,30 @@ public class LouSession {
 	private void parse_result(final result output, InputStream is) throws IOException, SAXException {
 		XMLReader xmlReader = XMLReaderFactory.createXMLReader ("org.ccil.cowan.tagsoup.Parser");
 		final ArrayList<Account> servers = new ArrayList<Account>();
+		final ArrayList<NewServer> newServers = new ArrayList<NewServer>();
 		final Pattern actioncheck = Pattern.compile("^http://prodgame(\\d+).lordofultima.com/(\\d+)/index.aspx$");
 		final Pattern findid = Pattern.compile("\\d+");
 		ContentHandler handler = new DefaultHandler() {
 			Account acct;
-			boolean in_server_list = false;
+			NewServer newServer;
+			boolean in_server_list = false,in_register_list = false;
 			public void startElement(String uri,String localName,String qName, Attributes attributes) throws SAXException {
 				String classVal = attributes.getValue("class");
 				if (localName.equals("ul") && (classVal != null) && classVal.equals("server-list")) {
 					in_server_list = true;
 				} else if (localName.equals("form")) {
 					String action = attributes.getValue("action");
-					Log.v(TAG,"found a form "+action);
+					String id = attributes.getValue("id");
+					Log.v(TAG,String.format("found a form %s %s",action,id));
 					Matcher m = actioncheck.matcher(action);
 					if (action.equals("/en/user/logout")) {
 						output.worked = true;
 					} else if (m.find()) {
 						acct.serverid = m.group(1);
 						acct.pathid = m.group(2);
+					} else if ((id != null) && id.equals("servers_new")) {
+						Log.v(TAG,"begining of reg list");
+						in_register_list = true;
 					} else Log.v(TAG,"unknown action "+action);
 				} else if (in_server_list) {
 					if (localName.equals("li")) {
@@ -205,6 +219,13 @@ public class LouSession {
 							//acct.world = attributes.getValue("value");
 						}
 					}
+				} else if (in_register_list) {
+					if (localName.equals("option")) {
+						newServer = new NewServer();
+						newServer.server = attributes.getValue("value");
+						newServer.clazz = attributes.getValue("class");
+						newServer.id = attributes.getValue("id");
+					}
 				}
 			}
 			public void endElement (String uri, String localName, String qName) {
@@ -216,11 +237,23 @@ public class LouSession {
 						acct = null;
 					}
 				}
+				if (in_register_list) {
+					if (localName.equals("option")) {
+						newServers.add(newServer);
+						newServer = null;
+					} else if (localName.equals("form")) {
+						Log.v(TAG,"end of reg list");
+						in_register_list = false;
+					}
+				}
 			}
-			/*public void characters(char[]text, int start, int size) {
-			String buf = new String(text,start,size);
-			Log.v(TAG,"text: "+buf);
-			}*/
+			public void characters(char[]text, int start, int size) {
+				if (in_register_list && (newServer != null)) {
+					newServer.name = new String(text,start,size).trim();
+				}
+				//String buf = new String(text,start,size);
+				//Log.v(TAG,"text: "+buf);
+			}
 		};
 		xmlReader.setContentHandler(handler);
 		FilterInputStream wrapper = new FilterInputStream(is) {
@@ -247,6 +280,9 @@ public class LouSession {
 				e.printStackTrace();
 			}
 			this.servers = servers;
+			//for (NewServer s : newServers) {
+			//	Log.v(TAG,String.format("%s %s %s", s.server,s.id,s.name));
+			//}
 			return;
 		}
 		output.error = true;
