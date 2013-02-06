@@ -87,11 +87,13 @@ public class WorldParser {
 				break;
 			case 3: // deletes object?
 				int something = y.read2Bytes();
-				int a = (something >> 5) & 0x1f;
-				int b = something & 0x1f;
-				int col = cell.getFineCol() + b;
-				int row = cell.getFineRow() + a;
-				Log.v(TAG,String.format("%3d:%3d change type %d a/b %d/%d",col,row,type1,a,b));
+				int finerow = (something >> 5) & 0x1f;
+				int finecol = something & 0x1f;
+				int col = cell.getFineCol() + finecol;
+				int row = cell.getFineRow() + finerow;
+				int fineid = (finerow << 5) | finecol;
+				cell.dungeons[fineid] = null;
+				Log.v(TAG,String.format("%3d:%3d change type %d a/b %d/%d",col,row,type1,finerow,finecol));
 				break;
 			default:
 				Log.v(TAG,String.format("%3d:%3d change type %d %s",cell.getFineCol(),cell.getFineRow(),type1,x));
