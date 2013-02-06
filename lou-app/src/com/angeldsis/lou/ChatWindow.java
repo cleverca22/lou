@@ -35,6 +35,7 @@ import android.widget.TabHost;
 import android.widget.TextView;
 
 import com.angeldsis.lou.chat.ChatHistory;
+import com.angeldsis.lou.reports.ShowReport;
 import com.angeldsis.louapi.ChatMsg;
 
 public class ChatWindow extends SessionUser {
@@ -336,12 +337,8 @@ public class ChatWindow extends SessionUser {
 		}
 		@Override
 		public void onClick(View widget) {
-			Log.v(TAG,"url clicked "+url);
-			Uri location = Uri.parse(url);
-			Intent buyFunds = new Intent(Intent.ACTION_VIEW,location);
-			String title = "buying funds..."; // FIXME, translations
-			Intent chooser = Intent.createChooser(buyFunds,title);
-			startActivity(chooser);
+			Intent openLink = new Intent(Intent.ACTION_VIEW,Uri.parse(url));
+			startActivity(openLink);
 		}
 	}
 	class ReportClicked extends ClickableSpan {
@@ -351,6 +348,11 @@ public class ChatWindow extends SessionUser {
 		}
 		@Override public void onClick(View v) {
 			Log.v(TAG,"report clicked "+shareid);
+			Bundle args = acct.toBundle();
+			args.putString("shareid",shareid);
+			Intent i = new Intent(ChatWindow.this,ShowReport.class);
+			i.putExtras(args);
+			startActivity(i);
 		}
 	}
 	void formatTime(Calendar c3, SpannableStringBuilder b) {

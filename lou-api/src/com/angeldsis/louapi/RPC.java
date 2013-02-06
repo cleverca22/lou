@@ -273,7 +273,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 	public interface ReportHeaderCallback {
 		void done(ReportHeader[] list);
 	}
-	public void GetSharedReport(final String sharestring) {
+	public void GetSharedReport(final String sharestring, final ReportCallback cb) {
 		post(new Runnable () {
 			public void run() {
 				try {
@@ -284,7 +284,12 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 						void requestDone(rpcreply r) throws JSONException,
 								Exception {
 							Log.v(TAG,((JSONObject)r.reply).toString(1));
-							Report rr = new Report((JSONObject) r.reply);
+							final Report rr = new Report((JSONObject) r.reply);
+							runOnUiThread(new Runnable() {
+								@Override public void run() {
+									cb.done(rr);
+								}
+							});
 						}
 					},5);
 				} catch (JSONException e) {
@@ -538,7 +543,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			}
 			if (worldParser != null) {
 				requests += "\fWORLD:"+worldParser.getRequestDetails();
-				Log.v(TAG,requests);
+				//Log.v(TAG,requests);
 			}
 			requests += aam.getRequestDetails();
 			obj.put("requests",requests);

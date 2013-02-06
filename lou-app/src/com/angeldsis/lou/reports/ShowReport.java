@@ -34,8 +34,15 @@ public class ShowReport extends SessionUser implements ReportCallback {
 	@Override public void session_ready() {
 		Intent msg = getIntent();
 		Bundle args = msg.getExtras();
-		int reportid = args.getInt("reportid");
-		session.rpc.GetReport(reportid,this);
+		if (args.containsKey("reportid")) {
+			int reportid = args.getInt("reportid");
+			Log.v(TAG,"reportid:"+reportid);
+			session.rpc.GetReport(reportid,this);
+		} else if (args.containsKey("shareid")) {
+			String shareid = args.getString("shareid").replace("-", "");
+			Log.v(TAG,"shareid:"+shareid);
+			session.rpc.GetSharedReport(shareid,this);
+		}
 	}
 	@Override
 	public void done(Report report) {
@@ -61,6 +68,7 @@ public class ShowReport extends SessionUser implements ReportCallback {
 		}
 	}
 	private void setupHalf(ViewGroup side, ReportHalf half, int altered_id) {
+		Log.v(TAG,"half:"+half);
 		((TextView)side.findViewById(R.id.player_name)).setText(half.player);
 		((TextView)side.findViewById(R.id.city)).setText(half.cityname);
 		int both = half.coord;
