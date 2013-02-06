@@ -28,12 +28,12 @@ public class ServerList extends Fragment {
 	public View onCreateView (LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		setHasOptionsMenu(true);
 		Log.v(TAG,"onCreateView");
-		ViewGroup root = (ViewGroup) inflater.inflate(R.layout.server_list, container,false);
 		if (SessionKeeper.session2 == null) {
 			getActivity().getSupportFragmentManager().beginTransaction().add(R.id.main_frame, new Loading()).commit();
 			Log.v(TAG,"returning empty list");
-			return root;
+			return null;
 		}
+		ViewGroup root = (ViewGroup) inflater.inflate(R.layout.server_list, container,false);
 		LouSession sess = SessionKeeper.session2;
 		ArrayList<Account> accounts = sess.servers;
 		Log.v(TAG,"found "+accounts.size());
