@@ -40,7 +40,7 @@ public class CityView extends SessionUser implements Callbacks, LayoutCallbacks 
 		mTest = new CityUI(this);
 		ViewGroup vg = (ViewGroup) this.findViewById(R.id.test);
 		vg.addView(mTest);
-		((FrameLayout) findViewById(R.id.resource_bar)).addView(mTest.resource_bar.self);
+		((FrameLayout) findViewById(R.id.resource_bar)).addView(mTest.resource_bar);
 	}
 	public void session_ready() {
 		mTest.setState(session.state,session.rpc);

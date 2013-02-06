@@ -4,30 +4,29 @@ import com.angeldsis.lou.R;
 import com.angeldsis.louapi.LouState.City;
 import com.angeldsis.louapi.Resource;
 
-import android.app.Activity;
-import android.os.Bundle;
+import android.annotation.TargetApi;
+import android.content.Context;
+import android.os.Build;
 import android.os.Handler;
-import android.view.LayoutInflater;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-public class ResourceBar implements Runnable {
+public class ResourceBar extends ViewGroup {
+	private static final String TAG = "ResourceBar";
 	TextView[] counts;
 	TextView[] rates;
-	public View self;
+	private View self;
 	City lastCity;
 	final static int[] countids = { R.id.woodC, R.id.stoneC, R.id.ironC, R.id.foodC };
 	final static int[] rateids = { R.id.woodR, R.id.stoneR, R.id.ironR, R.id.foodR };
-	Handler h = new Handler();
-	boolean posted = false;
 	
-	public ResourceBar(Activity context) {
-		self = context.getLayoutInflater().inflate(R.layout.resource_bar, null);
-	}
-	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		self = inflater.inflate(R.layout.resource_bar,container,false);
-		return self;
+	public ResourceBar(Context context) {
+		super(context);
+		self = inflate(context,R.layout.resource_bar, null);
+		addView(self);
+		setId(R.id.resource_bar);
 	}
 	void init() {
 		if (counts != null) return;
@@ -43,7 +42,8 @@ public class ResourceBar implements Runnable {
 		lastCity = city;
 		update();
 	}
-	private synchronized void update() {
+	public void update() {
+		if (lastCity == null) return;
 		init();
 		int x;
 		for (x = 0; x < 4; x++) {
@@ -65,13 +65,13 @@ public class ResourceBar implements Runnable {
 			}
 			counts[x].setTextColor(self.getContext().getResources().getColor(color));
 		}
-		if (!posted) {
-			h.postDelayed(this, 10000); // FIXME, make it adjustable?
-			posted = true;
-		}
 	}
-	@Override public synchronized void run() {
-		posted = false;
-		update();
+	@Override protected void onLayout(boolean changed, int l, int t, int r, int b) {
+		self.layout(0, 0, r-l, b-t);
+	}
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	@Override protected void onMeasure (int widthMeasureSpec, int heightMeasureSpec) {
+		self.measure(widthMeasureSpec, heightMeasureSpec);
+		this.setMeasuredDimension(self.getMeasuredWidthAndState(), self.getMeasuredHeightAndState());
 	}
 }

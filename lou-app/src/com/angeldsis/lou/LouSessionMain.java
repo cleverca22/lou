@@ -12,6 +12,7 @@ import com.angeldsis.louapi.LouState.City;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
@@ -25,10 +26,12 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
-public class LouSessionMain extends SessionUser implements SessionKeeper.Callbacks, OnItemClickListener {
+public class LouSessionMain extends SessionUser implements SessionKeeper.Callbacks, OnItemClickListener, Runnable {
 	static final String TAG = "LouSessionMain";
 	ResourceBar resource_bar;
 	cityList mAdapter;
+	Handler h = new Handler();
+	ListView list;
 
 	public void onCreate(Bundle sis) {
 		super.onCreate(sis);
@@ -36,9 +39,9 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 		setContentView(R.layout.session_core);
 		Log.v(TAG,"bar1");
 		resource_bar = new ResourceBar(this);
-		((FrameLayout) findViewById(R.id.resource_bar)).addView(resource_bar.self);
+		((FrameLayout) findViewById(R.id.resource_bar)).addView(resource_bar);
 		mAdapter = new cityList(this);
-		ListView list = (ListView) findViewById(R.id.cities);
+		list = (ListView) findViewById(R.id.cities);
 		list.setAdapter(mAdapter);
 		list.setOnItemClickListener(this);
 	}
@@ -137,18 +140,18 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 	}
 	class cityList extends ArrayAdapter<City> {
 		// getView gets called at regular intervals, causing excessive recreation of objects
-		SparseArray<LinearLayout> views;
+		//SparseArray<LinearLayout> views;
 		cityList(Context c) {
 			super(c,0);
-			views = new SparseArray<LinearLayout>();
+			//views = new SparseArray<LinearLayout>();
 		}
 		public void clear() {
 			super.clear();
-			views.clear();
+			//views.clear();
 		}
 		public View getView(int position, View convertView, ViewGroup parent) {
-			LinearLayout row = views.get(position);
-			if (row != null) return row;
+			// FIXME, use convertView
+			LinearLayout row;// = views.get(position);
 			row = new LinearLayout(LouSessionMain.this);
 			row.setOrientation(LinearLayout.VERTICAL);
 			TextView name = new TextView(LouSessionMain.this);
@@ -164,9 +167,9 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 			//trans.add(0x1000 + position, bar2);
 			//bar2.update(i);
 			//trans.commit();
-			bar.addView(bar2.self);
+			bar.addView(bar2);
 			row.addView(bar);
-			views.put(position, row);
+			//views.put(position, row);
 			return row;
 		}
 	}
@@ -182,5 +185,26 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 		Intent i = new Intent(this,Reports.class);
 		i.putExtras(args);
 		startActivity(i);
+	}
+	@Override protected void onResume() {
+		super.onResume();
+		run();
+	}
+	@Override protected void onPause() {
+		super.onPause();
+		h.removeCallbacks(this);
+	}
+	@Override public void run() {
+		int x;
+		for (x=list.getChildCount() - 1; x >= 0; x--) {
+			View v = list.getChildAt(x).findViewById(R.id.resource_bar);
+			if (v instanceof ResourceBar) {
+				ResourceBar b = (ResourceBar) v;
+				b.update();
+			}
+		}
+		resource_bar.update();
+		h.removeCallbacks(this);
+		h.postDelayed(this, 5000);
 	}
 }
