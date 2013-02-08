@@ -32,7 +32,7 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 	cityList mAdapter;
 	Handler h = new Handler();
 	ListView list;
-
+	
 	public void onCreate(Bundle sis) {
 		super.onCreate(sis);
 		Log.v(TAG,"onCreate");
@@ -48,6 +48,7 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 	protected void onStart() {
 		super.onStart();
 		Log.v(TAG,"onStart");
+		mAdapter.clear();
 	}
 	public void session_ready() {
 		Log.v(TAG,"session_ready");
@@ -55,6 +56,7 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 			onEjected();
 		} else {
 			LouState state = session.state;
+			resource_bar.setState(state);
 			ArrayList<ChatMsg> msgs = state.chat_history;
 			int total = msgs.size();
 			TextView chat = (TextView) findViewById(R.id.chat);
@@ -139,19 +141,15 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 		session.state.changeCity(session.state.cities.get(arg2));
 	}
 	class cityList extends ArrayAdapter<City> {
-		// getView gets called at regular intervals, causing excessive recreation of objects
-		//SparseArray<LinearLayout> views;
 		cityList(Context c) {
 			super(c,0);
-			//views = new SparseArray<LinearLayout>();
 		}
 		public void clear() {
 			super.clear();
-			//views.clear();
 		}
 		public View getView(int position, View convertView, ViewGroup parent) {
 			// FIXME, use convertView
-			LinearLayout row;// = views.get(position);
+			LinearLayout row;
 			row = new LinearLayout(LouSessionMain.this);
 			row.setOrientation(LinearLayout.VERTICAL);
 			TextView name = new TextView(LouSessionMain.this);
@@ -160,16 +158,11 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 			row.addView(name);
 			// FIXME
 			FrameLayout bar = new FrameLayout(LouSessionMain.this);
-			//FragmentTransaction trans = getSupportFragmentManager().beginTransaction();
 			ResourceBar bar2 = new ResourceBar(LouSessionMain.this);
+			bar2.setState(session.state);
 			bar2.update(i);
-			//bar.setId(0x1000 + position);
-			//trans.add(0x1000 + position, bar2);
-			//bar2.update(i);
-			//trans.commit();
 			bar.addView(bar2);
 			row.addView(bar);
-			//views.put(position, row);
 			return row;
 		}
 	}

@@ -1,6 +1,7 @@
 package com.angeldsis.lou.fragments;
 
 import com.angeldsis.lou.R;
+import com.angeldsis.louapi.LouState;
 import com.angeldsis.louapi.LouState.City;
 import com.angeldsis.louapi.Resource;
 
@@ -21,6 +22,7 @@ public class ResourceBar extends ViewGroup {
 	City lastCity;
 	final static int[] countids = { R.id.woodC, R.id.stoneC, R.id.ironC, R.id.foodC };
 	final static int[] rateids = { R.id.woodR, R.id.stoneR, R.id.ironR, R.id.foodR };
+	LouState state;
 	
 	public ResourceBar(Context context) {
 		super(context);
@@ -48,7 +50,7 @@ public class ResourceBar extends ViewGroup {
 		int x;
 		for (x = 0; x < 4; x++) {
 			Resource r = lastCity.resources[x];
-			counts[x].setText(""+r.getCurrent());
+			counts[x].setText(""+r.getCurrent(state));
 			rates[x].setText(r.getRate());
 			int color;
 			// 25-71% == green
@@ -57,7 +59,7 @@ public class ResourceBar extends ViewGroup {
 			// 100% == red!
 			if (r.getMax() == 0) color = android.R.color.white;
 			else {
-				int percent = (r.getCurrent() * 100) / r.getMax();
+				int percent = (r.getCurrent(state) * 100) / r.getMax();
 				if (percent == 100) color = R.color.resource_red;
 				else if (percent > 90) color = R.color.resource_orange;
 				else if (percent > 82) color = R.color.resource_yellow;
@@ -73,5 +75,8 @@ public class ResourceBar extends ViewGroup {
 	@Override protected void onMeasure (int widthMeasureSpec, int heightMeasureSpec) {
 		self.measure(widthMeasureSpec, heightMeasureSpec);
 		this.setMeasuredDimension(self.getMeasuredWidthAndState(), self.getMeasuredHeightAndState());
+	}
+	public void setState(LouState state2) {
+		state = state2;
 	}
 }
