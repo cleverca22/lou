@@ -8,6 +8,9 @@ import com.angeldsis.lou.reports.Reports;
 import com.angeldsis.louapi.ChatMsg;
 import com.angeldsis.louapi.LouState;
 import com.angeldsis.louapi.LouState.City;
+import com.google.ads.AdRequest;
+import com.google.ads.AdSize;
+import com.google.ads.AdView;
 
 import android.content.Context;
 import android.content.Intent;
@@ -32,7 +35,8 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 	cityList mAdapter;
 	Handler h = new Handler();
 	ListView list;
-	
+	private AdView adView;
+
 	public void onCreate(Bundle sis) {
 		super.onCreate(sis);
 		Log.v(TAG,"onCreate");
@@ -44,6 +48,17 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 		list = (ListView) findViewById(R.id.cities);
 		list.setAdapter(mAdapter);
 		list.setOnItemClickListener(this);
+		
+		adView = new AdView(this, AdSize.BANNER, "a15115491d452e5");
+		ViewGroup ad = (ViewGroup) findViewById(R.id.ad);
+		ad.addView(adView);
+		adView.loadAd(new AdRequest().addTestDevice(AdRequest.TEST_EMULATOR));
+	}
+	@Override protected void onDestroy() {
+		if (adView != null) {
+			adView.destroy();
+		}
+		super.onDestroy();
 	}
 	protected void onStart() {
 		super.onStart();
