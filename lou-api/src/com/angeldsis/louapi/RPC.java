@@ -17,6 +17,7 @@ import org.json2.JSONTokener;
 
 import com.angeldsis.louapi.HttpRequest.HttpReply;
 import com.angeldsis.louapi.LouState.City;
+import com.angeldsis.louapi.data.AllianceForum;
 import com.angeldsis.louapi.data.SubRequest;
 import com.angeldsis.louapi.world.WorldParser;
 import com.angeldsis.louapi.world.WorldParser.WorldCallbacks;
@@ -508,6 +509,37 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			e.printStackTrace();
 		}
 	}
+	public void GetAllianceForums(final GetAllianceForumsCallback cb) {
+		post(new Runnable() {
+			@Override
+			public void run() {
+				JSONObject obj = new JSONObject();
+				try {
+					doRPC("GetAllianceForums",obj,RPC.this,new RPCCallback() {
+						@Override void requestDone(rpcreply r) throws JSONException, Exception {
+							JSONArray forums = (JSONArray) r.reply;
+							int i;
+							final AllianceForum[] output = new AllianceForum[forums.length()];
+							for (i=0; i<forums.length(); i++) {
+								JSONObject x = forums.getJSONObject(i);
+								output[i] = new AllianceForum(x);
+							}
+							runOnUiThread(new Runnable() {
+								public void run() {
+									cb.done(output);
+								}
+							});
+						}}, 5);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+	public interface GetAllianceForumsCallback {
+		void done(AllianceForum[] output);
+	}
 	public abstract void runOnUiThread(Runnable r);
 	public abstract void cityChanged();
 	public abstract void cityListChanged();
@@ -591,7 +623,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 				double b = item.getDouble("b"); // last value
 				double d = item.getDouble("d"); // gain per sec
 				int step = item.getInt("s");
-				state.currentCity.resources[i-1].set(d,b,m,step);
+				state.currentCity.resources[i-1].set(d,b,m,step,state);
 			}
 			state.processCityPacket(D);
 			runOnUiThread(new Runnable () {public void run() {

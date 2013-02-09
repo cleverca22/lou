@@ -1,39 +1,33 @@
 package com.angeldsis.louapi;
 
-import java.io.IOException;
-import java.io.Serializable;
-
 import com.google.gson.annotations.SerializedName;
 
-public class Resource implements Serializable {
+public class Resource {
 	static final String[] names = {"wood","stone","iron","food"};
-	private static final long serialVersionUID = 1L;
 	@SerializedName("d") double delta; // gain per step
 	@SerializedName("b") double base; // last value
 	@SerializedName("s") long step; // value of step at that time
 	@SerializedName("m") int max;
-	transient LouState state;
 	@SerializedName("n") private String name;
 	Resource(LouState state, int type) {
-		this.state = state;
 		step = state.getServerStep();
 		name = names[type];
 	}
-	public void set(double d, double b, int m, int s) {
-		int oldval = getCurrent();
+	public void set(double d, double b, int m, int s, LouState state) {
+		int oldval = getCurrent(state);
 		//Log.v("Resource","d:"+delta+" b:"+base+" m:"+max+" s:"+step);
 		delta = d;
 		base = b;
 		max = m;
 		step = s;
 		//Log.v("Resource","d:"+delta+" b:"+base+" m:"+max+" s:"+step);
-		int newval = getCurrent();
+		int newval = getCurrent(state);
 		if (oldval != newval) {
 			if (oldval < newval) Log.v("Resource",name+" went up "+(newval - oldval));
 			else Log.v("Resource",name+" went down "+(oldval - newval));
 		}
 	}
-	public int getCurrent() {
+	public int getCurrent(LouState state) {
 		int stepsPassed = (int) (state.getServerStep() - step);
 		double newVal = stepsPassed * delta + base;
 		if (newVal > max) return max;
@@ -47,21 +41,7 @@ public class Resource implements Serializable {
 	public int getMax() {
 		return max;
 	}
-	private void writeObject(java.io.ObjectOutputStream out) throws IOException {
-		out.writeDouble(base);
-		out.writeLong(step);
-		out.writeDouble(delta);
-		out.writeInt(max);
-	}
-	private void readObject(java.io.ObjectInputStream in) throws IOException,
-			ClassNotFoundException {
-		base = in.readDouble();
-		step = in.readLong();
-		delta = in.readDouble();
-		max = in.readInt();
-	}
-	public void fix(LouState louState, int i) {
-		state = louState;
+	public void fix(int i) {
 		name = names[i];
 	}
 }

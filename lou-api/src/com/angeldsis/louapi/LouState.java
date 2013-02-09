@@ -118,7 +118,7 @@ public class LouState {
 		}
 		public void fix(LouState state) {
 			int i = 0;
-			for (i = 0; i < 4; i++) resources[i].fix(state,i);
+			for (i = 0; i < 4; i++) resources[i].fix(i);
 			init();
 		}
 		public long getCityid() {
