@@ -34,14 +34,13 @@ import android.widget.ListView;
 import android.widget.TabHost;
 import android.widget.TextView;
 
+import com.angeldsis.lou.BBCode.Span;
 import com.angeldsis.lou.chat.ChatHistory;
 import com.angeldsis.lou.reports.ShowReport;
 import com.angeldsis.louapi.ChatMsg;
 
 public class ChatWindow extends SessionUser {
 	static final String TAG = "ChatWindow";
-	Pattern purl = Pattern.compile("^(.*)\\[url\\](.*)\\[/url\\](.*)$");
-	Pattern preport = Pattern.compile("^(.*)([A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4})(.*)$");
 	private TabHost mTabHost;
 	enum Type { pm,channel };
 	class Channel {
@@ -204,7 +203,7 @@ public class ChatWindow extends SessionUser {
 				if (c.channel == null) {
 					b.append(c.sender);
 					b.append(" ");
-					printBBcode(c.message,b,spans);
+					BBCode.parse(ChatWindow.this,c.message,b,spans);
 				} else if (c.channel.equals("@A")) {
 					start = b.length();
 					String all = getString(R.string.alliance);
@@ -225,7 +224,7 @@ public class ChatWindow extends SessionUser {
 					
 					b.append(": ");
 					
-					printBBcode(c.message,b,spans);
+					BBCode.parse(ChatWindow.this,c.message,b,spans);
 					end = b.length();
 					
 					b.setSpan(new ForegroundColorSpan(green), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -241,7 +240,7 @@ public class ChatWindow extends SessionUser {
 					
 					if (c.channel.equals("privateout")) b.append(session.state.self.getName()+": ");
 					else b.append(c.sender+": ");
-					printBBcode(c.message,b,spans);
+					BBCode.parse(ChatWindow.this,c.message,b,spans);
 				}
 				else {
 					b.append(c.channel);
@@ -258,7 +257,7 @@ public class ChatWindow extends SessionUser {
 					if (c.sender.charAt(0) != '@') b.setSpan(new NameClicked(c.sender), start, end1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 	
 					b.append(": ");
-					printBBcode(c.message,b,spans);
+					BBCode.parse(ChatWindow.this,c.message,b,spans);
 				}
 				for (Span s : spans) s.apply(b);
 			} else {
@@ -287,72 +286,6 @@ public class ChatWindow extends SessionUser {
 		public void update() {
 			lastCount = getRealCount();
 			notifyDataSetChanged();
-		}
-	}
-	void printBBcode(String bbcode,SpannableStringBuilder builder,ArrayList<Span> spans) {
-		Matcher m = purl.matcher(bbcode);
-		if (m.find()) {
-			String a = m.group(1);
-			String b = m.group(2);
-			String c = m.group(3);
-			builder.append(a);
-			int start = builder.length();
-			builder.append(b);
-			int end = builder.length();
-			spans.add(new Span(new LinkClicked(b), start, end));
-			builder.append(c);
-			return;
-		}
-		m = preport.matcher(bbcode);
-		if (m.find()) {
-			String a = m.group(1);
-			String b = m.group(2);
-			String c = m.group(3);
-			builder.append(a);
-			int start = builder.length();
-			builder.append(b);
-			int end = builder.length();
-			spans.add(new Span(new ReportClicked(b), start, end));
-			builder.append(c);
-			return;
-		}
-		builder.append(bbcode);
-	}
-	static class Span {
-		Object o;
-		int start,end;
-		public Span(Object linkClicked, int start, int end) {
-			o = linkClicked;
-			this.start = start;
-			this.end = end;
-		}
-		public void apply(SpannableStringBuilder b) {
-			b.setSpan(o, start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-		}
-	}
-	class LinkClicked extends ClickableSpan {
-		String url;
-		public LinkClicked(String b) {
-			url = b;
-		}
-		@Override
-		public void onClick(View widget) {
-			Intent openLink = new Intent(Intent.ACTION_VIEW,Uri.parse(url));
-			startActivity(openLink);
-		}
-	}
-	class ReportClicked extends ClickableSpan {
-		String shareid;
-		ReportClicked(String r) {
-			shareid = r;
-		}
-		@Override public void onClick(View v) {
-			Log.v(TAG,"report clicked "+shareid);
-			Bundle args = acct.toBundle();
-			args.putString("shareid",shareid);
-			Intent i = new Intent(ChatWindow.this,ShowReport.class);
-			i.putExtras(args);
-			startActivity(i);
 		}
 	}
 	void formatTime(Calendar c3, SpannableStringBuilder b) {

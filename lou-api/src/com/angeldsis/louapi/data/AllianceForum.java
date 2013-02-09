@@ -9,17 +9,17 @@ import org.json2.JSONObject;
 import com.angeldsis.louapi.Log;
 
 public class AllianceForum {
-	boolean hup,sf;
-	String forumName;
+	public boolean hup,translatable;
+	public String forumName;
 	ArrayList<What> rw = new ArrayList<What>();
-	int forumID;
+	public int forumID;
 	
 	public class What {
 
 	}
 	public AllianceForum(JSONObject x) throws JSONException {
-		hup = x.getBoolean("hup");
-		sf = x.getBoolean("sf");
+		hup = x.getBoolean("hup"); // new posts?
+		translatable = x.getBoolean("sf"); // its name can be translated?
 		forumName = x.getString("ft");
 		forumID = x.getInt("fi");
 		int i;
@@ -28,8 +28,5 @@ public class AllianceForum {
 			JSONObject y = a.getJSONObject(i);
 			Log.v("AllianceForum",y.toString(1));
 		}
-	}
-	public String toString() {
-		return forumName;
 	}
 }

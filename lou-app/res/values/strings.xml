@@ -35,4 +35,8 @@
     <string name="queuesize">Queue size: %1$d ETC: %2$s</string>
     <string name="you_where_disconnected">You where disconnected from the server!</string>
     <string name="homescreen">Go to homescreen</string>
+    <string name="announcements">Announcements</string>
+    <string name="general">General</string>
+    <string name="introduction">Introduction</string>
+    <string name="offtopic">Offtopic</string>
 </resources>

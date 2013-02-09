@@ -18,6 +18,8 @@ import org.json2.JSONTokener;
 import com.angeldsis.louapi.HttpRequest.HttpReply;
 import com.angeldsis.louapi.LouState.City;
 import com.angeldsis.louapi.data.AllianceForum;
+import com.angeldsis.louapi.data.ForumPost;
+import com.angeldsis.louapi.data.ForumThread;
 import com.angeldsis.louapi.data.SubRequest;
 import com.angeldsis.louapi.world.WorldParser;
 import com.angeldsis.louapi.world.WorldParser.WorldCallbacks;
@@ -916,5 +918,70 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 	}
 	public interface GetLockboxURLDone {
 		public void done(String reply);
+	}
+	public void GetAllianceForumThreads(final long forumID, final GotForumThreads cb) {
+		post(new Runnable(){
+			@Override public void run() {
+				JSONObject obj = new JSONObject();
+				try {
+					obj.put("forumID", forumID);
+					doRPC("GetAllianceForumThreads", obj, RPC.this, new RPCCallback(){
+						@Override void requestDone(rpcreply r) throws JSONException {
+							JSONArray a = (JSONArray) r.reply;
+							int i;
+							final ForumThread[] out = new ForumThread[a.length()];
+							for (i=0; i<a.length(); i++) {
+								JSONObject o = a.getJSONObject(i);
+								out[i] = new ForumThread(o);
+							}
+							runOnUiThread(new Runnable() {
+								@Override public void run() {
+									cb.done(out);
+								}
+							});
+						}
+					}, 5);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+	public interface GotForumThreads {
+		void done(ForumThread[] out);
+	}
+	public void GetAllianceForumPosts(final long forumID, final long threadID, final GetForumPostCallback cb) {
+		post(new Runnable(){
+			@Override public void run() {
+				JSONObject obj = new JSONObject();
+				try {
+					obj.put("forumID", forumID);
+					obj.put("threadID", threadID);
+					doRPC("GetAllianceForumPosts",obj,RPC.this,new RPCCallback() {
+						@Override void requestDone(rpcreply r) throws JSONException {
+							JSONArray a = (JSONArray) r.reply;
+							int i;
+							final ForumPost[] out = new ForumPost[a.length()];
+							for (i=0; i<a.length(); i++) {
+								JSONObject o = a.getJSONObject(i);
+								out[i] = new ForumPost(o);
+							}
+							runOnUiThread(new Runnable() {
+								@Override public void run() {
+									cb.done(out);
+								}
+							});
+						}
+					},5);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+	public interface GetForumPostCallback {
+		void done(ForumPost[] out);
 	}
 }
