@@ -31,9 +31,13 @@ public class LouStructure extends VisObject implements Hook {
 		//addView(level,layout);
 		updated(); // sets level text
 		level.setBackgroundResource(R.drawable.building_level_display_bgr);
-		
-		int res = -1;
+
 		this.typeid = base.typeid;
+		images = AndroidEnums.getStructureImage(base.typeid, base.level);
+		if (images != null) return;
+		else if (base.level == 0) Log.w(TAG,"using fallback code "+base.typeid+" "+base.level); // FIXME
+
+		int res = -1;
 		switch (base.typeid) {
 		case CityBuilding.COTTAGE:
 			res = R.drawable.building_cottage;
@@ -118,7 +122,7 @@ public class LouStructure extends VisObject implements Hook {
 			//level.setText(""+base.typeid);
 		}
 		images = new LouImage[1];
-		images[0] = new LouImage(context,res,128,128);
+		images[0] = new LouImage(res,128,128);
 	}
 /*	protected void onDraw(Canvas canvas){
 		Log.v(TAG,"onDraw");
@@ -196,5 +200,8 @@ public class LouStructure extends VisObject implements Hook {
 	@Override
 	void measure(int widthMeasureSpec, int heightMeasureSpec) {
 		level.measure(widthMeasureSpec, heightMeasureSpec);
+	}
+	public void onStop() {
+		if (base.hook == this) base.hook = null;
 	}
 }

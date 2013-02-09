@@ -1,6 +1,5 @@
 package com.angeldsis.lou;
 
-import android.content.Context;
 import android.graphics.RectF;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -11,7 +10,7 @@ import com.angeldsis.louapi.CityBuilding;
 public class CityFortification extends VisObject {
 	int id2;
 	String TAG = "CirtFortification";
-	public CityFortification(Context context, CityBuilding base) {
+	public CityFortification(CityBuilding base) {
 		int width,height;
 		int res = -1;
 		id2 = base.typeid;
@@ -201,7 +200,7 @@ public class CityFortification extends VisObject {
 		}
 		if (res != -1) {
 			images = new LouImage[1];
-			images[0] = new LouImage(context,res,width,height);
+			images[0] = new LouImage(res,width,height);
 		}
 		else Log.v("CityFortification","made "+base.typeid);
 	}

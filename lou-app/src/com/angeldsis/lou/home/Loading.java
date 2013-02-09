@@ -23,7 +23,8 @@ public class Loading extends Fragment {
 	public View onCreateView (LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		Log.v(TAG,"onCreateView");
 		stopped = false;
-		if ((SessionKeeper.session2 != null) && (SessionKeeper.session2.servers.size() > 0)) {
+		if ((SessionKeeper.session2 != null) && (SessionKeeper.session2.servers != null) &&
+				(SessionKeeper.session2.servers.size() > 0)) {
 			Log.v(TAG,"session already setup");
 			FragmentTransaction trans = getActivity().getSupportFragmentManager().beginTransaction();
 			trans.replace(R.id.main_frame, new ServerList());

@@ -10,7 +10,7 @@ import android.view.ViewGroup;
 public class ResFieldUI extends VisObject {
 	String TAG = "ResFieldUI";
 	CityResField base;
-	public ResFieldUI(Context context, CityResField base) {
+	public ResFieldUI(CityResField base) {
 		this.base = base;
 		rect = new RectF(base.x,base.y,base.x+128,base.y+128);
 		int imageid = -1;
@@ -75,11 +75,11 @@ public class ResFieldUI extends VisObject {
 		case 1:
 		case 2:
 		case 6:
-			images[0] = new LouImage(context,imageid,150,128);
+			images[0] = new LouImage(imageid,150,128);
 			break;
 		case 3:
 			// FIXME only renders 1st frame
-			images[0] = new LouAnimation(context,imageid,128,90,15);
+			images[0] = new LouAnimation(imageid,128,90,15);
 			break;
 		default:
 			Log.e(TAG,"image not configured right "+base.subid+" "+base.typeid);

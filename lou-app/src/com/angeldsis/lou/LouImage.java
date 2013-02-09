@@ -6,15 +6,13 @@ import android.graphics.drawable.Drawable;
 
 public class LouImage {
 	int imageId,width,height;
-	static Context context;
 	Drawable image_cache;
-	LouImage(Context c,int resource,int width,int height) {
+	LouImage(int resource,int width,int height) {
 		imageId = resource;
-		LouImage.context = c;
 		this.width = width;
 		this.height = height;
 	}
-	Drawable getImage() {
+	Drawable getImage(Context context) {
 		if (image_cache != null) return image_cache;
 		Drawable img;
 		img = context.getResources().getDrawable(imageId);
@@ -25,7 +23,7 @@ public class LouImage {
 	void expire() {
 		image_cache = null;
 	}
-	public void draw(Canvas c) {
-		getImage().draw(c);
+	public void draw(Canvas c,Context context) {
+		getImage(context).draw(c);
 	}
 }

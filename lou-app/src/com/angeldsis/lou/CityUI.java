@@ -38,5 +38,9 @@ public class CityUI extends ViewGroup {
 	}
 	public void setState(LouState state, RPC rpc) {
 		mTest.setState(state,rpc);
+		resource_bar.setState(state);
+	}
+	public void onStop() {
+		mTest.onStop();
 	}
 }

@@ -201,7 +201,7 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 				b.dumpInfo();
 			} else {
 				for (j = 0; j < b.images.length; j++ ) {
-					b.images[j].draw(c);
+					b.images[j].draw(c,context);
 				}
 			}
 			c.restore();
@@ -252,11 +252,11 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 			buildings.add(vg);
 			break;
 		case 9:
-			ResFieldUI vg3 = new ResFieldUI(context,(CityResField)v);
+			ResFieldUI vg3 = new ResFieldUI((CityResField)v);
 			buildings.add(vg3);
 			break;
 		case 10:
-			CityFortification vg2 = new CityFortification(context,(CityBuilding)v);
+			CityFortification vg2 = new CityFortification((CityBuilding)v);
 			vg2.addViews(this);
 			buildings.add(vg2);
 			break;
@@ -548,5 +548,14 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 	@Override
 	protected void onFocusChanged (boolean gainFocus, int direction, Rect previouslyFocusedRect) {
 		Log.v(TAG,String.format("onFocusChanged(%s,%d,%s)",gainFocus ? "true":"false",direction, previouslyFocusedRect));
+	}
+	public void onStop() {
+		Iterator<VisObject> i = buildings.iterator();
+		while (i.hasNext()) {
+			VisObject v = i.next();
+			if (v instanceof LouStructure) ((LouStructure)v).onStop();
+		}
+		buildings.clear();
+		Log.v(TAG,"hooks and buildings cleared");
 	}
 }

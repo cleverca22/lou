@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import com.angeldsis.lou.SessionKeeper.Callbacks;
 import com.angeldsis.lou.SessionKeeper.MyBinder;
+import com.angeldsis.lou.allianceforum.AllianceForumList;
 import com.angeldsis.lou.home.DisconnectedDialog;
 import com.angeldsis.louapi.ChatMsg;
 import com.angeldsis.louapi.IncomingAttack;
@@ -176,6 +177,11 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 					Intent buyFunds = new Intent(Intent.ACTION_VIEW,location);
 					startActivity(buyFunds);
 				}});
+			return true;
+		case R.id.allianceForum:
+			i = new Intent(this,AllianceForumList.class);
+			i.putExtras(acct.toBundle());
+			startActivity(i);
 			return true;
 		}
 		return super.onOptionsItemSelected(item);

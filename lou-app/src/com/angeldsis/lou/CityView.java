@@ -59,6 +59,7 @@ public class CityView extends SessionUser implements Callbacks, LayoutCallbacks 
 		super.onStop();
 		Log.v(TAG,"onStop");
 		vis_data_loaded = false; // not sure why this helps
+		mTest.onStop();
 	}
 	Runnable ticker2 = new Runnable() {
 		public void run() {
