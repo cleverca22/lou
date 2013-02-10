@@ -51,6 +51,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 		polling = false;
 		poller = new Poller();
 		synchronized(this) {
+			Log.v(TAG,"starting thread in constructor");
 			running = true;
 			start();
 		}
@@ -388,12 +389,16 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 					JSONObject r2 = (JSONObject) reply.reply;
 					int r = r2.getInt("r");
 					Log.v(TAG,r2.toString(1));
+					instanceid = r2.getString("i");
+					if ("00000000-0000-0000-0000-000000000000".equals(instanceid)) {
+						onEjected();
+						return;
+					}
 					if (r < 0) {
 						Thread.sleep(1000);
 						OpenSession(reset,callback2,retry_count+1);
 						return;
 					}
-					instanceid = r2.getString("i");
 					callback2.requestDone(null);
 				}
 			},5);
@@ -983,5 +988,51 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 	}
 	public interface GetForumPostCallback {
 		void done(ForumPost[] out);
+	}
+	public void CreateAllianceForumThread(final long forumID, final String title, final String message,final RPCDone callback) {
+		post(new Runnable(){
+			@Override public void run() {
+				JSONObject obj = new JSONObject();
+				try {
+					obj.put("forumID", forumID);
+					obj.put("threadTitle", title);
+					obj.put("firstPostMessage", message);
+					doRPC("CreateAllianceForumThread",obj,RPC.this,new RPCCallback(){
+						@Override
+						void requestDone(rpcreply r) {
+							boolean reply = (Boolean) r.reply;
+							Log.v(TAG,"post made, reply: "+reply);
+							callback.requestDone(null);
+						}},5);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+	public void CreateAllianceForumPost(final long forumID, final long threadID,
+			final String message,final RPCDone callback) {
+		post(new Runnable(){
+			@Override public void run() {
+				JSONObject obj = new JSONObject();
+				try {
+					obj.put("forumID", forumID);
+					obj.put("threadID", threadID);
+					obj.put("postMessage", message);
+					Log.v(TAG,"CreateAllianceForumPost:"+obj.toString());
+					doRPC("CreateAllianceForumPost",obj,RPC.this,new RPCCallback(){
+						@Override
+						void requestDone(rpcreply r) {
+							boolean reply = (Boolean) r.reply;
+							Log.v(TAG,"post made, reply: "+reply);
+							callback.requestDone(null);
+						}},5);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
 	}
 }

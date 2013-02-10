@@ -30,7 +30,8 @@ public class AllianceForumList extends SessionUser implements GetAllianceForumsC
 		list.setOnItemClickListener(this);
 	}
 	@Override public void session_ready() {
-		if ((forums == null) || (forums.length == 0)) refresh();
+		//if ((forums == null) || (forums.length == 0))
+		refresh();
 	}
 	private void refresh() {
 		session.rpc.GetAllianceForums(this);
@@ -48,9 +49,13 @@ public class AllianceForumList extends SessionUser implements GetAllianceForumsC
 			return getItem(index).forumID;
 		}
 		@Override public View getView(int index,View out,ViewGroup parent) {
+			ViewHolder h;
 			if (out == null) {
 				out = AllianceForumList.this.getLayoutInflater().inflate(R.layout.alliance_forum_row, parent,false);
-			}
+				h = new ViewHolder();
+				h.name = (TextView) out.findViewById(R.id.name);
+				out.setTag(h);
+			} else h = (ViewHolder) out.getTag();
 			AllianceForum a = getItem(index);
 			String msg = a.forumName;
 			if (a.translatable) {
@@ -60,17 +65,23 @@ public class AllianceForumList extends SessionUser implements GetAllianceForumsC
 				else if (a.forumName.equals("@Introduction")) msg = r.getString(R.string.introduction);
 				else if (a.forumName.equals("@Offtopic")) msg = r.getString(R.string.offtopic);
 			}
+			h.translated = msg;
 			msg = ""+a.hup+" "+msg;
-			TextView v = (TextView) out.findViewById(R.id.name);
-			v.setText(msg);
+			h.name.setText(msg);
 			return out;
 		}
 	}
+	private static class ViewHolder {
+		public String translated;
+		public TextView name;
+	}
 	@Override
 	public void onItemClick(AdapterView<?> list, View row, int index, long id) {
+		ViewHolder h = (ViewHolder) row.getTag();
 		Intent i = new Intent(this,ShowForum.class);
 		i.putExtras(acct.toBundle());
 		i.putExtra("forumID", id);
+		i.putExtra("forumName", h.translated);
 		startActivity(i);
 	}
 }

@@ -39,4 +39,5 @@
     <string name="general">General</string>
     <string name="introduction">Introduction</string>
     <string name="offtopic">Offtopic</string>
+    <string name="new_thread">Create new thread</string>
 </resources>

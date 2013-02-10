@@ -4,7 +4,7 @@ import org.json2.JSONException;
 import org.json2.JSONObject;
 
 public class ForumThread {
-	boolean hup;
+	public boolean hup;
 	public int threadID,ai;
 	public String tt,an;
 	int pc;

@@ -24,6 +24,7 @@ public class AllianceForum {
 		forumID = x.getInt("fi");
 		int i;
 		JSONArray a = x.getJSONArray("rw");
+		Log.v("AllianceForum","start");
 		for (i=0; i < a.length(); i++) {
 			JSONObject y = a.getJSONObject(i);
 			Log.v("AllianceForum",y.toString(1));

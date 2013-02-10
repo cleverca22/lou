@@ -1,7 +1,5 @@
 package com.angeldsis.lou.allianceforum;
 
-import java.util.ArrayList;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -32,13 +30,14 @@ public class ShowForum extends SessionUser implements OnItemClickListener, GotFo
 			}
 			TextView topic = (TextView) out.findViewById(R.id.topic);
 			ForumThread t = getItem(index);
-			topic.setText(t.tt);
+			topic.setText(t.hup +" "+t.tt);
 			return out;
 		}
 	}
 	ForumThread[] forums = null;
 	private ListView list;
 	private long forumID;
+	private String forumName;
 	@Override public void onCreate(Bundle sis) {
 		super.onCreate(sis);
 		setContentView(R.layout.forum_threads);
@@ -46,17 +45,22 @@ public class ShowForum extends SessionUser implements OnItemClickListener, GotFo
 		list.setOnItemClickListener(this);
 		Bundle b = this.getIntent().getExtras();
 		forumID = b.getLong("forumID");
+		forumName = b.getString("forumName");
+		((TextView)findViewById(R.id.forum)).setText(forumName);
 	}
 	@Override public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long rowid) {
 		Log.v("ShowForum",String.format("GetAllianceForumPosts(%d,%d)",forumID,rowid));
 		Intent i = new Intent(this,ShowPosts.class);
 		i.putExtras(acct.toBundle());
 		i.putExtra("forumID", forumID);
+		i.putExtra("forumName",forumName);
 		i.putExtra("threadID", rowid);
+		i.putExtra("threadName",((ThreadList)list.getAdapter()).getItem(arg2).tt);
 		startActivity(i);
 	}
 	@Override public void session_ready() {
-		if ((forums == null) || (forums.length == 0)) refresh();
+		//if ((forums == null) || (forums.length == 0)) 
+		refresh();
 	}
 	private void refresh() {
 		session.rpc.GetAllianceForumThreads(forumID,this);
@@ -66,5 +70,11 @@ public class ShowForum extends SessionUser implements OnItemClickListener, GotFo
 		ThreadList a = new ThreadList(this,out);
 		forums = out;
 		list.setAdapter(a);
+	}
+	public void newThread(View v) {
+		Intent i = new Intent(this,NewThread.class);
+		i.putExtras(acct.toBundle());
+		i.putExtra("forumID", forumID);
+		startActivity(i);
 	}
 }
