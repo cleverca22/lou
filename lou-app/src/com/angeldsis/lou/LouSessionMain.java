@@ -52,8 +52,9 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 		ViewGroup ad = (ViewGroup) findViewById(R.id.ad);
 		ad.addView(adView);
 		adView.loadAd(new AdRequest()
-			.addTestDevice(AdRequest.TEST_EMULATOR)
-			.addTestDevice("3BAAE9494C8A3A8046F0239B242006E8"));
+			//.addTestDevice(AdRequest.TEST_EMULATOR)
+			//.addTestDevice("3BAAE9494C8A3A8046F0239B242006E8")
+		);
 	}
 	@Override protected void onDestroy() {
 		if (adView != null) {
