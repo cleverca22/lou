@@ -25,6 +25,7 @@ import com.angeldsis.louapi.LouVisData;
 import com.angeldsis.louapi.RPC;
 import com.angeldsis.louapi.RPC.RPCDone;
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -243,16 +244,27 @@ public class SessionKeeper extends Service {
 		}
 		public void restoreState() {
 			FileInputStream state;
+			File source = SessionKeeper.this.getFileStreamPath("state_save");
 			try {
-				state = SessionKeeper.this.openFileInput("state_save");
+				state = new FileInputStream(source);
 				Gson gson = new Gson();
 				this.state = gson.fromJson(new InputStreamReader(state), LouState.class);
 				
+				Log.v(TAG,"state:"+this.state);
+				Log.v(TAG,"cities:"+this.state.cities);
 				Iterator<City> i = this.state.cities.iterator();
 				while (i.hasNext()) i.next().fix(this.state);
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+			} catch (JsonSyntaxException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				source.delete();
+			} catch (NullPointerException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				source.delete();
 			}
 		}
 		public void onPlayerData() {
@@ -287,7 +299,7 @@ public class SessionKeeper extends Service {
 		public void vidDataUpdated() {
 			if (cb != null) cb.visDataUpdated();
 		}
-		public void onVisObjAdded(LouVisData v) {
+		public void onVisObjAdded(LouVisData[] v) {
 			if (cb != null) cb.onVisObjAdded(v);
 		}
 		public void onNewAttack(IncomingAttack a) {
@@ -302,6 +314,21 @@ public class SessionKeeper extends Service {
 					.setDefaults(Notification.DEFAULT_SOUND)
 					.setWhen(end);
 				long start = rpc.state.stepToMilis(a.start);
+				
+				Bundle options = acct.toBundle();
+				Intent resultIntent = new Intent(SessionKeeper.this,IncomingAttacks.class);
+				Intent homeIntent = new Intent(SessionKeeper.this,LouSessionMain.class);
+				resultIntent.putExtras(options);
+				homeIntent.putExtras(options);
+				TaskStackBuilder stackBuilder = TaskStackBuilder.create(SessionKeeper.this);
+				stackBuilder.addParentStack(IncomingAttacks.class);
+				stackBuilder.addNextIntent(homeIntent);
+				stackBuilder.addNextIntent(resultIntent);
+				PendingIntent resultPendingIntent = stackBuilder
+						.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT, options);
+				incomingAttackBuilder.setContentIntent(resultPendingIntent);
+
+				
 				Notification n = incomingAttackBuilder.build();
 				int id = (INCOMING_ATTACK | sessionid) + (a.id << 15);
 				Log.v(TAG,String.format("id:0x%x,sessionid:%d, id:%d",id,sessionid,a.id));
@@ -339,7 +366,7 @@ public class SessionKeeper extends Service {
 		void onSubListChanged();
 		void onReportCountUpdate();
 		boolean onNewAttack(IncomingAttack a);
-		void onVisObjAdded(LouVisData v);
+		void onVisObjAdded(LouVisData[] v);
 		void loginDone();
 		void visDataUpdated();
 		void cityListChanged();

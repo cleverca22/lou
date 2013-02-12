@@ -40,4 +40,5 @@
     <string name="introduction">Introduction</string>
     <string name="offtopic">Offtopic</string>
     <string name="new_thread">Create new thread</string>
+    <string name="reply">Reply</string>
 </resources>

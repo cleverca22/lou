@@ -87,7 +87,7 @@ public class CityView extends SessionUser implements Callbacks, LayoutCallbacks 
 		Log.v(TAG,"added view");
 	}
 	@Override
-	public void onVisObjAdded(LouVisData v) {
+	public void onVisObjAdded(LouVisData[] v) {
 		mTest.mTest.onVisObjAdded(v,true);
 	}
 	public void gotCityData() {

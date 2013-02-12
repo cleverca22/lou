@@ -60,10 +60,11 @@ public class RPCWrap extends RPC {
 	}
 	@Override
 	public void runOnUiThread(Runnable r) {
+		Log.v("RPCWrap","posting "+r+" to "+handler);
 		handler.post(r);
 	}
 	@Override
-	public void onVisObjAdded(LouVisData v) {
+	public void onVisObjAdded(LouVisData[] v) {
 		callbacks.onVisObjAdded(v);
 	}
 	@Override

@@ -192,8 +192,7 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 	}
 	@Override
 	public void loginDone() {}
-	@Override
-	public void onVisObjAdded(LouVisData v) {}
+	@Override public void onVisObjAdded(LouVisData[] v) {}
 	@Override
 	public boolean onNewAttack(IncomingAttack a) {
 		// TODO Auto-generated method stub

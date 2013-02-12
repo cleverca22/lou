@@ -571,6 +571,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 				}
 			} else requests = requests + "\fCHAT:";
 			requests += "\fPLAYER:";
+			if (state.getFullPlayerData)requests += "a";
 			requests += "\fTIME:"+System.currentTimeMillis();
 			requests += "\fREPORT:";
 			requests += "\fSERVER:";
@@ -719,6 +720,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 		}
 		JSONArray u = D.getJSONArray("u");
 		int x;
+		LouVisData[] changes = new LouVisData[u.length()];
 		for (x = 0; x < u.length(); x++) {
 			JSONObject structure = u.getJSONObject(x);
 			LouVisData parsed = null,temp = null;
@@ -758,12 +760,13 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 				if (parsed != null) {
 					parsed.type = type;
 					c.addVisObj(parsed);
-					runOnUiThread(new visObjMade(parsed));
+					changes[x] = parsed;
 				}
 			} else { // if it was found
 				runOnUiThread(new uiUpdate(parsed,structure));
 			}
 		}
+		runOnUiThread(new visObjMade(changes));
 		if (c.visreset == 1) {
 			c.visreset = 0;
 			runOnUiThread(new Runnable () {public void run() {
@@ -776,13 +779,13 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 		}
 	}
 	private class visObjMade implements Runnable {
-		LouVisData v;
-		visObjMade(LouVisData v) { this.v = v; }
+		LouVisData[] v;
+		visObjMade(LouVisData[] changes) { this.v = changes; }
 		public void run() {
 			RPC.this.onVisObjAdded(v);
 		}
 	}
-	public abstract void onVisObjAdded(LouVisData v);
+	public abstract void onVisObjAdded(LouVisData[] v);
 	private class uiUpdate implements Runnable {
 		LouVisData v;
 		JSONObject s;

@@ -71,10 +71,9 @@ public class ResourceBar extends ViewGroup {
 	@Override protected void onLayout(boolean changed, int l, int t, int r, int b) {
 		self.layout(0, 0, r-l, b-t);
 	}
-	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	@Override protected void onMeasure (int widthMeasureSpec, int heightMeasureSpec) {
 		self.measure(widthMeasureSpec, heightMeasureSpec);
-		this.setMeasuredDimension(self.getMeasuredWidthAndState(), self.getMeasuredHeightAndState());
+		this.setMeasuredDimension(self.getMeasuredWidth(), self.getMeasuredHeight());
 	}
 	public void setState(LouState state2) {
 		state = state2;

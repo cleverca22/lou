@@ -1,7 +1,5 @@
 package com.angeldsis.louapi;
 
-import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -36,6 +34,7 @@ public class LouState {
 	transient public int viewed_reports;
 	transient public ArrayList<SubRequest> subs;
 	transient public boolean userActivity;
+	transient boolean getFullPlayerData = true;
 
 	public LouState() {
 		init();
@@ -133,6 +132,10 @@ public class LouState {
 		}
 	}
 	public void parsePlayerUpdate(JSONObject d) throws JSONException {
+		getFullPlayerData = false;
+		JSONArray cg = d.optJSONArray("cg");
+		boolean female = d.getBoolean("f");
+		Log.v(TAG,"cg:"+cg+" f:"+female);
 		// FIXME check d.c array for changes to cities array
 		if (d.has("g")) {
 			JSONObject g = d.optJSONObject("g");

@@ -2,33 +2,35 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/win_mainoverlay_paper"
     android:orientation="vertical" >
 
     <Button
         android:id="@+id/forum"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Button" />
+        android:layout_height="wrap_content" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content" >
 
-        <TextView
-            android:id="@+id/textView1"
+        <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="arrow"
-            android:textAppearance="?android:attr/textAppearanceSmall" />
+            android:src="@drawable/msc_forum_post_arrow" />
 
         <TextView
             android:id="@+id/thread"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Medium Text"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
+            android:text="Medium Text" />
 
     </LinearLayout>
+
+    <View
+        style="@style/seperator"
+        android:layout_width="wrap_content"
+        android:layout_height="1dp" />
 
     <ListView
         android:id="@+id/list"
@@ -39,9 +41,10 @@
     </ListView>
 
     <Button
+        style="@style/button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:onClick="makeReply"
-        android:text="Reply" />
+        android:text="@string/reply" />
 
 </LinearLayout>

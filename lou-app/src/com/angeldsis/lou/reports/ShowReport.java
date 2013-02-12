@@ -52,15 +52,18 @@ public class ShowReport extends SessionUser implements ReportCallback {
 			case Report.types.combat.raidDungeon:
 			case Report.types.combat.plunder:
 			case Report.types.combat.siege:
+			case Report.types.combat.assault:
+			case Report.types.combat.raidBoss:
 				Log.v("ShowReport",report.toString());
 				setField(R.id.share,report.share);
 				setField(R.id.when,(new Date(report.reportHeader.timestamp)).toString());
 				setField(R.id.objType,report.objType);
-				setField(R.id.type,"type:"+report.reportHeader.generalType);
+				setField(R.id.type,"type:"+report.reportHeader.generalType+" "+report.reportHeader.combatType);
 				setupHalf(side1,report.attacker,R.string.trapped);
 				setupHalf(side2,report.defender,R.string.fortified);
 				break;
 			default:
+				setField(R.id.type,"type:"+report.reportHeader.generalType+" "+report.reportHeader.combatType);
 				Log.v(TAG,"unknown combat type: "+report.reportHeader.combatType);
 			}
 		} else {

@@ -224,12 +224,9 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 		onLayout(false, 0, 0, 0, 0);
 	}
 	public void gotVisData() {
-		int x;
 		City self = state.currentCity;
-		for (x = 0; x < self.visData.size(); x++) {
-			LouVisData current = self.visData.get(x);
-			onVisObjAdded(current,false);
-		}
+		LouVisData[] changes = self.visData.toArray(new LouVisData[self.visData.size()]);
+		onVisObjAdded(changes,false);
 		onLayout(false, 0, 0, 0, 0);
 		requestLayout();
 	}
@@ -244,26 +241,29 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 	/** called when a new LouVisData is added by api, or at startup, on the array of them
 	 * @param v
 	 */
-	public void onVisObjAdded(LouVisData v, boolean doLayout) {
-		switch (v.type) {
-		case 4:
-			LouStructure vg = new LouStructure(context,(CityBuilding)v,state);
-			vg.addViews(this);
-			buildings.add(vg);
-			break;
-		case 9:
-			ResFieldUI vg3 = new ResFieldUI((CityResField)v);
-			buildings.add(vg3);
-			break;
-		case 10:
-			CityFortification vg2 = new CityFortification((CityBuilding)v);
-			vg2.addViews(this);
-			buildings.add(vg2);
-			break;
-		}
-		if (doLayout) {
-			onLayout(false, 0, 0, 0, 0);
-			requestLayout();
+	public void onVisObjAdded(LouVisData[] input, boolean doLayout) {
+		for (LouVisData v : input) {
+			if (v == null) continue;
+			switch (v.type) {
+			case 4:
+				LouStructure vg = new LouStructure(context,(CityBuilding)v,state);
+				vg.addViews(this);
+				buildings.add(vg);
+				break;
+			case 9:
+				ResFieldUI vg3 = new ResFieldUI((CityResField)v);
+				buildings.add(vg3);
+				break;
+			case 10:
+				CityFortification vg2 = new CityFortification((CityBuilding)v);
+				vg2.addViews(this);
+				buildings.add(vg2);
+				break;
+			}
+			if (doLayout) {
+				onLayout(false, 0, 0, 0, 0);
+				requestLayout();
+			}
 		}
 	}
 	void onResume() {
