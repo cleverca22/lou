@@ -35,12 +35,10 @@ import org.xml.sax.helpers.XMLReaderFactory;
 
 public class LouSession {
 	public static class NewServer {
-
 		protected String server;
 		protected String clazz;
 		protected String id;
 		protected String name;
-
 	}
 	static final String TAG = "LouSession";
 	static URL base;
@@ -333,7 +331,7 @@ public class LouSession {
 			conn.setDoInput(true);
 			conn.connect();
 			if (conn.getResponseCode() != 302) {
-				Log.v(TAG, "was expecting 302");
+				Log.e(TAG, "was expecting 302, got "+conn.getResponseCode());
 				return null;
 				// FIXME
 			}
@@ -371,5 +369,9 @@ public class LouSession {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	public void logout() {
+		mCookieManager.getCookieStore().removeAll();
+		servers = null;
 	}
 }
