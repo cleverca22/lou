@@ -6,9 +6,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.StreamCorruptedException;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -27,10 +24,12 @@ import com.angeldsis.louapi.RPC.RPCDone;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
+import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
@@ -50,7 +49,24 @@ public class SessionKeeper extends Service {
 	private final IBinder binder = new MyBinder();
 	public static LouSession session2;
 	PowerManager.WakeLock wl,doing_network;
+	/* basic wakelock logic
+	 * when any worker thread goes idle (between calling setTimer and Thread.sleep)
+	 * it will check to see if others are active, if everything is going idle, the wakelock gets released
+	 * causing the device to enter low-power mode
+	 * 
+	 * if the device is running normally when Thread.sleep expires, it will simply run normally
+	 * 
+	 * if the device was in sleep mode, the ALarmManager will fire 10 seconds late, and grab the wakelock
+	 * then .interrupt() every worker thread (and force the thread to active state)
+	 * each thread will then check its own state, and set threadActive if its busy or not
+	 * 
+	 * once all threads become idle, the wakelock gets released and the device is free to shut the
+	 * cpu back off
+	 */
+	boolean lockLocked;
+	AlarmManager alarmManager;
 	private static SessionKeeper self;
+	PendingIntent wakeSelf = null;
 	
 	// constansts for notification id's
 	// worldid (86) will be added to these to keep them unique
@@ -65,7 +81,8 @@ public class SessionKeeper extends Service {
 		}
 	}
 	public SessionKeeper() {
-		Log.v(TAG,"constructor");
+		super();
+		Log.v(TAG,this+" constructor");
 	}
 	public IBinder onBind(Intent arg0) {
 		Log.v(TAG,"onBind");
@@ -81,11 +98,15 @@ public class SessionKeeper extends Service {
 		// partial lock seems to not effect cpu freq scalling on the kindle
 		doing_network = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "lou logged in");
 		self = this;
+		alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
+		Intent i = new Intent(this,SessionKeeper.class);
+		i.putExtra("wakingSelf", true);
+		wakeSelf = PendingIntent.getService(this,0,i,0);
 	}
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		Log.v(TAG,"onDestroyed");
+		Log.v(TAG,this+" onDestroyed");
 		self = null;
 	}
 	static SessionKeeper getInstance() {
@@ -102,9 +123,24 @@ public class SessionKeeper extends Service {
 	}
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		if (sessions == null) sessions = new ArrayList<Session>();
-		AccountWrap a = new AccountWrap(intent.getExtras());
-		Log.v(TAG,"onStartCommand "+a.world);
+		//AccountWrap a = new AccountWrap(intent.getExtras());
+		//Log.v(TAG,"onStartCommand "+a.world);
+		if (intent.getExtras().containsKey("wakingSelf")) {
+			Log.v(TAG,"waking self");
+			for (Session s : sessions) {
+				s.wakeUp();
+			}
+			if (sessions.size() > 0) {
+				//Log.v(TAG,"getting wakelock");
+				synchronized(this) {
+					if (lockLocked == false) {
+						lockLocked = true;
+						doing_network.acquire();
+					}
+				}
+			}
+			checkState("woke self");
+		}
 		return START_NOT_STICKY;
 	}
 	NotificationCompat.Builder mBuilder,chatBuilder,incomingAttackBuilder;
@@ -117,6 +153,7 @@ public class SessionKeeper extends Service {
 		boolean alive = false,loggingIn;
 		int sessionid;
 		public ChatHistory chat;
+		boolean threadActive;
 		Session(AccountWrap acct2, int sessionid) {
 			Log.v(TAG,"new Session");
 			loggingIn = true;
@@ -141,7 +178,7 @@ public class SessionKeeper extends Service {
 			mBuilder.setContentText("LOU is still running "+acct.world);
 			// FIXME, this interface can only support 1 notif, replace it with one that opens an active session list
 			SessionKeeper.this.startForeground(STILL_OPEN | sessionid,mBuilder.build());
-			doing_network.acquire();
+			//doing_network.acquire();
 			
 			state = new LouState();
 			Log.v(TAG,""+state.chat_history);
@@ -169,6 +206,10 @@ public class SessionKeeper extends Service {
 				}
 			});
 			alive = true;
+		}
+		public void wakeUp() {
+			threadActive = true;
+			rpc.interrupt();
 		}
 		public void refreshConfig(boolean monitor) {
 			rpc.refreshConfig(monitor);
@@ -277,7 +318,7 @@ public class SessionKeeper extends Service {
 			SessionKeeper.this.stopForeground(true);
 			sessions.remove(this);
 			rpc.stopLooping();
-			doing_network.release();
+			//doing_network.release();
 			teardown();
 		}
 		public void cityChanged() {
@@ -290,7 +331,7 @@ public class SessionKeeper extends Service {
 			SessionKeeper.this.stopForeground(true);
 			alive = false;
 			sessions.remove(this);
-			doing_network.release();
+			//doing_network.release();
 			teardown();
 		}
 		public void cityListChanged() {
@@ -360,6 +401,27 @@ public class SessionKeeper extends Service {
 				return 10000;
 			}
 		}
+		public void setTimer(long maxdelay) {
+			SessionKeeper.this.setTimer(maxdelay);
+		}
+		public void setThreadActive(boolean b) {
+			if (b == true) {
+				synchronized(this) {
+					if (lockLocked == false) {
+						lockLocked = true;
+						doing_network.acquire();
+					}
+				}
+			}
+			threadActive = b;
+			SessionKeeper.this.checkState("setThreadActive "+b);
+		}
+	}
+	public void setTimer(long maxdelay) {
+		long target = System.currentTimeMillis() + maxdelay + 10000;
+		//Log.v(TAG,"setup alarm manager");
+		// FIXME, doesnt run the first timer, when 2 sessions are live
+		alarmManager.set(AlarmManager.RTC_WAKEUP, target, wakeSelf);
 	}
 	public interface Callbacks {
 		void visDataReset();
@@ -436,8 +498,7 @@ public class SessionKeeper extends Service {
 		if (session2 == null) session2 = new LouSession();
 		session2.restore_cookie(cookie);
 	}
-	@Override
-	public void onTrimMemory(int level) {
+	@Override public void onTrimMemory(int level) {
 		switch (level) {
 		case 0:
 			Log.v(TAG,"onTrimMemory("+level+")");
@@ -445,10 +506,38 @@ public class SessionKeeper extends Service {
 		case TRIM_MEMORY_UI_HIDDEN:
 			Log.v(TAG,"onTrimMemory(ui hidden or worse "+level+")");
 			Log.v(TAG,"session count: "+sessions.size());
-			if (sessions.size() == 0) stopSelf();
 		}
+		checkState("onTrimMemory");
 	}
 	public void onLowMemory () {
 		Log.v(TAG,"onLowMemory");
+		checkState("onLowMemory");
+	}
+	public void checkState(String reason) {
+		// checks things like the number of open sessions and then hides/shows the notification
+		// and clears/sets the foreground service flag
+		
+		// FIXME, check service idle time incase it was in the middle of starting up
+		if (sessions.size() == 0) {
+			Log.v(TAG,"stopping self");
+			stopSelf();
+		}
+		synchronized (this) {
+			if (lockLocked) {
+				//Log.v(TAG,"checkState "+reason+" session count: "+sessions.size());
+				boolean anyActive = false;
+				for (Session s : sessions) if (s.threadActive) anyActive = true;
+				//Log.v(TAG,"active:"+anyActive);
+				if ((anyActive == false) && lockLocked) {
+					//Log.v(TAG,"releasing wakelock");
+					doing_network.release();
+					lockLocked = false;
+				} else {
+					Log.v(TAG,"leaving it locked "+anyActive);
+				}
+			} else {
+				Log.v(TAG,"lock not locked");
+			}
+		}
 	}
 }

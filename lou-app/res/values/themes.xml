@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+    <style name="theme1" parent="android:Theme.Holo.Light">
+        <item name="android:windowNoTitle">false</item>
+        <item name="android:windowTitleBackgroundStyle">@style/title</item>
+        <item name="android:buttonStyle">@style/button</item>
+        <item name="android:windowBackground">@drawable/win_mainoverlay_paper</item>
+        <!-- <item name="android:actionBarStyle">@style/actionStyle</item>
+        <item name="android:textViewStyle">@style/textstyle</item>  -->
+    </style>
+</resources>

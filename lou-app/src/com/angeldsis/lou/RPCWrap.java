@@ -97,4 +97,10 @@ public class RPCWrap extends RPC {
 		// TODO Auto-generated method stub
 		
 	}
+	@Override public void setTimer(long maxdelay) {
+		callbacks.setTimer(maxdelay);
+	}
+	@Override public void setThreadActive(boolean b) {
+		callbacks.setThreadActive(b);
+	}
 }

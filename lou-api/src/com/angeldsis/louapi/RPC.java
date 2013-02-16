@@ -20,7 +20,10 @@ import com.angeldsis.louapi.LouState.City;
 import com.angeldsis.louapi.data.AllianceForum;
 import com.angeldsis.louapi.data.ForumPost;
 import com.angeldsis.louapi.data.ForumThread;
+import com.angeldsis.louapi.data.OrderTargetInfo;
+import com.angeldsis.louapi.data.PublicCityInfo;
 import com.angeldsis.louapi.data.SubRequest;
+import com.angeldsis.louapi.data.World;
 import com.angeldsis.louapi.world.WorldParser;
 import com.angeldsis.louapi.world.WorldParser.WorldCallbacks;
 
@@ -37,6 +40,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 	AllianceAttackMonitor aam;
 	Poller poller;
 	WorldParser worldParser;
+	World world = new World();
 
 	public RPC(Account acct, LouState state) {
 		worldParser = new WorldParser();
@@ -51,9 +55,9 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 		polling = false;
 		poller = new Poller();
 		synchronized(this) {
-			Log.v(TAG,"starting thread in constructor");
-			running = true;
-			start();
+			//Log.v(TAG,"starting thread in constructor");
+			//running = true;
+			//start();
 		}
 	}
 	public void OpenSession(final boolean reset,final RPCDone callback) {
@@ -413,7 +417,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			obj.put("time", System.currentTimeMillis());
 			doRPC("GetServerInfo",obj,this,new RPCCallback() {
 				void requestDone(rpcreply reply) throws JSONException {
-					//Log.v(TAG+".GetServerInfo",reply.reply.toString(1));
+					state.parseServerInfo((JSONObject)reply.reply);
 					rpcDone.requestDone((JSONObject) reply.reply);
 				}
 			},5);
@@ -586,6 +590,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 				//Log.v(TAG,requests);
 			}
 			requests += aam.getRequestDetails();
+			requests += "\fTE:";
 			obj.put("requests",requests);
 			doRPC("Poll",obj,this,new RPCCallback() {
 				void requestDone(rpcreply r) throws JSONException {
@@ -597,7 +602,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 						handlePollPacket(obj);
 					}
 				}
-			},5);
+			},10);
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -812,30 +817,46 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 		while (cont) {
 			MyTimer t;
 			while ((t = queue.poll()) != null) {
+				setThreadActive(true);
 				Runnable r = t.getRunnable();
 				r.run();
+				
 			}
 			runOnUiThread(ticker);
 			if (polling && !queue.contains(poller)) {
 				poller.setDelay(getMaxPoll());
 				queue.add(poller);
 			}
+			long start=0,maxdelay=0;
 			try {
 				t = queue.peek();
-				long maxdelay = 60000;
+				maxdelay = 60000;
 				if (t != null) maxdelay = t.getDelay(TimeUnit.MILLISECONDS);
 				else {
 					Log.v(TAG, "no work found, maybe thread should stop?");
 				}
 				if (maxdelay < 0) maxdelay = 100;
-				Log.v(TAG,"delay "+maxdelay);
+				//Log.v(TAG,"delay "+maxdelay);
+				setTimer(maxdelay);
+				setThreadActive(false);
+				start = System.currentTimeMillis();
 				Thread.sleep(maxdelay);
 			} catch (InterruptedException e) {
 				Log.v(TAG,"who woke me!");
 			}
+			long end = System.currentTimeMillis();
+			long overrun = (end-start)-maxdelay;
+			if (overrun > 10) Log.v(TAG,String.format("%d sleep ran %d too late",maxdelay,overrun));
 		}
 		Log.v(TAG,"dying");
+		setThreadActive(false);
 		running = false;
+	}
+	public void setThreadActive(boolean b) {
+	}
+	/** on android, this helps with the AlarmManager
+	 */
+	public void setTimer(long maxdelay) {
 	}
 	// Poll must occur more often then 5mins
 	protected abstract int getMaxPoll();
@@ -1037,5 +1058,103 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 				}
 			}
 		});
+	}
+	public void GetPublicCityInfo(final int cityid, final GotPublicCityInfo callback) {
+		post(new Runnable() {
+			public void run() {
+				JSONObject obj = new JSONObject();
+				try {
+					obj.put("id", cityid);
+					doRPC("GetPublicCityInfo",obj,RPC.this,new RPCCallback() {
+						void requestDone(rpcreply r) {
+							Log.v(TAG,r.reply.toString());
+							final PublicCityInfo p = new PublicCityInfo(world,(JSONObject) r.reply);
+							runOnUiThread(new Runnable() {
+								public void run() {
+									callback.done(p);
+								}
+							});
+						}
+					},5);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+	public interface GotPublicCityInfo {
+		void done(PublicCityInfo p);
+	}
+	public void GetOrderTargetInfo(final City currentCity, final int x, final int y, final GotOrderTargetInfo callback) {
+		post(new Runnable() {
+			public void run() {
+				JSONObject obj = new JSONObject();
+				try {
+					obj.put("cityid", currentCity.cityid);
+					obj.put("x", x);
+					obj.put("y", y);
+					doRPC("GetOrderTargetInfo",obj,RPC.this,new RPCCallback() {
+						void requestDone(rpcreply r) throws JSONException {
+							Log.v(TAG,r.reply.toString());
+							final OrderTargetInfo p = new OrderTargetInfo(world,(JSONObject) r.reply);
+							runOnUiThread(new Runnable() {
+								public void run() {
+									callback.done(p);
+								}
+							});
+						}
+					},5);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+	public void TradeDirect(final City currentCity, final int[] resources, final boolean byland,
+			final String targetPlayer, final String targetcity, final boolean palaceSupport, final TradeDirectDone callback) {
+		post(new Runnable() {
+			public void run() {
+				JSONObject obj = new JSONObject();
+				try {
+					obj.put("cityid", currentCity.cityid);
+					int i;
+					JSONArray r = new JSONArray();
+					for (i=1; i<5; i++) {
+						if (resources[i-1] > 0) {
+							JSONObject o = new JSONObject();
+							o.put("t", i);
+							o.put("c", resources[i-1]);
+							r.put(o);
+						}
+					}
+					obj.put("res", r);
+					obj.put("tradeTransportType", byland ? 1 : 2);
+					obj.put("targetPlayer", targetPlayer);
+					obj.put("targetCity", targetcity);
+					obj.put("palaceSupport", palaceSupport);
+					doRPC("TradeDirect",obj,RPC.this,new RPCCallback() {
+						void requestDone(rpcreply r) throws JSONException {
+							final int reply = (Integer) r.reply;
+							runOnUiThread(new Runnable() {
+								public void run() {
+									callback.done(reply);
+								}
+							});
+						}
+					},5);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+	public interface TradeDirectDone {
+		void done(int reply);
+	}
+	public interface GotOrderTargetInfo {
+		void done(OrderTargetInfo p);
 	}
 }

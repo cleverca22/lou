@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
     <CheckBoxPreference android:key="monitor_alliance_attacks" android:title="@string/monitor_alliance_att" android:defaultValue="true"/>
+    <ListPreference android:key="theme" android:entries="@array/themes" android:entryValues="@array/theme_names" android:title="@string/theme" android:defaultValue="holo"/>
     
 
 </PreferenceScreen>

@@ -41,4 +41,16 @@
     <string name="offtopic">Offtopic</string>
     <string name="new_thread">Create new thread</string>
     <string name="reply">Reply</string>
+    <string-array name="themes">
+        <item >Holo</item>
+        <item >Holo Light</item>
+        <item >Lord of Ultima</item>
+    </string-array>
+    <string-array name="theme_names">
+        <item >holo</item>
+        <item >holo_light</item>
+        <item >lou</item>
+    </string-array>
+        <string name="theme">Theme</string>
+        <string name="max_transport">Max transport capacity</string>
 </resources>

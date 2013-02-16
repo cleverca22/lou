@@ -176,6 +176,7 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 			// FIXME
 			FrameLayout bar = new FrameLayout(LouSessionMain.this);
 			ResourceBar bar2 = new ResourceBar(LouSessionMain.this);
+			Log.v(TAG,"bar2:"+bar2);
 			bar2.setState(session.state);
 			bar2.update(i);
 			bar.addView(bar2);

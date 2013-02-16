@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import com.angeldsis.lou.SessionKeeper.Callbacks;
 import com.angeldsis.lou.SessionKeeper.MyBinder;
 import com.angeldsis.lou.allianceforum.AllianceForumList;
+import com.angeldsis.lou.city.SendTrade;
 import com.angeldsis.lou.home.DisconnectedDialog;
 import com.angeldsis.louapi.ChatMsg;
 import com.angeldsis.louapi.IncomingAttack;
@@ -14,8 +15,10 @@ import com.angeldsis.louapi.RPC.GetLockboxURLDone;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -42,12 +45,21 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 		Intent msg = getIntent();
 		Bundle args = msg.getExtras();
 		acct = new AccountWrap(args);
+		setTheme(SessionUser.getCurrentTheme(this));
+	}
+	public static int getCurrentTheme(Context c) {
+		SharedPreferences p = c.getSharedPreferences("com.angeldsis.lou_preferences",MODE_PRIVATE);
+		String theme = p.getString("theme","holo");
+		if (theme.equals("holo")) return android.R.style.Theme_Holo;
+		else if (theme.equals("holo_light")) return android.R.style.Theme_Holo_Light;
+		else if (theme.equals("lou")) return R.style.theme1;
+		else return android.R.style.Theme;
 	}
 	public void userActive() {
 		session.state.userActivity = true;
 	}
 	@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-	void initApi14() {
+	protected void initApi14() {
 		Log.v(TAG,"doing init for api 14+");
 		getActionBar().setDisplayHomeAsUpEnabled(true);
 		//getActionBar().setHomeButtonEnabled(true);
@@ -180,6 +192,11 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 			return true;
 		case R.id.allianceForum:
 			i = new Intent(this,AllianceForumList.class);
+			i.putExtras(acct.toBundle());
+			startActivity(i);
+			return true;
+		case R.id.sendTrade:
+			i = new Intent(this,SendTrade.class);
 			i.putExtras(acct.toBundle());
 			startActivity(i);
 			return true;

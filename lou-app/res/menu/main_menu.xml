@@ -2,6 +2,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
     <item android:id="@+id/open_chat" android:title="@string/open_chat" android:showAsAction="ifRoom|withText"></item>
     <item android:id="@+id/city" android:title="City" android:showAsAction="ifRoom|withText"></item>
+    <item android:id="@+id/sendTrade" android:title="Send Trade"></item>
     <item android:id="@+id/allianceForum" android:title="Alliance Forum" android:showAsAction="ifRoom"></item>
     <item android:id="@+id/subs" android:title="Substitute options"></item>
     <item android:id="@+id/options" android:title="Options"></item>

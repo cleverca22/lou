@@ -35,6 +35,7 @@ public class LouState {
 	transient public ArrayList<SubRequest> subs;
 	transient public boolean userActivity;
 	transient boolean getFullPlayerData = true;
+	transient public int tradeSpeedShip, tradeSpeedland;
 
 	public LouState() {
 		init();
@@ -92,12 +93,15 @@ public class LouState {
 		private static final String TAG = "City";
 		@SerializedName("r") public Resource[] resources;
 		@SerializedName("n") public String name;
-		@SerializedName("i") long cityid;
+		@SerializedName("i") public long cityid;
 		transient public ArrayList<LouVisData> visData;
 		transient public int visreset;
 		transient public BuildQueue[] queue;
 		transient public int build_queue_start;
 		transient public int build_queue_end;
+		transient public int freeships,freecarts,maxships,maxcarts;
+		public boolean autoBuildDefense, autoBuildEconomy;
+		public int autoBuildTypeFlags;
 		City() {
 			resources = new Resource[4];
 			int i;
@@ -137,6 +141,8 @@ public class LouState {
 		boolean female = d.getBoolean("f");
 		Log.v(TAG,"cg:"+cg+" f:"+female);
 		// FIXME check d.c array for changes to cities array
+		JSONArray c = d.optJSONArray("c");
+		Log.v(TAG,"c:"+c);
 		if (d.has("g")) {
 			JSONObject g = d.optJSONObject("g");
 			double base = g.optDouble("b");
@@ -283,6 +289,21 @@ public class LouState {
 			//Log.v(TAG,"to:"+to.length());
 			ArrayList<Trade> trade_out = parseTrades(to);
 		}
+		JSONArray traders = p.optJSONArray("t");
+		Log.v(TAG,"traders:"+traders);
+		if ((traders != null) && (traders.length()>0)) {
+			JSONObject land = traders.getJSONObject(0);
+			JSONObject ship = traders.getJSONObject(1);
+			currentCity.freecarts = land.getInt("c");
+			currentCity.maxcarts  = land.getInt("tc");
+			currentCity.freeships = ship.getInt("c");
+			currentCity.maxships = ship.getInt("tc");
+		}
+		City c = currentCity;
+		c.autoBuildDefense = p.getBoolean("ad");
+		c.autoBuildEconomy = p.getBoolean("ae");
+		c.autoBuildTypeFlags = p.getInt("at");
+		Log.v(TAG,String.format("%s %b %b %d", c.name,c.autoBuildDefense,c.autoBuildEconomy,c.autoBuildTypeFlags));
 	}
 	private class NewAttackEvent implements Runnable {
 		IncomingAttack a;
@@ -388,5 +409,10 @@ public class LouState {
 				c.get(Calendar.DAY_OF_MONTH),
 				c.get(Calendar.HOUR_OF_DAY),c.get(Calendar.MINUTE),
 				c.get(Calendar.SECOND));
+	}
+	public void parseServerInfo(JSONObject reply) throws JSONException {
+		Log.v(TAG+".GetServerInfo",reply.toString(1));
+		tradeSpeedShip = reply.getInt("tss");
+		tradeSpeedland = reply.getInt("tsl");
 	}
 }

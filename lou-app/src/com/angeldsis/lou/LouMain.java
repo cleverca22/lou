@@ -7,13 +7,10 @@ import com.google.android.vending.licensing.LicenseCheckerCallback;
 import com.google.android.vending.licensing.Policy;
 import com.google.android.vending.licensing.ServerManagedPolicy;
 
-import android.annotation.TargetApi;
 import android.app.AlertDialog;
-import android.app.AlertDialog.Builder;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnDismissListener;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings.Secure;
 import android.support.v4.app.FragmentActivity;
@@ -38,8 +35,8 @@ public class LouMain extends FragmentActivity {
 				new AESObfuscator(SALT,getPackageName(),deviceId)),BASE64_PUBLIC_KEY);
 		mLicenseCheckerCallback = new MyLicenseCheckerCallback();
 		mChecker.checkAccess(mLicenseCheckerCallback);
+		setTheme(SessionUser.getCurrentTheme(this));
 		setContentView(R.layout.main);
-		setTheme(android.R.style.Theme_Holo_Dialog);
 		if (savedInstanceState != null) return;
 		
 		getSupportFragmentManager().beginTransaction().replace(R.id.main_frame, new Loading()).commit();
@@ -67,12 +64,12 @@ public class LouMain extends FragmentActivity {
 				// disabled so kindle can handle it
 				//mChecker.checkAccess(mLicenseCheckerCallback);
 				Log.v(TAG,"need to retry");
-				AlertDialog.Builder b = new AlertDialog.Builder(LouMain.this);
-				b.setMessage("unable to connect to playstore");
-				Quiter quiter = new Quiter();
-				b.setOnCancelListener(quiter);
-				AlertDialog d = b.create();
-				d.show();
+				//AlertDialog.Builder b = new AlertDialog.Builder(LouMain.this);
+				//b.setMessage("unable to connect to playstore");
+				//Quiter quiter = new Quiter();
+				//b.setOnCancelListener(quiter);
+				//AlertDialog d = b.create();
+				//d.show();
 			}else {
 				// FIXME give a better error
 				Log.v(TAG,"not allowed");

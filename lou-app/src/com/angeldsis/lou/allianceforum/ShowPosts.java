@@ -87,6 +87,7 @@ public class ShowPosts extends SessionUser implements GetForumPostCallback {
 		Log.v("ShowPosts","out size "+out.length);
 	}
 	public void makeReply(View v) {
+		Log.v("ShowPosts","makeReply");
 		Intent i = new Intent(this,NewThread.class);
 		i.putExtras(acct.toBundle());
 		i.putExtra("forumID", forumID);

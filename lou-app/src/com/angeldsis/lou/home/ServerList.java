@@ -10,13 +10,16 @@ import com.angeldsis.lou.SessionKeeper;
 import com.angeldsis.louapi.Account;
 import com.angeldsis.louapi.LouSession;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -73,5 +76,20 @@ public class ServerList extends Fragment {
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		inflater.inflate(R.menu.server_list, menu);
 		super.onCreateOptionsMenu(menu, inflater);
+	}
+	@Override public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.refresh:
+			return false; // FIXME
+		case R.id.logout:
+			Log.v(TAG,"doing logout");
+			SharedPreferences.Editor trans = getActivity().getSharedPreferences("main", Context.MODE_PRIVATE).edit();
+			trans.remove("cookie");
+			trans.commit();
+			SessionKeeper.session2.logout();
+			getActivity().getSupportFragmentManager().beginTransaction().replace(R.id.main_frame, new Loading()).commit();
+			return true;
+		}
+		return false;
 	}
 }
