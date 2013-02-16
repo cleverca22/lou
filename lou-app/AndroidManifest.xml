@@ -31,7 +31,9 @@
         <activity android:name=".allianceforum.AllianceForumList"></activity>
         <activity android:name="com.google.ads.AdActivity" android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"></activity>
         <activity android:name=".allianceforum.ShowForum"></activity>
-        <activity android:name=".allianceforum.ShowPosts" android:theme="@style/style1"></activity>
+        <activity android:name=".allianceforum.ShowPosts"></activity>
         <activity android:name=".allianceforum.NewThread"></activity>
+        <activity android:name="com.angeldsis.lou.ShowCoord"></activity>
+        <activity android:name=".city.SendTrade"></activity>
     </application>
 </manifest>
