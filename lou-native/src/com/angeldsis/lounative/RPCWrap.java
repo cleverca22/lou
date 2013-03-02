@@ -71,7 +71,7 @@ public class RPCWrap extends RPC {
 		Log.w(TAG,"onNewAttack");
 	}
 	@Override
-	public void onVisObjAdded(LouVisData v) {
+	public void onVisObjAdded(LouVisData[] v) {
 		Log.w(TAG,"onVisObjAdded");
 	}
 	public void setCoreSession(CoreSession coreSession) {
@@ -99,5 +99,15 @@ public class RPCWrap extends RPC {
 	@Override protected int getMaxPoll() {
 		// TODO Auto-generated method stub
 		return 10000;
+	}
+	@Override
+	public boolean uiActive() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	@Override
+	public void onBuildQueueUpdate() {
+		// TODO Auto-generated method stub
+		
 	}
 }

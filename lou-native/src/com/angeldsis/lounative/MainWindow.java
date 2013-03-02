@@ -16,9 +16,11 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 
 import com.angeldsis.louapi.Log;
+import com.angeldsis.louapi.RPC.ReportCallback;
+import com.angeldsis.louapi.Report;
 import com.angeldsis.louapi.ReportDumper;
 
-public class MainWindow extends Shell {
+public class MainWindow extends Shell implements ReportCallback {
 	static final private String TAG = "MainWindow";
 	Button cityButton;
 	Button btnReports;
@@ -78,6 +80,11 @@ public class MainWindow extends Shell {
 	}
 	void testShareReport() {
 		String sharestring = "ANDTCGLTCZC8LWAK";
-		session.rpc.GetSharedReport(sharestring);
+		session.rpc.GetSharedReport(sharestring,this);
+	}
+	@Override
+	public void done(Report report) {
+		// TODO Auto-generated method stub
+		
 	}
 }
