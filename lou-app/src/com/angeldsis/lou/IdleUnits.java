@@ -1,5 +1,8 @@
 package com.angeldsis.lou;
 
+import java.util.Arrays;
+import java.util.Comparator;
+
 import com.angeldsis.louapi.LouState.City;
 import com.angeldsis.louapi.data.UnitCount;
 
@@ -38,12 +41,30 @@ public class IdleUnits extends SessionUser implements OnItemClickListener {
 		super.onStop();
 	}
 	@Override public void onDefenseOverviewUpdate() {
-		mAdapter = new IdleUnitAdapter(this);
+		City[] list2 = new City[session.rpc.state.cities.size()];
+		list2 = session.rpc.state.cities.toArray(list2);
+		Arrays.sort(list2, new Comparator<City>(){
+			@Override
+			public int compare(City a, City b) {
+				int ac,bc;
+				if (a.units == null) ac = -1;
+				else if (a.units[6] == null) ac = -1;
+				else ac = a.units[6].c;
+				
+				if (b.units == null) bc = -1;
+				else if (b.units[6] == null) bc = -1;
+				else bc = b.units[6].c;
+				
+				if (ac < bc) return 1;
+				if (ac > bc) return -1;
+				return 0;
+			}});
+		mAdapter = new IdleUnitAdapter(this,list2);
 		list.setAdapter(mAdapter);
 	}
 	private class IdleUnitAdapter extends ArrayAdapter<City> {
-		public IdleUnitAdapter(Context context) {
-			super(context, 0, session.rpc.state.cities);
+		public IdleUnitAdapter(Context context, City[] list2) {
+			super(context, 0, list2);
 		}
 		@Override public View getView(int position, View oldrow, ViewGroup root) {
 			if (oldrow == null) {
@@ -55,12 +76,8 @@ public class IdleUnits extends SessionUser implements OnItemClickListener {
 			TextView zerks = (TextView)row.findViewById(R.id.unitcount);
 			City c = getItem(position);
 			city.setText(c.name);
-			if (c.units != null) {
-				int x;
-				for (x=0; x<c.units.length; x++) {
-					UnitCount y = c.units[x];
-					if (y.t == 6) zerks.setText(""+y.c);
-				}
+			if ((c.units != null) && (c.units[6] != null)) {
+				zerks.setText(""+c.units[6].c);
 			} else zerks.setText("none");
 			return oldrow;
 		}

@@ -110,4 +110,9 @@ public class RPCWrap extends RPC {
 		// TODO Auto-generated method stub
 		
 	}
+	@Override
+	public void onDefenseOverviewUpdate() {
+		// TODO Auto-generated method stub
+		
+	}
 }

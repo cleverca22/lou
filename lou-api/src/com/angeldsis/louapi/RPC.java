@@ -1271,6 +1271,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 	public void setDefenseOverviewEnabled(boolean b) {
 		if (b) {
 			defenseOverviewParser = new DefenseOverviewParser();
+			pollSoon();
 		} else {
 			defenseOverviewParser = null;
 		}

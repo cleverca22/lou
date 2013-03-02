@@ -1,5 +1,7 @@
 package com.angeldsis.lou.world;
 
+import java.util.ArrayList;
+
 import org.json2.JSONArray;
 import org.json2.JSONException;
 import org.json2.JSONObject;
@@ -74,13 +76,16 @@ public class SendAttack extends SessionUser implements OrderUnitsCallback {
 			avail_ts.setText("");
 			return;
 		}
+		ArrayList<UnitCount> units_present = new ArrayList<UnitCount>();
 		for (i=0; i<c.units.length; i++) {
 			UnitCount d = c.units[i];
+			if (d == null) continue;
 			total_ts += d.c;
 			maxcounts[d.t] = d.c;
 			Log.v(TAG,String.format("FINDME %d %d %d",d.c,d.tc,d.t));
+			units_present.add(d);
 		}
-		units.setAdapter(new UnitAdapter(this,c.units));
+		units.setAdapter(new UnitAdapter(this,units_present));
 		avail_ts.setText(""+total_ts);
 	}
 	public void gotCityData() {
@@ -91,8 +96,8 @@ public class SendAttack extends SessionUser implements OrderUnitsCallback {
 		debug.setText(String.format("reply %d %d",r0,r1));
 	}
 	private class UnitAdapter extends ArrayAdapter<UnitCount> {
-		public UnitAdapter(Context context, UnitCount[] units) {
-			super(context, 0, units);
+		public UnitAdapter(Context context, ArrayList<UnitCount> units_present) {
+			super(context, 0, units_present);
 		}
 		public View getView(int position,View oldrow, ViewGroup root) {
 			final ViewHolder holder;

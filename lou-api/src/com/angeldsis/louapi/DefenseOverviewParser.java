@@ -30,17 +30,15 @@ public class DefenseOverviewParser {
 				Log.v(TAG,"item2:"+item2.toString());
 				JSONArray units = item2.getJSONArray("u");
 				if (city.units == null) {
-					city.units = new UnitCount[units.length()];
-				} else {
-					Log.v(TAG,"lengths: "+units.length()+" "+city.units.length);
+					city.units = new UnitCount[20];
 				}
-				if (units.length() != city.units.length) city.units = new UnitCount[units.length()];
 				// FIXME, find the right entry, rather then nuke it
 				for (x=0; x<units.length(); x++) {
-					UnitCount uc = city.units[x];
 					JSONObject ucin = units.getJSONObject(x);
-					if (uc == null) uc = city.units[x] = new UnitCount();
-					uc.t = ucin.getInt("t");
+					int type = ucin.getInt("t");
+					UnitCount uc = city.units[type];
+					if (uc == null) uc = city.units[type] = new UnitCount();
+					uc.t = type;
 					uc.c = ucin.getInt("c");
 					if (uc.tc < uc.c) uc.tc = uc.c;
 				}

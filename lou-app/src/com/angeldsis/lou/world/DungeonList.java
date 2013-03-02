@@ -117,10 +117,9 @@ public class DungeonList extends WorldUser implements OnItemClickListener {
 	}
 	@Override public void session_ready() {
 		super.session_ready();
-		int i;
-		for (i=0; i<session.rpc.state.currentCity.units.length; i++) {
-			UnitCount uc = session.rpc.state.currentCity.units[i];
-			if (uc.t == 6) {
+		if (session.rpc.state.currentCity.units != null) {
+			UnitCount uc = session.rpc.state.currentCity.units[6];
+			if (uc != null) {
 				zerks.setText(""+uc.c);
 				return;
 			}

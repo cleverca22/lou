@@ -135,6 +135,9 @@ public class LouState {
 			for (i = 0; i < 4; i++) resources[i].fix(i);
 			init();
 			location = Coord.fromCityId(cityid);
+			if (units != null) {
+				if (units.length != 20) units = new UnitCount[20];
+			}
 		}
 		public long getCityid() {
 			return cityid;
@@ -292,14 +295,14 @@ public class LouState {
 		JSONArray u = p.optJSONArray("u");
 		Log.v(TAG,"unit data:"+u);
 		if (u != null) {
-			currentCity.units = new UnitCount[u.length()];
+			currentCity.units = new UnitCount[20];
 			for (x=0; x < u.length(); x++) {
 				JSONObject t2 = u.getJSONObject(x);
 				UnitCount t = new UnitCount(); // FIXME, reuse objects to help with gc presure
 				t.tc = t2.getInt("tc");
 				t.c = t2.getInt("c");
 				t.t = t2.getInt("t");
-				currentCity.units[x] = t;
+				currentCity.units[t.t] = t;
 			}
 		} else currentCity.units = null;
 		JSONArray ti = p.optJSONArray("ti");
