@@ -6,11 +6,12 @@ import org.json2.JSONObject;
 
 import com.angeldsis.louapi.Log;
 import com.angeldsis.louapi.data.BaseLou;
+import com.angeldsis.louapi.data.Coord;
 
 public class WorldParser {
 	private static final String TAG = "WorldParser";
-	int mincol,maxcol, minrow,maxrow;
-	Cell[] cells = new Cell[500];
+	public int mincol,maxcol, minrow,maxrow;
+	public Cell[] cells = new Cell[500];
 	
 	public WorldParser() {
 		mincol = 4;
@@ -124,8 +125,7 @@ public class WorldParser {
 				d = new Dungeon();
 				cell.dungeons[fineid] = d;
 			}
-			d.col = cell.getFineCol() + finecol;
-			d.row = cell.getFineRow() + finerow;
+			d.location = new Coord(cell.getFineCol() + finecol,cell.getFineRow() + finerow);
 
 			packed = y.read4Bytes();
 			d.state = ((packed & 1) != 0);

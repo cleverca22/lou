@@ -12,7 +12,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.support.v4.util.LruCache;
 import android.util.Log;
-import android.util.SparseArray;
 
 public class ChatHistory extends SQLiteOpenHelper {
 	public static final String DBName = "chat_history_w%d_p%d.db";
@@ -28,6 +27,7 @@ public class ChatHistory extends SQLiteOpenHelper {
 	}
 	public void onCreate(SQLiteDatabase db) {
 		db.execSQL(tblFormat);
+		db.execSQL("CREATE INDEX IF NOT EXISTS tagindex ON ChatLogs(tag)");
 	}
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 		if ((oldVersion == 1) && (newVersion <= 3)) {

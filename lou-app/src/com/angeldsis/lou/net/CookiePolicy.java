@@ -18,6 +18,8 @@ package com.angeldsis.lou.net;
 
 import java.net.URI;
 
+import android.util.Log;
+
 /**
  * CookiePolicy has three pre-defined policy. They are ACCEPT_ALL, ACCEPT_NONE
  * and ACCEPT_ORIGINAL_SERVER respectively. They are used to decide which
@@ -52,7 +54,9 @@ public interface CookiePolicy {
      */
     static final CookiePolicy ACCEPT_ORIGINAL_SERVER = new CookiePolicy() {
         public boolean shouldAccept(URI uri, HttpCookie cookie) {
-            return HttpCookie.domainMatches(cookie.getDomain(), uri.getHost());
+            boolean t = HttpCookie.domainMatches(cookie.getDomain(), uri.getHost());
+            Log.v("CookiePolicy","t is "+t);
+            return t;
         }
     };
 

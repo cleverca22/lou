@@ -88,19 +88,34 @@ public class RPCWrap extends RPC {
 		return callbacks.getMaxPoll();
 	}
 	@Override
-	public void cellUpdated(Cell c) {
-		// TODO Auto-generated method stub
-		
+	public void cellUpdated(final Cell c) {
+		runOnUiThread(new Runnable() {
+			public void run() {
+				callbacks.cellUpdated(c);
+			}
+		});
 	}
 	@Override
 	public void dungeonUpdated(Dungeon d) {
-		// TODO Auto-generated method stub
-		
+		callbacks.dungeonUpdated(d);
 	}
 	@Override public void setTimer(long maxdelay) {
 		callbacks.setTimer(maxdelay);
 	}
 	@Override public void setThreadActive(boolean b) {
 		callbacks.setThreadActive(b);
+	}
+	@Override public void onBuildQueueUpdate() {
+		callbacks.onBuildQueueUpdate();
+	}
+	@Override public boolean uiActive() {
+		return callbacks.uiActive();
+	}
+	public void logRequest(int req,int reply,String func) {
+		super.logRequest(req, reply, func);
+		callbacks.logRequest(req,reply,func);
+	}
+	@Override public void onDefenseOverviewUpdate() {
+		callbacks.onDefenseOverviewUpdate();
 	}
 }

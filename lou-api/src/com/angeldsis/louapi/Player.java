@@ -4,6 +4,7 @@ public class Player {
 	private String name;
 	private int id;
 	public Alliance alliance;
+	public int points;
 
 	public Player(int id, String name) {
 		this.id = id;

@@ -239,7 +239,7 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 		}
 	}
 	/** called when a new LouVisData is added by api, or at startup, on the array of them
-	 * @param v
+	 * @param list
 	 */
 	public void onVisObjAdded(LouVisData[] input, boolean doLayout) {
 		for (LouVisData v : input) {

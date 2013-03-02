@@ -22,36 +22,7 @@ public class louLogin extends Activity {
 	static String TAG = "louLogin";
 	SessionKeeper mService;
 	boolean mBound;
-	private AsyncTask<loginInfo,Integer,result> pwChecker = new AsyncTask<loginInfo,Integer,result>(){
-		@Override protected result doInBackground(loginInfo... params) {
-			loginInfo info = params[0];
-			LouSession session = SessionKeeper.session2;
-			// FIXME, give the user feedback
-			return session.startLogin(info.username, info.password);
-		}
-		protected void onPostExecute(result reply) {
-			LouSession session = SessionKeeper.session2;
-			if (reply.error) {
-				// FIXME
-				Log.e(TAG,reply.errmsg);
-				reply.e.printStackTrace();
-			}
-			if (reply.worked) {
-				SharedPreferences.Editor trans = getSharedPreferences("main", MODE_PRIVATE).edit();
-				trans.putString("cookie", session.REMEMBER_ME);
-				trans.commit();
-				System.out.println("worked");
-				finish();
-				Intent backtomain = new Intent(louLogin.this,LouMain.class);
-				startActivity(backtomain);
-			}
-			else {
-				// FIXME
-				Log.e(TAG,"something went wrong");
-				return;
-			}
-		}
-	};
+	private AsyncTask<loginInfo,Integer,result> pwChecker;
 	private ServiceConnection mConnection = new ServiceConnection() {
 		public void onServiceConnected(ComponentName className, IBinder service) {
 			MyBinder binder = (MyBinder)service;
@@ -105,6 +76,36 @@ public class louLogin extends Activity {
 			trans.commit();
 		}
 		Log.v(TAG,"starting login");
+		pwChecker  = new AsyncTask<loginInfo,Integer,result>(){
+			@Override protected result doInBackground(loginInfo... params) {
+				loginInfo info = params[0];
+				LouSession session = SessionKeeper.session2;
+				// FIXME, give the user feedback
+				return session.startLogin(info.username, info.password);
+			}
+			protected void onPostExecute(result reply) {
+				LouSession session = SessionKeeper.session2;
+				if (reply.error) {
+					// FIXME
+					Log.e(TAG,reply.errmsg);
+					reply.e.printStackTrace();
+				}
+				if (reply.worked) {
+					SharedPreferences.Editor trans = getSharedPreferences("main", MODE_PRIVATE).edit();
+					trans.putString("cookie", session.REMEMBER_ME);
+					trans.commit();
+					System.out.println("worked");
+					finish();
+					Intent backtomain = new Intent(louLogin.this,LouMain.class);
+					startActivity(backtomain);
+				}
+				else {
+					// FIXME
+					Log.e(TAG,"something went wrong");
+					return;
+				}
+			}
+		};
 		pwChecker.execute(info);
 	}
 	private static class loginInfo {

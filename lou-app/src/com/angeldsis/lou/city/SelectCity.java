@@ -4,17 +4,13 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.AttributeSet;
-import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.BaseAdapter;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
-import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
 import com.angeldsis.louapi.LouState;
@@ -51,9 +47,10 @@ public class SelectCity extends LinearLayout implements OnItemSelectedListener {
 
 			if (position < SelectCity.this.allCities.length) {
 				City c = (City) o;
-				v.setText(c.name);
+				v.setText(String.format("%3s %7s %s",c.location.getContinent(),c.location.format(),c.name));
 			} else {
-				v.setText(Coord.fromCityId((Integer)o));
+				Coord c = Coord.fromCityId((Integer)o);
+				v.setText(c.getContinent()+" "+c.format());
 			}
 			return row;
 		}
@@ -109,7 +106,7 @@ public class SelectCity extends LinearLayout implements OnItemSelectedListener {
 				allBookmarks[i] = Coord.fromString(b);
 				i++;
 			}
-		}
+		} else allBookmarks = new int[0];
 		adapter = new MyAdapter();
 		spinner.setAdapter(adapter);
 	}

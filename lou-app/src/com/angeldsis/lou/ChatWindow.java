@@ -302,6 +302,7 @@ public class ChatWindow extends SessionUser {
 	}
 	public void onStart() {
 		super.onStart();
+		Log.v(TAG,"onStart");
 	}
 	public void session_ready() {
 		for (Channel c : channels.values()) {
@@ -311,6 +312,7 @@ public class ChatWindow extends SessionUser {
 		synchronized (session.state.chat_history) {
 			onChat(session.state.chat_history);
 		}
+		session.rpc.pollSoon();
 	}
 	class NameClicked extends ClickableSpan {
 		String name;

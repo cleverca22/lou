@@ -45,6 +45,7 @@ public class LouSession {
 	public CookieManager mCookieManager;
 	public ArrayList<Account> servers;
 	public String REMEMBER_ME;
+	public long dataage;
 	// handles the login process
 	private class Policy implements CookiePolicy {
 		@Override
@@ -278,6 +279,7 @@ public class LouSession {
 				e.printStackTrace();
 			}
 			this.servers = servers;
+			dataage = System.currentTimeMillis();
 			//for (NewServer s : newServers) {
 			//	Log.v(TAG,String.format("%s %s %s", s.server,s.id,s.name));
 			//}

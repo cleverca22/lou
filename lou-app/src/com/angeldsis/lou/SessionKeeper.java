@@ -21,8 +21,11 @@ import com.angeldsis.louapi.LouState.City;
 import com.angeldsis.louapi.LouVisData;
 import com.angeldsis.louapi.RPC;
 import com.angeldsis.louapi.RPC.RPCDone;
+import com.angeldsis.louapi.world.Dungeon;
+import com.angeldsis.louapi.world.WorldParser.Cell;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import com.nullwire.trace.ExceptionHandler;
 
 import android.app.AlarmManager;
 import android.app.Notification;
@@ -49,6 +52,7 @@ public class SessionKeeper extends Service {
 	private final IBinder binder = new MyBinder();
 	public static LouSession session2;
 	PowerManager.WakeLock wl,doing_network;
+	RpcLogs rpclogs;
 	/* basic wakelock logic
 	 * when any worker thread goes idle (between calling setTimer and Thread.sleep)
 	 * it will check to see if others are active, if everything is going idle, the wakelock gets released
@@ -90,6 +94,7 @@ public class SessionKeeper extends Service {
 	}
 	@Override
 	public void onCreate() {
+		ExceptionHandler.register(this,"http://ext.earthtools.ca/backtrace.php");
 		Logger.init(); // allows api to print to log
 		Log.v(TAG,"onCreate");
 		if (sessions == null) sessions = new ArrayList<Session>();
@@ -102,6 +107,7 @@ public class SessionKeeper extends Service {
 		Intent i = new Intent(this,SessionKeeper.class);
 		i.putExtra("wakingSelf", true);
 		wakeSelf = PendingIntent.getService(this,0,i,0);
+		rpclogs = new RpcLogs(this);
 	}
 	@Override
 	public void onDestroy() {
@@ -115,7 +121,7 @@ public class SessionKeeper extends Service {
 	void refreshConfig() {
 		// FIXME, must be called when settings change
 		SharedPreferences p = getSharedPreferences("com.angeldsis.lou_preferences",MODE_PRIVATE);
-		boolean monitor = p.getBoolean("monitor_alliance_attacks",true);
+		boolean monitor = p.getBoolean("monitor_alliance_attacks",false);
 		Log.v(TAG,"updating monitor config to "+monitor);
 		for (Session s : sessions) {
 			s.refreshConfig(monitor);
@@ -396,10 +402,7 @@ public class SessionKeeper extends Service {
 		}
 		public int getMaxPoll() {
 			if (cb == null) return 150000;
-			else {
-				Log.v(TAG,"fast poll");
-				return 10000;
-			}
+			else return 10000;
 		}
 		public void setTimer(long maxdelay) {
 			SessionKeeper.this.setTimer(maxdelay);
@@ -416,6 +419,25 @@ public class SessionKeeper extends Service {
 			threadActive = b;
 			SessionKeeper.this.checkState("setThreadActive "+b);
 		}
+		public void onBuildQueueUpdate() {
+			if (cb != null) cb.onBuildQueueUpdate();
+		}
+		public boolean uiActive() {
+			return cb != null;
+		}
+		public void logRequest(int req, int reply, String func) {
+			rpclogs.logRequest(req,reply,func);
+		}
+		public void cellUpdated(Cell c) {
+			if (cb != null) cb.cellUpdated(c);
+		}
+		public void dungeonUpdated(Dungeon d) {
+			// TODO Auto-generated method stub
+			
+		}
+		public void onDefenseOverviewUpdate() {
+			if (cb != null) cb.onDefenseOverviewUpdate();
+		}
 	}
 	public void setTimer(long maxdelay) {
 		long target = System.currentTimeMillis() + maxdelay + 10000;
@@ -425,6 +447,9 @@ public class SessionKeeper extends Service {
 	}
 	public interface Callbacks {
 		void visDataReset();
+		void onDefenseOverviewUpdate();
+		void cellUpdated(Cell c);
+		void onBuildQueueUpdate();
 		void onSubListChanged();
 		void onReportCountUpdate();
 		boolean onNewAttack(IncomingAttack a);

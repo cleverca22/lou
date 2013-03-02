@@ -24,6 +24,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import android.util.Log;
+
 
 /**
  * This class provides a concrete implementation of CookieHandler. It separates
@@ -159,6 +161,7 @@ public class CookieManager extends CookieHandler {
      */
     @Override
     public void put(URI uri, Map<String, List<String>> responseHeaders) throws IOException {
+    	Log.v("CookieManager","putting cookies");
         if (uri == null || responseHeaders == null) {
             throw new IllegalArgumentException();
         }
@@ -194,6 +197,7 @@ public class CookieManager extends CookieHandler {
 
             // if the cookie conforms to the policy, add it into the store
             if (policy.shouldAccept(uri, cookie)) {
+            	Log.v("CookieManager","saving cookie to store");
                 store.add(uri, cookie);
             }
         }

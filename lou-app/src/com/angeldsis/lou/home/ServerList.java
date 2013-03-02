@@ -13,6 +13,7 @@ import com.angeldsis.louapi.LouSession;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -32,12 +33,14 @@ public class ServerList extends Fragment {
 		setHasOptionsMenu(true);
 		Log.v(TAG,"onCreateView");
 		if (SessionKeeper.session2 == null) {
-			getActivity().getSupportFragmentManager().beginTransaction().add(R.id.main_frame, new Loading()).commit();
+			getActivity().getSupportFragmentManager().beginTransaction().replace(R.id.main_frame, new Loading()).commit();
 			Log.v(TAG,"returning empty list");
 			return null;
 		}
 		ViewGroup root = (ViewGroup) inflater.inflate(R.layout.server_list, container,false);
+		TextView age = (TextView) root.findViewById(R.id.age);
 		LouSession sess = SessionKeeper.session2;
+		age.setText(""+(System.currentTimeMillis() - sess.dataage)/1000);
 		ArrayList<Account> accounts = sess.servers;
 		Log.v(TAG,"found "+accounts.size());
 		ViewGroup top = (ViewGroup) root.findViewById(R.id.list);
@@ -88,6 +91,11 @@ public class ServerList extends Fragment {
 			trans.commit();
 			SessionKeeper.session2.logout();
 			getActivity().getSupportFragmentManager().beginTransaction().replace(R.id.main_frame, new Loading()).commit();
+			return true;
+		case R.id.update:
+			Uri location = Uri.parse("http://andoria.angeldsis.com/apks/LouMain.apk");
+			Intent i = new Intent(Intent.ACTION_VIEW,location);
+			startActivity(i);
 			return true;
 		}
 		return false;

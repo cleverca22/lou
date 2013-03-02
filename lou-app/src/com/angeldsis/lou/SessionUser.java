@@ -7,10 +7,12 @@ import com.angeldsis.lou.SessionKeeper.MyBinder;
 import com.angeldsis.lou.allianceforum.AllianceForumList;
 import com.angeldsis.lou.city.SendTrade;
 import com.angeldsis.lou.home.DisconnectedDialog;
+import com.angeldsis.lou.world.DungeonList;
 import com.angeldsis.louapi.ChatMsg;
 import com.angeldsis.louapi.IncomingAttack;
 import com.angeldsis.louapi.LouVisData;
 import com.angeldsis.louapi.RPC.GetLockboxURLDone;
+import com.angeldsis.louapi.world.WorldParser.Cell;
 
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
@@ -200,6 +202,26 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 			i.putExtras(acct.toBundle());
 			startActivity(i);
 			return true;
+		case R.id.bqo:
+			i = new Intent(this,BuildQueueOverview.class);
+			i.putExtras(acct.toBundle());
+			startActivity(i);
+			return true;
+		case R.id.dungeonlist:
+			i = new Intent(this,DungeonList.class);
+			i.putExtras(acct.toBundle());
+			startActivity(i);
+			return true;
+		case R.id.idleunits:
+			i = new Intent(this,IdleUnits.class);
+			i.putExtras(acct.toBundle());
+			startActivity(i);
+			return true;
+		case R.id.update:
+			Uri location = Uri.parse("http://andoria.angeldsis.com/apks/LouMain.apk");
+			i = new Intent(Intent.ACTION_VIEW,location);
+			startActivity(i);
+			return true;
 		}
 		return super.onOptionsItemSelected(item);
 	}
@@ -215,10 +237,13 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 		// TODO Auto-generated method stub
 		return false;
 	}
+	@Override public void onReportCountUpdate() {}
+	@Override public void onSubListChanged() {}
+	@Override public void onBuildQueueUpdate() {}
 	@Override
-	public void onReportCountUpdate() {}
-	@Override
-	public void onSubListChanged() {
+	public void cellUpdated(Cell c) {
 		// TODO Auto-generated method stub
+		
 	}
+	@Override public void onDefenseOverviewUpdate() {}
 }

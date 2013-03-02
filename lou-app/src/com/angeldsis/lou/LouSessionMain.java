@@ -14,6 +14,7 @@ import com.google.ads.AdView;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -61,11 +62,24 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 			adView.destroy();
 		}
 		super.onDestroy();
+		Log.v(TAG,"onDestroy");
 	}
 	protected void onStart() {
 		super.onStart();
 		Log.v(TAG,"onStart");
 		mAdapter.clear();
+		Configuration c = getResources().getConfiguration();
+		int size = c.screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK;
+		switch (size) {
+		case Configuration.SCREENLAYOUT_SIZE_NORMAL:
+			Log.v(TAG,"screen size normal");
+			break;
+		case Configuration.SCREENLAYOUT_SIZE_LARGE:
+			Log.v(TAG,"screen size large");
+			break;
+		default:
+			Log.v(TAG,"screen size "+size);
+		}
 	}
 	public void session_ready() {
 		Log.v(TAG,"session_ready");
@@ -200,10 +214,12 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 	@Override protected void onResume() {
 		super.onResume();
 		run();
+		Log.v(TAG, "onResume");
 	}
 	@Override protected void onPause() {
 		super.onPause();
 		h.removeCallbacks(this);
+		Log.v(TAG,"onPause");
 	}
 	@Override public void run() {
 		int x;

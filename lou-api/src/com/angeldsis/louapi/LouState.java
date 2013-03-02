@@ -10,8 +10,12 @@ import org.json2.JSONArray;
 import org.json2.JSONException;
 import org.json2.JSONObject;
 
+import com.angeldsis.louapi.data.AllianceMember;
+import com.angeldsis.louapi.data.AllianceMembers;
 import com.angeldsis.louapi.data.BuildQueue;
+import com.angeldsis.louapi.data.Coord;
 import com.angeldsis.louapi.data.SubRequest;
+import com.angeldsis.louapi.data.UnitCount;
 import com.google.gson.annotations.SerializedName;
 
 public class LouState {
@@ -34,8 +38,9 @@ public class LouState {
 	transient public int viewed_reports;
 	transient public ArrayList<SubRequest> subs;
 	transient public boolean userActivity;
-	transient boolean getFullPlayerData = true;
+	transient boolean getFullPlayerData = true,checkOnline = false;
 	transient public int tradeSpeedShip, tradeSpeedland;
+	transient AllianceMembers alliancemembers;
 
 	public LouState() {
 		init();
@@ -53,6 +58,10 @@ public class LouState {
 		mana = new ManaCounter(this);
 		subs = new ArrayList<SubRequest>();
 	}
+	public City findCityById(int cityid) {
+		for (City c : cities) if (c.cityid == cityid) return c;
+		return null;
+	}
 	public void processPlayerInfo(JSONObject obj) throws JSONException {
 		Log.v(TAG,obj.toString(1));
 		JSONArray cities = obj.getJSONArray("Cities");
@@ -62,7 +71,7 @@ public class LouState {
 		for (x = 0; x < cities.length(); x++) {
 			JSONObject cityin = cities.getJSONObject(x);
 			City cityout = null;
-			long cityid = cityin.getLong("i");
+			int cityid = cityin.getInt("i");
 			
 			// find and re-use the old city object if it already exists
 			if (old != null) {
@@ -93,15 +102,17 @@ public class LouState {
 		private static final String TAG = "City";
 		@SerializedName("r") public Resource[] resources;
 		@SerializedName("n") public String name;
-		@SerializedName("i") public long cityid;
+		@SerializedName("i") public int cityid;
 		transient public ArrayList<LouVisData> visData;
 		transient public int visreset;
 		transient public BuildQueue[] queue;
 		transient public int build_queue_start;
 		transient public int build_queue_end;
 		transient public int freeships,freecarts,maxships,maxcarts;
+		transient public Coord location;
 		public boolean autoBuildDefense, autoBuildEconomy;
 		public int autoBuildTypeFlags;
+		@SerializedName("units") public UnitCount[] units;
 		City() {
 			resources = new Resource[4];
 			int i;
@@ -123,6 +134,7 @@ public class LouState {
 			int i = 0;
 			for (i = 0; i < 4; i++) resources[i].fix(i);
 			init();
+			location = Coord.fromCityId(cityid);
 		}
 		public long getCityid() {
 			return cityid;
@@ -239,7 +251,7 @@ public class LouState {
 			for (x=0; x < q.length(); x++) queue[x] = new BuildQueue(q.getJSONObject(x));
 			currentCity.queue = queue;
 		} else if ((q == null) && (currentCity.queue.length != 0)) currentCity.queue = new BuildQueue[0];
-		Log.v(TAG,""+currentCity);
+		Log.v(TAG,"city debug "+currentCity+p.toString());
 		currentCity.build_queue_start = p.optInt("bqs");
 		currentCity.build_queue_end = p.optInt("bqe");
 		Log.v(TAG, String.format("bqs %d, bqe %d",currentCity.build_queue_start,currentCity.build_queue_end));
@@ -277,8 +289,19 @@ public class LouState {
 			else Log.v(TAG,"no attacks 2!");
 		}
 		else Log.v(TAG,"no attacks?");
-		JSONObject u = p.optJSONObject("u");
+		JSONArray u = p.optJSONArray("u");
 		Log.v(TAG,"unit data:"+u);
+		if (u != null) {
+			currentCity.units = new UnitCount[u.length()];
+			for (x=0; x < u.length(); x++) {
+				JSONObject t2 = u.getJSONObject(x);
+				UnitCount t = new UnitCount(); // FIXME, reuse objects to help with gc presure
+				t.tc = t2.getInt("tc");
+				t.c = t2.getInt("c");
+				t.t = t2.getInt("t");
+				currentCity.units[x] = t;
+			}
+		} else currentCity.units = null;
 		JSONArray ti = p.optJSONArray("ti");
 		JSONArray to = p.optJSONArray("to");
 		if (ti != null) {
@@ -356,11 +379,43 @@ public class LouState {
 			state = t.optInt("s");
 		}
 	}
-	public void parseAllianceUpdate(JSONObject d) {
+	public void parseAllianceUpdate(JSONObject d) throws JSONException {
 		int ia = d.optInt("ia");
 		int oa = d.optInt("oa");
 		if (oa > 0) Log.v(TAG,String.format("outgoing:%d",oa));
 		rpc.aam.countsUpdated(ia,oa);
+		JSONArray members = d.getJSONArray("m");
+		if (alliancemembers == null) alliancemembers = new AllianceMembers();
+		int i;
+		int[] valid = new int[members.length()];
+		for (i=0; i<members.length(); i++) {
+			JSONObject m = members.getJSONObject(i);
+			int id = m.getInt("i");
+			String name = m.getString("n");
+			AllianceMember m2 = alliancemembers.get(id);
+			if (m2 == null) {
+				m2 = new AllianceMember(id,name);
+				alliancemembers.put(id, m2);
+			}
+			valid[i] = id;
+			m2.update(m);
+
+			if (m2.base.getName().equals("xHavoc")) Log.v(TAG,m.toString());
+		}
+		Iterator<AllianceMember> it = alliancemembers.values().iterator();
+		while (it.hasNext()) {
+			AllianceMember m = it.next();
+			boolean keep = false;
+			for (i=0; i<valid.length; i++) {
+				if (valid[i] == m.base.getId()) { // FIXME
+					keep = true;
+					break;
+				}
+			}
+			if (keep == false) {
+				it.remove();
+			}
+		}
 	}
 	public void parseSubs(JSONObject d) {
 		synchronized (subs) {

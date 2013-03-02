@@ -18,6 +18,7 @@ import android.widget.TextView;
 public class ShowCoord extends SessionUser implements GotPublicCityInfo {
 	private static final String TAG = "ShowCoord";
 	int x,y;
+	Coord self;
 	public void onCreate(Bundle b) {
 		super.onCreate(b);
 		if (Build.VERSION.SDK_INT > 13) initApi14();
@@ -29,7 +30,8 @@ public class ShowCoord extends SessionUser implements GotPublicCityInfo {
 		if (args.containsKey("x")) {
 			x = args.getInt("x");
 			y = args.getInt("y");
-			((TextView)findViewById(R.id.coord)).setText(Coord.format(x, y));
+			self = new Coord(x,y);
+			((TextView)findViewById(R.id.coord)).setText(self.format());
 			checkBookmarks();
 			int cityid = Coord.toCityId(x,y);
 			session.rpc.GetPublicCityInfo(cityid,this);
@@ -38,7 +40,7 @@ public class ShowCoord extends SessionUser implements GotPublicCityInfo {
 	private void checkBookmarks() {
 		SharedPreferences p = this.getSharedPreferences("bookmarks", Context.MODE_PRIVATE);
 		String[] bookmarks = p.getString("bookmarks", "").split(",");
-		String findme = Coord.format(x, y);
+		String findme = self.format();
 		ViewGroup frame = (ViewGroup) findViewById(R.id.bookmarkState);
 		frame.removeAllViews();
 		for (String b : bookmarks) {
@@ -54,8 +56,8 @@ public class ShowCoord extends SessionUser implements GotPublicCityInfo {
 	public void addBookmark(View v) {
 		SharedPreferences p = this.getSharedPreferences("bookmarks", Context.MODE_PRIVATE);
 		String bookmarks = p.getString("bookmarks", "");
-		if (bookmarks.length() == 0) bookmarks = Coord.format(x, y);
-		else bookmarks = bookmarks + ","+ Coord.format(x, y);
+		if (bookmarks.length() == 0) bookmarks = self.format();
+		else bookmarks = bookmarks + ","+ self.format();
 		Editor e = p.edit();
 		e.putString("bookmarks", bookmarks);
 		e.apply();

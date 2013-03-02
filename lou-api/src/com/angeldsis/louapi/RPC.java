@@ -18,6 +18,7 @@ import org.json2.JSONTokener;
 import com.angeldsis.louapi.HttpRequest.HttpReply;
 import com.angeldsis.louapi.LouState.City;
 import com.angeldsis.louapi.data.AllianceForum;
+import com.angeldsis.louapi.data.Coord;
 import com.angeldsis.louapi.data.ForumPost;
 import com.angeldsis.louapi.data.ForumThread;
 import com.angeldsis.louapi.data.OrderTargetInfo;
@@ -39,12 +40,12 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 	private DelayQueue<MyTimer> queue;
 	AllianceAttackMonitor aam;
 	Poller poller;
-	WorldParser worldParser;
+	public WorldParser worldParser;
 	World world = new World();
+	public BuildQueueParser buildQueueParser;
+	DefenseOverviewParser defenseOverviewParser;
 
 	public RPC(Account acct, LouState state) {
-		worldParser = new WorldParser();
-		
 		this.account = acct;
 		this.state = state;
 		aam = new AllianceAttackMonitor(this);
@@ -432,6 +433,8 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 		}
 		if (function == "OpenSession") request.put("session", parent.account.sessionid);
 		else request.put("session", parent.instanceid);
+		String postdata = request.toString();
+		final int requestsize = postdata.getBytes().length;
 		HttpRequest req2 = new HttpRequest();
 		HttpRequest.Callback cb = new HttpRequest.Callback() {
 			public void done(HttpReply reply) {
@@ -440,10 +443,11 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 					if (reply.e instanceof UnknownHostException) {
 						Log.w(TAG,"dns error, retrying");
 					} else if (reply.e instanceof FileNotFoundException) {
-						Log.e(TAG, "wtf, file not found??");
+						Log.e(TAG, "wtf, file not found?? " + urlbase + function);
 						stopPolling();
 						onEjected();
 						stopLooping();
+						return;
 					} else {
 						Log.e(TAG, "exception from http req, retrying "+retry+" more times",reply.e);
 					}
@@ -457,6 +461,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 				}
 				reply2.http_code = reply.code;
 
+				logRequest(requestsize,reply.size,function);
 				if (reply.size == 0) {
 					reply2.raw_reply = null;
 				} else {
@@ -465,7 +470,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 						// averaging 100-200ms per call
 						reply2.reply = new JSONTokener(new InputStreamReader(reply.stream)).nextValue();
 						long end = System.currentTimeMillis();
-						Log.v(TAG, String.format("parsing took %dms",end-start));
+						//Log.v(TAG, String.format("parsing took %dms",end-start));
 					} catch (JSONException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -483,8 +488,11 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 				}
 			}
 		};
-		req2.PostURL(urlbase + function, request.toString(), cb);
+		req2.PostURL(urlbase + function, postdata, cb);
 		return;
+	}
+	public void logRequest(int req,int reply,String func) {
+		//Log.v(TAG,String.format("SIZE %s(%d) == %d",func,req,reply));
 	}
 	/** creates an instance of a class implementing HttpRequest */
 	class rpcreply {
@@ -579,7 +587,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			requests += "\fTIME:"+System.currentTimeMillis();
 			requests += "\fREPORT:";
 			requests += "\fSERVER:";
-			requests += "\fALLIANCE:";
+			if (checkAlliance()) requests += "\fALLIANCE:";
 			requests += "\fSUBSTITUTION:";
 			if (state.userActivity) {
 				state.userActivity = false;
@@ -591,6 +599,10 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			}
 			requests += aam.getRequestDetails();
 			requests += "\fTE:";
+			if (buildQueueParser != null) {
+				requests += "\fBQO:"+buildQueueParser.getRequestDetails();
+			}
+			if (defenseOverviewParser != null) requests += "\fDEFO:"+defenseOverviewParser.getRequestDetails();
 			obj.put("requests",requests);
 			doRPC("Poll",obj,this,new RPCCallback() {
 				void requestDone(rpcreply r) throws JSONException {
@@ -608,6 +620,12 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			e.printStackTrace();
 		}
 	}
+	private boolean checkAlliance() {
+		if (state.checkOnline) return state.checkOnline;
+		if (aam.alwaysMonitor) return aam.alwaysMonitor;
+		return uiActive();
+	}
+	public abstract boolean uiActive();
 	void handlePollPacket(JSONObject p) throws JSONException {
 		boolean showName = true;
 		String C = p.getString("C");
@@ -623,6 +641,8 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			parseVIS(D);
 		} else if (C.equals("WORLD")) {
 			if (worldParser != null) worldParser.parse(p,this);
+		} else if (C.equals("BQO")) {
+			if (buildQueueParser != null) buildQueueParser.parse(p.getJSONArray("D"),this);
 		} else if (C.equals("CITY")) {
 			// refer to webfrontend.data.City.js dispatchResults for more info
 			JSONObject D = p.getJSONObject("D");
@@ -687,7 +707,6 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			});
 		} else if (C.equals("ALLIANCE")) {
 			JSONObject D = p.optJSONObject("D");
-			//Log.v(TAG,D.toString(1));
 			state.parseAllianceUpdate(D);
 			showName = false;
 		} else if (C.equals("ALL_AT")) {
@@ -695,10 +714,15 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 		} else if (C.equals("SUBSTITUTION")) {
 			JSONObject D = p.optJSONObject("D");
 			state.parseSubs(D);
+		} else if (C.equals("TE")) {
+			JSONObject D = p.getJSONObject("D");
+			Log.v(TAG,"TE: packet "+D.toString());
+		} else if (C.equals("DEFO")) {
+			defenseOverviewParser.parse(p.getJSONArray("D"),this);
 		} else {
 			Log.v(TAG,"unexpected Poll data "+C+" "+p.toString());
 		}
-		if (showName) Log.v(TAG,"Poll packet "+C);
+		//if (showName) Log.v(TAG,"Poll packet "+C+" size: "+p.toString().getBytes().length);
 	}
 	public abstract void onReportCountUpdate();
 	public abstract void onNewAttack(IncomingAttack a);
@@ -1113,7 +1137,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 		});
 	}
 	public void TradeDirect(final City currentCity, final int[] resources, final boolean byland,
-			final String targetPlayer, final String targetcity, final boolean palaceSupport, final TradeDirectDone callback) {
+			final String targetPlayer, final Coord coord, final boolean palaceSupport, final TradeDirectDone callback) {
 		post(new Runnable() {
 			public void run() {
 				JSONObject obj = new JSONObject();
@@ -1132,7 +1156,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 					obj.put("res", r);
 					obj.put("tradeTransportType", byland ? 1 : 2);
 					obj.put("targetPlayer", targetPlayer);
-					obj.put("targetCity", targetcity);
+					obj.put("targetCity", coord.format());
 					obj.put("palaceSupport", palaceSupport);
 					doRPC("TradeDirect",obj,RPC.this,new RPCCallback() {
 						void requestDone(rpcreply r) throws JSONException {
@@ -1142,6 +1166,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 									callback.done(reply);
 								}
 							});
+							pollSoon();
 						}
 					},5);
 				} catch (JSONException e) {
@@ -1157,4 +1182,98 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 	public interface GotOrderTargetInfo {
 		void done(OrderTargetInfo p);
 	}
+	public abstract void onBuildQueueUpdate();
+	public void setBuildQueueWatching(boolean b) {
+		if (b) {
+			buildQueueParser = new BuildQueueParser(state);
+			pollSoon();
+		}
+		else buildQueueParser = null;
+	}
+	public void BuildingQueuePayAll(int id) {
+		bqoMethod("BuildingQueuePayAll",id);
+	}
+	public void QueueMinisterBuildOrder(int id) {
+		bqoMethod("QueueMinisterBuildOrder",id);
+	}
+	public void BuildingQueueFill(int id) {
+		bqoMethod("BuildingQueueFill",id);
+	}
+	private void bqoMethod(final String method, final int id) {
+		post(new Runnable() {
+			public void run() {
+				JSONObject obj = new JSONObject();
+				try {
+					obj.put("cityid", id);
+					doRPC(method,obj,RPC.this,new RPCCallback() {
+						void requestDone(rpcreply r) throws JSONException {
+							Log.v(TAG,r.reply.toString());
+							pollSoon();
+						}
+					},5);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+	public void setWorldEnabled(boolean b) {
+		if (b) {
+			worldParser = new WorldParser();
+			pollSoon();
+		}
+		else worldParser = null;
+	}
+	public void OrderUnits(final City city, final JSONArray units, final Coord target, final OrderUnitsCallback cb) {
+		post(new Runnable() {
+			public void run() {
+				JSONObject obj = new JSONObject();
+				try {
+					obj.put("cityid", city.cityid);
+					obj.put("units", units);
+					obj.put("targetPlayer", "");
+					obj.put("targetCity", target.format());
+					obj.put("order", 8);
+					obj.put("transport", 1);
+					obj.put("createCity", "");
+					obj.put("timeReferenceType", 1);
+					obj.put("referenceTimeUTCMillis",0);
+					obj.put("raidTimeReferenceType",1); // 0normal, 1 repeat until done
+					obj.put("raidReferenceTimeUTCMillis", 0);
+					obj.put("iUnitOrderOptions", 0);
+					obj.put("iOrderCountRaid", 1);
+					Log.v(TAG,"OrderUnits:"+obj.toString());
+					doRPC("OrderUnits",obj,RPC.this,new RPCCallback() {
+						void requestDone(rpcreply r) throws JSONException {
+							Log.v(TAG,r.reply.toString());
+							pollSoon();
+							JSONObject r2 = (JSONObject) r.reply;
+							final int r0 = r2.getInt("r0");
+							final int r1 = r2.getInt("r1");
+							runOnUiThread(new Runnable() {
+								public void run() {
+									cb.done(r0,r1);
+								}
+							});
+						}
+					},5);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+	public interface OrderUnitsCallback {
+
+		void done(int r0, int r1);}
+	public void setDefenseOverviewEnabled(boolean b) {
+		if (b) {
+			defenseOverviewParser = new DefenseOverviewParser();
+		} else {
+			defenseOverviewParser = null;
+		}
+	}
+	public abstract void onDefenseOverviewUpdate();
 }
