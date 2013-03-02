@@ -3,7 +3,6 @@ package com.angeldsis.louapi;
 import java.util.ArrayList;
 
 import org.json2.JSONArray;
-import org.json2.JSONException;
 import org.json2.JSONObject;
 
 public class AllianceAttackMonitor {
