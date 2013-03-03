@@ -75,8 +75,9 @@ public class BuildQueueOverview extends SessionUser {
 			final ViewHolder holder;
 			if (row == null) {
 				row = getLayoutInflater().inflate(R.layout.build_queue_overview_row, parent,false);
-				MyTableRow row2 = (MyTableRow) row;
-				row2.bind(grid);
+				ViewGroup row2 = (ViewGroup) row;
+				MyTableRow tablerow = (MyTableRow) row2.findViewById(R.id.row);
+				tablerow.bind(grid);
 				holder = new ViewHolder();
 				row.setTag(holder);
 				holder.payall = (Button) row.findViewById(R.id.payAll);
