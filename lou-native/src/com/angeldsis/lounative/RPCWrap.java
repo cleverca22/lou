@@ -46,8 +46,8 @@ public class RPCWrap extends RPC {
 	}
 	@Override
 	public void cityChanged() {
-		// TODO Auto-generated method stub
-		
+		Log.v(TAG,"current city changed");
+		core.cityChanged();
 	}
 	@Override
 	public void onEjected() {
@@ -110,9 +110,7 @@ public class RPCWrap extends RPC {
 		// TODO Auto-generated method stub
 		
 	}
-	@Override
-	public void onDefenseOverviewUpdate() {
-		// TODO Auto-generated method stub
-		
+	@Override public void onDefenseOverviewUpdate() {
+		core.onDefenseOverviewUpdate();
 	}
 }

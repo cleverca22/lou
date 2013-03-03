@@ -15,6 +15,7 @@ public class CoreSession {
 	MainWindow mw;
 	SubsList subListWindow;
 	Display display;
+	IdleTroops idleTroops;
 
 	public CoreSession(Account a, Display display) {
 		this.display = display;
@@ -47,9 +48,23 @@ public class CoreSession {
 	}
 	public void onSubListChanged() {
 		if (subListWindow == null) {
-			subListWindow = new SubsList(rpc,display);
-			subListWindow.open();
+			//subListWindow = new SubsList(rpc,display);
+			//subListWindow.open();
 		}
-		subListWindow.onSubListChanged();
+		//subListWindow.onSubListChanged();
+	}
+	public void openIdleTroops() {
+		if (idleTroops == null) {
+			idleTroops = new IdleTroops(rpc);
+			idleTroops.open();
+		} else {
+			idleTroops.forceFocus();
+		}
+	}
+	public void onDefenseOverviewUpdate() {
+		if (idleTroops != null) idleTroops.onDefenseOverviewUpdate();
+	}
+	public void cityChanged() {
+		if (idleTroops != null) idleTroops.cityChanged();
 	}
 }

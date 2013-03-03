@@ -22,6 +22,7 @@ public class SubsList extends Shell {
 		setLayout(new GridLayout(1, false));
 		
 		buttons = new ArrayList<Button>();
+		setText("subs list");
 	}
 
 	public void onSubListChanged() {
@@ -40,6 +41,7 @@ public class SubsList extends Shell {
 			b.setVisible(true);
 			Log.v("SubsList", buttons.toString());
 		}
+		this.layout();
 	}
 	private class clicker implements SelectionListener {
 		SubRequest s;
