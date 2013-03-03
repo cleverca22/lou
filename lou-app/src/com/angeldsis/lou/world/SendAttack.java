@@ -10,6 +10,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -114,6 +116,7 @@ public class SendAttack extends SessionUser implements OrderUnitsCallback {
 						holder.setCount(maxcounts[holder.data.t]);
 					}
 				});
+				holder.to_send.addTextChangedListener(holder);
 			} else holder = (ViewHolder) oldrow.getTag();
 			holder.data = getItem(position);
 			
@@ -129,7 +132,7 @@ public class SendAttack extends SessionUser implements OrderUnitsCallback {
 			return oldrow;
 		}
 	}
-	private class ViewHolder {
+	private class ViewHolder implements TextWatcher {
 		public UnitCount data;
 		TextView name,counts;
 		EditText to_send;
@@ -143,6 +146,26 @@ public class SendAttack extends SessionUser implements OrderUnitsCallback {
 				to_send.setTextColor(Color.RED);
 			} else {
 				to_send.setTextColor(Color.WHITE);
+			}
+		}
+		@Override
+		public void afterTextChanged(Editable s) {
+			// TODO Auto-generated method stub
+			
+		}
+		@Override
+		public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+			// TODO Auto-generated method stub
+			
+		}
+		@Override
+		public void onTextChanged(CharSequence s, int start, int before, int count) {
+			try {
+				int val = Integer.parseInt(s.toString());
+				unitcounts[data.t] = val;
+				updateColor();
+			} catch (java.lang.NumberFormatException e) {
+				to_send.setTextColor(Color.RED);
 			}
 		}
 	}
