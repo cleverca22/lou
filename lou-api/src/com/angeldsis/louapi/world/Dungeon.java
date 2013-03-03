@@ -34,9 +34,9 @@ public class Dungeon implements Comparable {
 		case 3: return 2000;
 		case 4: return 15488;
 		case 5: return 57330;
-		case 6: return 58445;
+		case 6: return 87874;
 		case 7: return 230852;
-		case 8: return 501560;
+		case 8: return 555535;
 		case 9: return 898590;
 		case 10: return 1074520;
 		}
