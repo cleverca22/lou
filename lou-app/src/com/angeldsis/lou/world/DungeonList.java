@@ -90,7 +90,7 @@ public class DungeonList extends WorldUser implements OnItemClickListener {
 			holder.type.setText(obj.getType());
 			holder.level.setText("("+obj.level+") "+obj.progress+"%");
 			holder.distance.setText(String.format("%.2f state:%b",obj.location.distance(currentCity),obj.state));
-			holder.maxloot.setText(""+obj.maxloot());
+			holder.maxloot.setText(""+obj.getloot());
 			return convertView;
 		}
 		@Override public long getItemId(int position) {
@@ -112,7 +112,7 @@ public class DungeonList extends WorldUser implements OnItemClickListener {
 		Intent i = new Intent(this,SendAttack.class);
 		i.putExtras(acct.toBundle());
 		i.putExtra("dungeon", d.location.toCityId());
-		i.putExtra("maxloot", d.maxloot());
+		i.putExtra("maxloot", d.getloot());
 		startActivity(i);
 	}
 	@Override public void session_ready() {

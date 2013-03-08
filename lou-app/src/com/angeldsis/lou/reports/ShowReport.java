@@ -48,10 +48,11 @@ public class ShowReport extends SessionUser implements ReportCallback {
 	public void done(Report report) {
 		if (report.reportHeader.generalType == Report.types.general.combat) {
 			switch (report.reportHeader.combatType) {
+			case Report.types.combat.siege:
+				setField(R.id.claim,String.format("claim power %d->%d",report.oldClaimPower,report.claimPower));
 			case Report.types.combat.scout:
 			case Report.types.combat.raidDungeon:
 			case Report.types.combat.plunder:
-			case Report.types.combat.siege:
 			case Report.types.combat.assault:
 			case Report.types.combat.raidBoss:
 				Log.v("ShowReport",report.toString());
@@ -71,7 +72,11 @@ public class ShowReport extends SessionUser implements ReportCallback {
 		}
 	}
 	private void setupHalf(ViewGroup side, ReportHalf half, int altered_id) {
-		Log.v(TAG,"half:"+half);
+		//Log.v(TAG,"half:"+half);
+		if (half == null) {
+			((TextView)side.findViewById(R.id.player_name)).setText("half null");
+			return;
+		}
 		((TextView)side.findViewById(R.id.player_name)).setText(half.player);
 		((TextView)side.findViewById(R.id.city)).setText(half.cityname);
 		int both = half.coord;
