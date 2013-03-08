@@ -19,6 +19,7 @@ public class Dungeon implements Comparable {
 	}
 	public int minloot() {
 		switch (level) {
+		case 4: return 8250;
 		case 6: return 56850;
 		case 7: return 117175;
 		case 8: return 388593;
@@ -27,20 +28,27 @@ public class Dungeon implements Comparable {
 		}
 		return 0;
 	}
-	public int maxloot() {
+	private int maxloot() {
 		switch (level) {
 		case 1: return 320;
 		case 2: return 977;
 		case 3: return 2000;
 		case 4: return 15488;
 		case 5: return 57330;
-		case 6: return 87874;
-		case 7: return 230852;
+		case 6: return 113730;
+		case 7: return 318920;
 		case 8: return 555535;
 		case 9: return 898590;
 		case 10: return 1074520;
 		}
 		return 0;
+	}
+	public int getloot() {
+		int min = minloot();
+		int max = maxloot();
+		if (min == 0) return max;
+		int diff = max - min;
+		return ((diff * progress)/100) + min;
 	}
 	@Override
 	public int compareTo(Object arg0) {
