@@ -667,12 +667,8 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			JSONArray D = p.getJSONArray("D");
 			int i;
 			final ArrayList<ChatMsg> recent = new ArrayList<ChatMsg>();
-			synchronized (state.chat_history) {
-				for (i = 0; i < D.length(); i++) {
-					ChatMsg c = new ChatMsg(D.getJSONObject(i));
-					state.chat_history.add(c);
-					recent.add(c);
-				}
+			for (i = 0; i < D.length(); i++) {
+				recent.add(new ChatMsg(D.getJSONObject(i)));
 			}
 			runOnUiThread(new Runnable () {public void run() {
 			onChat(recent);
@@ -1270,6 +1266,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 		void done(int r0, int r1);}
 	public void setDefenseOverviewEnabled(boolean b) {
 		if (b) {
+			Log.v(TAG,"DEFO enabled!");
 			defenseOverviewParser = new DefenseOverviewParser();
 			pollSoon();
 		} else {

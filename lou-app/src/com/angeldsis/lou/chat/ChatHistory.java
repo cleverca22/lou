@@ -17,7 +17,7 @@ public class ChatHistory extends SQLiteOpenHelper {
 	public static final String DBName = "chat_history_w%d_p%d.db";
 	public static int VERSION = 3;
 	private static final String tblFormat = "CREATE TABLE ChatLogs (time,channel,sender,crown,message,tag)";
-	ArrayList<String> openTags = new ArrayList<String>();
+	public ArrayList<String> openTags = new ArrayList<String>();
 	HashMap<String,ChatCache> caches = new HashMap<String,ChatCache>();
 	//SparseArray<ChatMsg> cache;
 	

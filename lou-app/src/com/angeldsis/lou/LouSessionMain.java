@@ -88,10 +88,6 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 		} else {
 			LouState state = session.state;
 			resource_bar.setState(state);
-			ArrayList<ChatMsg> msgs = state.chat_history;
-			int total = msgs.size();
-			TextView chat = (TextView) findViewById(R.id.chat);
-			chat.setText(""+total);
 			if (session.state.currentCity != null) {
 				cityListChanged();
 				TextView city = (TextView) findViewById(R.id.current_city);
@@ -153,9 +149,7 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 		startActivity(i);
 	}
 	public void onChat(ArrayList<ChatMsg> c) {
-		int total = session.state.chat_history.size();
-		TextView chat = (TextView) findViewById(R.id.chat);
-		chat.setText(""+total);
+		// FIXME, give some ui notice
 	}
 	@Override
 	public void cityListChanged() {

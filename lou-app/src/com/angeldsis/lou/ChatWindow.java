@@ -6,12 +6,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Spannable;
@@ -36,7 +32,6 @@ import android.widget.TextView;
 
 import com.angeldsis.lou.BBCode.Span;
 import com.angeldsis.lou.chat.ChatHistory;
-import com.angeldsis.lou.reports.ShowReport;
 import com.angeldsis.louapi.ChatMsg;
 
 public class ChatWindow extends SessionUser {
@@ -309,8 +304,35 @@ public class ChatWindow extends SessionUser {
 			//c.oldmessagelist.removeAllViews();
 			c.adapter.setSource(session.chat,c);
 		}
-		synchronized (session.state.chat_history) {
-			onChat(session.state.chat_history);
+		Log.v(TAG,"open tags");
+		for (String tag : session.chat.openTags) {
+			Log.v(TAG,"reopening tag "+tag);
+			String key;
+			if (tag.equals("@C")) key = "general";
+			else if (tag.equals("@A")) key = "alliance";
+			else if (tag.startsWith("pm_")) key = tag;
+			else {
+				Log.v(TAG,"unknown tag "+tag);
+				key = tag;
+			}
+			Channel c = channels.get(key);
+			if (c == null) {
+				Log.v(TAG,"tag "+tag+" not found");
+				if (key.startsWith("pm_")) {
+					c = new Channel();
+					Log.v(TAG,"made channel");
+					c.tag = key.substring(3);
+					c.key = key;
+					c.type = Type.pm;
+					TabHost.TabSpec s = mTabHost.newTabSpec(c.tag);
+					s.setContent(new TabMaker(c));
+					c.adapter.setSource(session.chat, c);
+					Log.v(TAG,"source set");
+					s.setIndicator(c.tag);
+					mTabHost.addTab(s);
+					channels.put(key, c);
+				}
+			}
 		}
 		session.rpc.pollSoon();
 	}
@@ -340,6 +362,7 @@ public class ChatWindow extends SessionUser {
 		}
 	}
 	public void onChat(ArrayList<ChatMsg> recent) {
+		long start = System.currentTimeMillis();
 		Iterator<ChatMsg> i = recent.iterator();
 		while (i.hasNext()) {
 			// FIXME, remove most of this code
@@ -385,12 +408,14 @@ public class ChatWindow extends SessionUser {
 			l.addView(msg);
 			
 			if (c.channel.equals("@A")) {
-				return;
+				continue;
 			}
 			else if (c.channel.equals("privatein") || c.channel.equals("privateout")) {
 				Channel c2 = channels.get("pm_"+c.sender);
 			}
 		}
+		long end = System.currentTimeMillis();
+		Log.v(TAG,"onChat time: "+(end-start));
 	}
 	public void sendMsg(View v) {
 		String tag = mTabHost.getCurrentTabTag();

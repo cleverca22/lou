@@ -30,7 +30,6 @@ public class LouState {
 	transient public ArrayList<IncomingAttack> incoming_attacks;
 	transient private int diff, stepTime;
 	transient long refTime;
-	transient public ArrayList<ChatMsg> chat_history;
 	transient RPC rpc;
 	transient public TimeZone tz;
 	transient boolean fetchVis = false;
@@ -53,7 +52,6 @@ public class LouState {
 	}
 	private void init() {
 		incoming_attacks = new ArrayList<IncomingAttack>();
-		chat_history = new ArrayList<ChatMsg>();
 		gold = new Counter(this);
 		mana = new ManaCounter(this);
 		subs = new ArrayList<SubRequest>();

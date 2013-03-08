@@ -187,9 +187,7 @@ public class SessionKeeper extends Service {
 			//doing_network.acquire();
 			
 			state = new LouState();
-			Log.v(TAG,""+state.chat_history);
 			restoreState(); // FIXME, maybe do this better?
-			Log.v(TAG,""+state.chat_history);
 
 			rpc = new RPCWrap(acct,state,this);
 			state.setRPC(rpc);
