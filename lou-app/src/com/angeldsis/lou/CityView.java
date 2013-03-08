@@ -42,6 +42,10 @@ public class CityView extends SessionUser implements Callbacks, LayoutCallbacks 
 		vg.addView(mTest);
 		((FrameLayout) findViewById(R.id.resource_bar)).addView(mTest.resource_bar);
 	}
+	@Override public void onDestroy() {
+		super.onDestroy();
+		mTest = null; // possible memory leak somewhere
+	}
 	public void session_ready() {
 		mTest.setState(session.state,session.rpc);
 		if (session.state.currentCity != null) mTest.resource_bar.update(session.state.currentCity);
