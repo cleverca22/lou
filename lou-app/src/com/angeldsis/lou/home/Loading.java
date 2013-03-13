@@ -51,9 +51,12 @@ public class Loading extends Fragment {
 					else {
 						Log.e(TAG,"cookie check failed");
 						// assume you need to login again
-						Intent doLogin = new Intent(getActivity(), louLogin.class);
-						startActivity(doLogin);
-						getActivity().finish();
+						FragmentTransaction trans = getActivity().getSupportFragmentManager().beginTransaction();
+						trans.replace(R.id.main_frame, new Webview());
+						trans.commit();
+						//Intent doLogin = new Intent(getActivity(), louLogin.class);
+						//startActivity(doLogin);
+						//getActivity().finish();
 					}
 				}
 			});
