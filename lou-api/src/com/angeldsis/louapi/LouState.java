@@ -98,9 +98,9 @@ public class LouState {
 	}
 	public class City {
 		private static final String TAG = "City";
-		@SerializedName("r") public Resource[] resources;
-		@SerializedName("n") public String name;
-		@SerializedName("i") public int cityid;
+		@SerializedName("res") public Resource[] resources;
+		@SerializedName("name") public String name;
+		@SerializedName("id") public int cityid;
 		transient public ArrayList<LouVisData> visData;
 		transient public int visreset;
 		transient public BuildQueue[] queue;
