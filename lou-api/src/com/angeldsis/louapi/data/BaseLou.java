@@ -76,6 +76,7 @@ public class BaseLou {
 			}
 			output += readByte() * Math.pow(0x5b, bytes);
 			bytes++;
+			if (bytes == 5) return output;
 		}
 		throw new Exception("- not found: "+data.substring(offset));
 	}

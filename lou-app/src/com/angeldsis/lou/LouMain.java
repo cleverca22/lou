@@ -6,6 +6,7 @@ import com.google.android.vending.licensing.LicenseChecker;
 import com.google.android.vending.licensing.LicenseCheckerCallback;
 import com.google.android.vending.licensing.Policy;
 import com.google.android.vending.licensing.ServerManagedPolicy;
+import com.nullwire.trace.ExceptionHandler;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -26,6 +27,7 @@ public class LouMain extends FragmentActivity {
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+		ExceptionHandler.register(this,"http://ext.earthtools.ca/backtrace.php");
 		// super may re-create fragments without warning
 		super.onCreate(savedInstanceState);
 		// Debug.startMethodTracing();

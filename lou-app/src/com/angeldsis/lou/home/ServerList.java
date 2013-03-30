@@ -9,6 +9,7 @@ import com.angeldsis.lou.R;
 import com.angeldsis.lou.SessionKeeper;
 import com.angeldsis.louapi.Account;
 import com.angeldsis.louapi.LouSession;
+import com.angeldsis.louapi.ServerInfo;
 
 import android.content.Context;
 import android.content.Intent;
@@ -41,35 +42,36 @@ public class ServerList extends Fragment {
 		TextView age = (TextView) root.findViewById(R.id.age);
 		LouSession sess = SessionKeeper.session2;
 		age.setText(""+(System.currentTimeMillis() - sess.dataage)/1000);
-		ArrayList<Account> accounts = sess.servers;
+		ArrayList<ServerInfo> accounts = sess.servers;
 		Log.v(TAG,"found "+accounts.size());
 		ViewGroup top = (ViewGroup) root.findViewById(R.id.list);
-		Iterator<Account> i = SessionKeeper.session2.servers.iterator();
+		Iterator<ServerInfo> i = SessionKeeper.session2.servers.iterator();
 		while (i.hasNext()) {
-			final Account a = i.next();
+			final ServerInfo a = i.next();
 			if (a.offline) {
 				ViewGroup row = (ViewGroup) inflater.inflate(R.layout.offline_server, top,false);
 				TextView t = (TextView) row.findViewById(R.id.servername);
-				t.setText(a.world);
+				t.setText(a.servername);
 				top.addView(row);
 			} else {
 				ViewGroup row = (ViewGroup) inflater.inflate(R.layout.one_server, top,false);
 				TextView t = (TextView) row.findViewWithTag("server_name");
-				t.setText(a.world);
+				t.setText(a.servername);
 				Button b = (Button) row.findViewWithTag("button");
 				Log.v(TAG,b.toString());
 				b.setOnClickListener(new OnClickListener() {
 					@Override
 					public void onClick(View v) {
-						Log.v(TAG,"onClick("+a.world+")");
+						Log.v(TAG,"onClick("+a.servername+")");
 						Intent login = new Intent(getActivity(), LoggingIn.class);
-						login.putExtras((new AccountWrap(a)).toBundle());
+						AccountWrap a2 = new AccountWrap(a);
+						login.putExtras(a2.toBundle());
 						startActivity(login);
-						Log.v(TAG, "doing login on world " + a.world);
+						Log.v(TAG, "doing login on world " + a.servername);
 					}
 				});
 				top.addView(row);
-				Log.v(TAG,"inflated row "+a.world);
+				Log.v(TAG,"inflated row "+a.servername);
 				Log.v(TAG,"serverid:"+a.serverid);
 				Log.v(TAG,"offline: "+a.offline);
 			}

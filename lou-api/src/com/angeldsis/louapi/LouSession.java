@@ -43,7 +43,7 @@ public class LouSession {
 	static final String TAG = "LouSession";
 	static URL base;
 	public CookieManager mCookieManager;
-	public ArrayList<Account> servers;
+	public ArrayList<ServerInfo> servers;
 	public String REMEMBER_ME;
 	public long dataage;
 	// handles the login process
@@ -55,8 +55,9 @@ public class LouSession {
 			return true;
 		}
 	}
+	public static final String cookiename = "JSESSIONID";
 	public void restore_cookie(String cookie) {
-		HttpCookie httpcookie = new HttpCookie("REMEMBER_ME_COOKIE",cookie);
+		HttpCookie httpcookie = new HttpCookie(cookiename,cookie);
 		httpcookie.setDomain("www.lordofultima.com");
 		httpcookie.setPath("/");
 		httpcookie.setVersion(0);
@@ -100,7 +101,7 @@ public class LouSession {
 			conn.connect();
 			int response = conn.getResponseCode();
 			Log.v(TAG,"response code "+response);
-			if (response != 302) {
+			if (response != 301) {
 				// FIXME error;
 				char[] buffer = new char[1024];
 				int size;
@@ -109,8 +110,7 @@ public class LouSession {
 				while ((size = reply1.read(buffer, 0, 1024)) != -1) {
 					buf.append(buffer,0,size);
 				}
-				Log.e(TAG,"error1");
-				Log.e(TAG,buf.toString());
+				Log.e(TAG,"error3 "+buf.toString());
 				return null;
 			}
 			
@@ -162,96 +162,83 @@ public class LouSession {
 		conn2.setReadTimeout(20000);
 		conn2.setConnectTimeout(15000);
 		conn2.setRequestMethod("GET");
-		conn2.setDoOutput(true);
+		conn2.setDoOutput(false);
 		conn2.connect();
 		return conn2;
 	}
 	private void parse_result(final result output, InputStream is) throws IOException, SAXException {
 		XMLReader xmlReader = XMLReaderFactory.createXMLReader ("org.ccil.cowan.tagsoup.Parser");
-		final ArrayList<Account> servers = new ArrayList<Account>();
+		final ArrayList<ServerInfo> servers = new ArrayList<ServerInfo>();
 		final ArrayList<NewServer> newServers = new ArrayList<NewServer>();
 		final Pattern actioncheck = Pattern.compile("^http://prodgame(\\d+).lordofultima.com/(\\d+)/index.aspx$");
 		final Pattern findid = Pattern.compile("\\d+");
 		ContentHandler handler = new DefaultHandler() {
-			Account acct;
 			NewServer newServer;
-			boolean in_server_list = false,in_register_list = false;
+			ServerInfo currentRow;
+			int state = -1;
 			public void startElement(String uri,String localName,String qName, Attributes attributes) throws SAXException {
-				String classVal = attributes.getValue("class");
-				if (localName.equals("ul") && (classVal != null) && classVal.equals("server-list")) {
-					in_server_list = true;
-				} else if (localName.equals("form")) {
-					String action = attributes.getValue("action");
-					String id = attributes.getValue("id");
-					Log.v(TAG,String.format("found a form %s %s",action,id));
-					Matcher m = actioncheck.matcher(action);
-					if (action.equals("/en/user/logout")) {
-						output.worked = true;
-					} else if (m.find()) {
-						acct.serverid = m.group(1);
-						acct.pathid = m.group(2);
-					} else if ((id != null) && id.equals("servers_new")) {
-						Log.v(TAG,"begining of reg list");
-						in_register_list = true;
-					} else Log.v(TAG,"unknown action "+action);
-				} else if (in_server_list) {
-					if (localName.equals("li")) {
-						String id = attributes.getValue("id");
-						Log.v(TAG,"class:"+classVal+" id:"+id);
-						acct = new Account();
-						acct.world = id; // FIXME
-						Matcher m = findid.matcher(id);
-						m.find();
-						acct.worldid = Integer.parseInt(m.group());
-						if (classVal.equals("offline menu_bubble")) {
-							acct.offline = true;
-						} else {
-							acct.offline = false;
-						}
-					} else if (localName.equals("div")) {
-						Log.v(TAG,"div class="+classVal);
-					} else if (localName.equals("input")) {
-						String name = attributes.getValue("name");
-						if (acct != null && name != null && name.equals("sessionId")) {
-							acct.sessionid = attributes.getValue("value");
-						} else if (acct != null && attributes.getValue("type").equals("submit")) {
-							//acct.world = attributes.getValue("value");
-						}
-					}
-				} else if (in_register_list) {
-					if (localName.equals("option")) {
-						newServer = new NewServer();
-						newServer.server = attributes.getValue("value");
-						newServer.clazz = attributes.getValue("class");
-						newServer.id = attributes.getValue("id");
-					}
+				
+				if (localName.equals("server")) {
+					Log.v(TAG,"server start");
+					currentRow = new ServerInfo();
+				} else if (localName.equals("servername")) {
+					state = 1;
+				} else if (localName.equals("serverStatus")) {
+					state = 2;
+				} else if (localName.equals("lastLogin")) {
+					state = 3;
+				} else if (localName.equals("sessionId")) {
+					state = 4;
+				} else if (localName.equals("serverURL")) {
+					state = 5;
+				} else {
+					Log.v(TAG,"startElement "+localName);
 				}
 			}
 			public void endElement (String uri, String localName, String qName) {
-				if (in_server_list) {
-					if (localName.equals("ul")) in_server_list = false;
-					else if (localName.equals("li")) {
-						Log.v(TAG,"li done, adding acct "+acct);
-						servers.add(acct);
-						acct = null;
-					}
+				if (state != -1) {
+					state = -1;
 				}
-				if (in_register_list) {
-					if (localName.equals("option")) {
-						newServers.add(newServer);
-						newServer = null;
-					} else if (localName.equals("form")) {
-						Log.v(TAG,"end of reg list");
-						in_register_list = false;
+				if (localName.equals("server")) {
+					if (currentRow.lastLogin != null) {
+						Log.v(TAG,String.format("name:%s login:%s",currentRow.servername,currentRow.lastLogin));
+						servers.add(currentRow);
+						output.worked = true;
 					}
+					currentRow = null;
 				}
 			}
 			public void characters(char[]text, int start, int size) {
-				if (in_register_list && (newServer != null)) {
-					newServer.name = new String(text,start,size).trim();
+				Matcher m;
+				if (state != -1) {
+					String buf = new String(text,start,size);
+					switch (state) {
+					case 1:
+						currentRow.servername = buf;
+						m = findid.matcher(buf);
+						if (!m.find()) Log.e(TAG,"cant find worldid in world");
+						currentRow.worldid = Integer.parseInt(m.group());
+						break;
+					case 2:
+						if (buf.equals("ONLINE")) currentRow.offline = false;
+						else currentRow.offline = true;
+						break;
+					case 3:
+						currentRow.lastLogin = buf;
+						break;
+					case 4:
+						currentRow.sessionId = buf;
+						break;
+					case 5:
+						m = actioncheck.matcher(buf);
+						if (!m.find()) Log.e(TAG,"cant find url parts");
+						currentRow.serverid = m.group(1);
+						currentRow.pathid = m.group(2);
+					}
+				} else if (size > 0) {
+					String buf = new String(text,start,size);
+					Log.v(TAG,"text: "+state+" "+size+" "+buf);
 				}
-				//String buf = new String(text,start,size);
-				//Log.v(TAG,"text: "+buf);
 			}
 		};
 		xmlReader.setContentHandler(handler);
@@ -321,38 +308,66 @@ public class LouSession {
 	}
 	public result check_cookie() {
 		try {
-			URL check = new URL("https://www.lordofultima.com/en/welcome");
+			URL check = new URL("http://www.lordofultima.com/game/world/change");
 			HttpsURLConnection.setFollowRedirects(false);
 			HttpURLConnection.setFollowRedirects(false);
-			HttpsURLConnection conn = (HttpsURLConnection) check
-					.openConnection();
+			HttpURLConnection conn = (HttpURLConnection) check.openConnection();
 			conn.setReadTimeout(30000);
 			conn.setConnectTimeout(15000);
 			conn.setRequestMethod("GET");
 			conn.setDoOutput(false);
 			conn.setDoInput(true);
 			conn.connect();
-			if (conn.getResponseCode() != 302) {
-				Log.e(TAG, "was expecting 302, got "+conn.getResponseCode());
-				return null;
-				// FIXME
-			}
-			String secondurl = conn.getHeaderField("Location");
-			Log.v(TAG, "second url:" + secondurl);
-			if (secondurl.equals("/en/welcome?"))
-				secondurl = "http://www.lordofultima.com/en/welcome?";// FIXME
-	
-			boolean repeat = true;
-			HttpURLConnection conn2;
-			do {
-				conn2 = this.doRequest(secondurl);
-				if (conn2.getResponseCode() == 200) {
-					repeat = false;
-				} else if (conn2.getResponseCode() == 302) {
-					secondurl = conn2.getHeaderField("Location");
-					Log.v(TAG, "302'd to " + secondurl);
+			if (conn.getResponseCode() == 200) {
+			} else if (conn.getResponseCode() == 302) {
+				String secondurl = conn.getHeaderField("Location");
+				if ("http://www.lordofultima.com/login/auth".equals(secondurl)) {
+					result obj = new result();
+					Log.e(TAG,String.format("fail 1 %d %s",conn.getResponseCode(),secondurl));
+					obj.worked = false;
+					return obj;
+				} else {
+					Log.e(TAG,"unknown error");
+					return null; // FIXME
 				}
-			} while (repeat);
+			} else {
+				Log.e(TAG, "was expecting 302, got "+conn.getResponseCode());
+				return null; // FIXME
+			}
+			//String secondurl = conn.getHeaderField("Location");
+			//Log.v(TAG, "second url:" + secondurl);
+			//if (secondurl.equals("/en/welcome?"))
+				//secondurl = "http://www.lordofultima.com/en/welcome?";// FIXME
+			
+			// load the /game/world/change page and extract the sessionid
+			char[] buffer = new char[1024];
+			int size;
+			StringBuilder buf = new StringBuilder();
+			InputStreamReader reply1 = new InputStreamReader(conn.getInputStream());
+			while ((size = reply1.read(buffer, 0, 1024)) != -1) {
+				buf.append(buffer,0,size);
+			}
+			String html = buf.toString();
+			buf = null;
+			Pattern sessionid = Pattern.compile("[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}");
+			Matcher m = sessionid.matcher(html);
+			if (!m.find()) {
+				Log.e(TAG,"error4 "+html);
+				Log.e(TAG,"sessionid not found");
+				return null; // FIXME
+			}
+			String sessionId = m.group(0);
+			Log.v(TAG,"sessionid "+sessionId);
+
+			HttpURLConnection conn2;
+			conn2 = this.doRequest("http://prodcdngame.lordofultima.com/Farm/service.svc/ajaxEndpoint/1/session/"+
+						sessionId+"/worlds");
+			if (conn2.getResponseCode() == 200) {
+			} else {
+				Log.e(TAG,String.format("unknown error %s",conn2.getResponseCode()));
+				return null; // FIXME
+			}
+			
 			System.out.println("final code "+conn2.getResponseCode());
 			final result output = new result();
 			output.worked = false;

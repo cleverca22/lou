@@ -15,17 +15,22 @@ import java.net.URL;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.net.ssl.HttpsURLConnection;
-
 import com.angeldsis.lou.AccountWrap;
 import com.angeldsis.lou.LoggingIn;
+import com.angeldsis.lou.R;
+import com.angeldsis.lou.SessionKeeper;
+import com.angeldsis.lou.SessionKeeper.CookieCallback;
+import com.angeldsis.louapi.LouSession;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,7 +38,7 @@ import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-public class Webview extends Fragment {
+public class Webview extends Fragment implements CookieCallback {
 	private static final String TAG = "Webview";
 	WebView v;
 	LoadPage loadpage;
@@ -41,41 +46,56 @@ public class Webview extends Fragment {
 		v = new WebView(getActivity());
 		v.setWebViewClient(new client());
 		v.getSettings().setJavaScriptEnabled(true);
-		v.loadUrl("http://www.lordofultima.com");
+		v.loadUrl("https://www.lordofultima.com/mobile/");
 		return v;
 	}
 	public class client extends WebViewClient {
 		public boolean shouldOverrideUrlLoading (WebView view, String url) {
-			try {
+			//try {
 				Log.v(TAG,"shouldOverrideUrlLoading "+url);
-				if (url.equals("http://www.lordofultima.com/game/launch/redirect")) {
-					File path = getActivity().getDatabasePath("webviewCookiesChromium.db");
-					Log.v(TAG,"db path: "+path.getAbsolutePath());
-					SQLiteDatabase db = SQLiteDatabase.openDatabase(path.getAbsolutePath(), null, SQLiteDatabase.OPEN_READONLY | SQLiteDatabase.NO_LOCALIZED_COLLATORS);
-					String[] vals = {"www.lordofultima.com"};
-					Cursor rows = db.rawQuery("SELECT name,value FROM cookies WHERE host_key = ?",vals);
-					CookieManager mCookieManager = (CookieManager) CookieHandler.getDefault();
-					CookieStore store = mCookieManager.getCookieStore();
-					URI uri = new URI("http://www.lordofultima.com/");
-					while (rows.moveToNext()) {
-						String name = rows.getString(0);
-						String value = rows.getString(1);
-						Log.v(TAG,String.format("%s=%s",name,value));
-						HttpCookie httpcookie = new HttpCookie(name,value);
-						httpcookie.setDomain("www.lordofultima.com");
-						httpcookie.setPath("/");
-						httpcookie.setVersion(0);
-						store.add(uri, httpcookie);
+				if (url.equals("http://www.lordofultima.com/mobile/play/change")) {
+					Log.v(TAG,"overriding");
+					android.webkit.CookieManager cookies = android.webkit.CookieManager.getInstance();
+					//File path = getActivity().getDatabasePath("webviewCookiesChromium.db");
+					//Log.v(TAG,"db path: "+path.getAbsolutePath());
+					//SQLiteDatabase db = SQLiteDatabase.openDatabase(path.getAbsolutePath(), null, SQLiteDatabase.OPEN_READONLY | SQLiteDatabase.NO_LOCALIZED_COLLATORS);
+					//String[] vals = {"www.lordofultima.com"};
+					//Cursor rows = db.rawQuery("SELECT name,value FROM cookies WHERE host_key = ?",vals);
+					//CookieManager mCookieManager = (CookieManager) CookieHandler.getDefault();
+					//CookieStore store = mCookieManager.getCookieStore(); // FIXME NullPointerException
+					//URI uri = new URI("http://www.lordofultima.com/");
+					String c = cookies.getCookie("http://www.lordofultima.com/");
+					Log.v(TAG,"c:"+c);
+					String c2[] = c.split(";");
+					int x;
+					for (x=0; x < c2.length; x++) {
+						String c3[] = c2[x].split("=");
+						String name = c3[0].trim();
+						String value = c3[1];
+						Log.v(TAG,String.format("'%s'='%s'",name,value));
+						if (LouSession.cookiename.equals(name)) {
+							SessionKeeper.restore_cookie(value);
+							//store.removeAll();
+							//HttpCookie httpcookie = new HttpCookie(name,value);
+							//httpcookie.setDomain("www.lordofultima.com");
+							//httpcookie.setPath("/");
+							//httpcookie.setVersion(0);
+							//store.add(uri, httpcookie);
+							SharedPreferences.Editor trans = getActivity().getSharedPreferences("main", Context.MODE_PRIVATE).edit();
+							trans.putString("cookie", value);
+							trans.commit();
+						}
 					}
-					db.close();
-					loadpage = new LoadPage();
-					loadpage.execute(url);
+					//db.close();
+					//loadpage = new LoadPage();
+					//loadpage.execute("http://www.lordofultima.com/game/world/change");
+					SessionKeeper.checkCookie(Webview.this);
 					return true;
 				}
-			} catch (URISyntaxException e) {
+			//} catch (URISyntaxException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+				//e.printStackTrace();
+			//}
 			return false;
 		}
 		@Override public void onReceivedError (WebView view, int errorCode, String description, String failingUrl) {
@@ -96,7 +116,10 @@ public class Webview extends Fragment {
 				conn.connect();
 				int code = conn.getResponseCode();
 				Log.v(TAG,"status code "+code);
-				if (code != 200) return null;
+				if (code != 200) {
+					Log.v(TAG,"location is "+conn.getHeaderField("Location"));
+					return null;
+				}
 				char[] buffer = new char[1024];
 				int size;
 				StringBuilder buf = new StringBuilder();
@@ -109,15 +132,39 @@ public class Webview extends Fragment {
 				Log.e(TAG,"error1 "+html);
 				Pattern sessionid = Pattern.compile("[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}");
 				Matcher m = sessionid.matcher(html);
-				if (!m.find()) return null; // FIXME
+				if (!m.find()) {
+					Log.e(TAG,"sessionid not found");
+					return null; // FIXME
+				}
 				result r = new result();
 				r.sessionid = m.group(0);
-				final Pattern actioncheck = Pattern.compile("http://prodgame(\\d+).lordofultima.com/(\\d+)/index.aspx");
-				m = actioncheck.matcher(html);
-				if (!m.find()) return null; // FIXME
-				r.serverid = m.group(1);
-				r.pathid = m.group(2);
-				return r;
+				Log.v(TAG,"sessionid:"+r.sessionid);
+				
+				url = new URL("http://prodcdngame.lordofultima.com/Farm/service.svc/ajaxEndpoint/1/session/"+
+						r.sessionid+"/worlds");
+				conn = (HttpURLConnection) url.openConnection();
+				conn.connect();
+				code = conn.getResponseCode();
+				Log.v(TAG,"status code "+code);
+				if (code != 200) {
+					Log.v(TAG,"location is "+conn.getHeaderField("Location"));
+					return null;
+				}
+				buffer = new char[1024];
+				buf = new StringBuilder();
+				reply1 = new InputStreamReader(conn.getInputStream());
+				while ((size = reply1.read(buffer, 0, 1024)) != -1) {
+					buf.append(buffer,0,size);
+				}
+				html = buf.toString();
+				buf = null;
+				Log.e(TAG,"error2 "+html);
+				//final Pattern actioncheck = Pattern.compile("http://prodgame(\\d+).lordofultima.com/(\\d+)/index.aspx");
+				//m = actioncheck.matcher(html);
+				//if (!m.find()) return null; // FIXME
+				//r.serverid = m.group(1);
+				//r.pathid = m.group(2);
+				//return r;
 			} catch (MalformedURLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -129,7 +176,7 @@ public class Webview extends Fragment {
 		}
 		protected void onPostExecute(result r) {
 			if (r == null) {
-				v.loadUrl("http://www.lordofultima.com");
+				//v.loadUrl("http://www.lordofultima.com");
 				return;
 			}
 			AccountWrap a = new AccountWrap();
@@ -147,5 +194,15 @@ public class Webview extends Fragment {
 		public String sessionid;
 		public String serverid;
 		public String pathid;
+	}
+	@Override
+	public void done(com.angeldsis.louapi.LouSession.result r) {
+		// TODO Auto-generated method stub
+		Log.v(TAG,"done?");
+		if (r.worked) {
+			FragmentTransaction trans = getActivity().getSupportFragmentManager().beginTransaction();
+			trans.replace(R.id.main_frame, new ServerList());
+			trans.commit();
+		}
 	}
 }

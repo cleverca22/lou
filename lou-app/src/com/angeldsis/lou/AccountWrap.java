@@ -3,6 +3,7 @@ package com.angeldsis.lou;
 import android.os.Bundle;
 
 import com.angeldsis.louapi.Account;
+import com.angeldsis.louapi.ServerInfo;
 
 // helper methods to send an Account thru a Bundle
 public class AccountWrap extends Account {
@@ -22,6 +23,13 @@ public class AccountWrap extends Account {
 		sessionid = args.getString("sessionid");
 		worldid = args.getInt("worldid");
 		world = args.getString("world");
+	}
+	public AccountWrap(ServerInfo a) {
+		serverid = a.serverid;
+		pathid = a.pathid;
+		sessionid = a.sessionId;
+		world = a.servername;
+		worldid = a.worldid;
 	}
 	public Bundle toBundle() {
 		Bundle args = new Bundle();

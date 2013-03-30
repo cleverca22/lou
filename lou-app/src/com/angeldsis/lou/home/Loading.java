@@ -35,6 +35,7 @@ public class Loading extends Fragment {
 		String cookie = container.getContext().getSharedPreferences("main",
 				Context.MODE_PRIVATE).getString("cookie", null);
 		if (cookie != null) { // restore cookie, check if its valid
+			Log.v(TAG,"restoring cookie");
 			SessionKeeper.restore_cookie(cookie);
 			SessionKeeper.checkCookie(new CookieCallback() {
 				public void done(result r) {
@@ -61,9 +62,13 @@ public class Loading extends Fragment {
 				}
 			});
 		} else { // open login page
-			Intent doLogin = new Intent(getActivity(), louLogin.class);
-			startActivity(doLogin);
-			getActivity().finish();
+			Log.v(TAG,"cookie not found");
+			FragmentTransaction trans = getActivity().getSupportFragmentManager().beginTransaction();
+			trans.replace(R.id.main_frame, new Webview());
+			trans.commit();
+			//Intent doLogin = new Intent(getActivity(), louLogin.class);
+			//startActivity(doLogin);
+			//getActivity().finish();
 		}
 		return inflater.inflate(R.layout.loading, container,false);
 	}

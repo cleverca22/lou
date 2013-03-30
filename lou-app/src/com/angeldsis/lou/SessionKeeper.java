@@ -88,6 +88,9 @@ public class SessionKeeper extends Service {
 		super();
 		Log.v(TAG,this+" constructor");
 	}
+	static public LouSession getSession2() {
+		return session2; // FIXME, create on demand
+	}
 	public IBinder onBind(Intent arg0) {
 		Log.v(TAG,"onBind");
 		return binder;
@@ -429,10 +432,6 @@ public class SessionKeeper extends Service {
 		public void cellUpdated(Cell c) {
 			if (cb != null) cb.cellUpdated(c);
 		}
-		public void dungeonUpdated(Dungeon d) {
-			// TODO Auto-generated method stub
-			
-		}
 		public void onDefenseOverviewUpdate() {
 			if (cb != null) cb.onDefenseOverviewUpdate();
 		}
@@ -504,6 +503,7 @@ public class SessionKeeper extends Service {
 			@Override
 			protected result doInBackground(Object... arg0) {
 				result r = session2.check_cookie();
+				Log.v(TAG,"r is "+r);
 				return r;
 			}
 			protected void onPostExecute(result result) {
