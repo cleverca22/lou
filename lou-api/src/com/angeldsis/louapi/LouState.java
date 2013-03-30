@@ -108,8 +108,8 @@ public class LouState {
 		transient public int build_queue_end;
 		transient public int freeships,freecarts,maxships,maxcarts;
 		transient public Coord location;
-		public boolean autoBuildDefense, autoBuildEconomy;
-		public int autoBuildTypeFlags;
+		transient public boolean autoBuildDefense, autoBuildEconomy;
+		transient public int autoBuildTypeFlags;
 		@SerializedName("units") public UnitCount[] units;
 		City() {
 			resources = new Resource[4];
