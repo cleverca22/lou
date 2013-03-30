@@ -7,7 +7,7 @@ import com.angeldsis.lou.AccountWrap;
 import com.angeldsis.lou.LoggingIn;
 import com.angeldsis.lou.R;
 import com.angeldsis.lou.SessionKeeper;
-import com.angeldsis.louapi.Account;
+import com.angeldsis.lou.SessionKeeper.Session;
 import com.angeldsis.louapi.LouSession;
 import com.angeldsis.louapi.ServerInfo;
 
@@ -30,6 +30,8 @@ import android.widget.TextView;
 
 public class ServerList extends Fragment {
 	private static final String TAG = "ServerList";
+	ViewGroup root;
+	LayoutInflater inflater; // FIXME?
 	public View onCreateView (LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		setHasOptionsMenu(true);
 		Log.v(TAG,"onCreateView");
@@ -39,16 +41,59 @@ public class ServerList extends Fragment {
 			return null;
 		}
 		ViewGroup root = (ViewGroup) inflater.inflate(R.layout.server_list, container,false);
-		TextView age = (TextView) root.findViewById(R.id.age);
+		this.root = root;
+		this.inflater = inflater;
+		return root;
+	}
+	public void onResume() {
+		super.onResume();
+		Log.v(TAG,"onResume()");
+		redoList();
+	}
+	private void redoList() {
+		boolean active[] = new boolean[128];
+		
 		LouSession sess = SessionKeeper.session2;
+		TextView age = (TextView) root.findViewById(R.id.age);
 		age.setText(""+(System.currentTimeMillis() - sess.dataage)/1000);
+
+		ViewGroup list2 = (ViewGroup) root.findViewById(R.id.livelist);
+		list2.removeAllViews();
+		SessionKeeper k = SessionKeeper.getInstance();
+		if (k != null) {
+			Log.v(TAG,"found keeper");
+			Iterator<Session> i2 = k.sessions.iterator();
+			Log.v(TAG,"list:"+k.sessions.size());
+			while (i2.hasNext()) {
+				final Session s = i2.next();
+				ViewGroup row = (ViewGroup) inflater.inflate(R.layout.one_server, list2,false);
+				TextView t = (TextView) row.findViewWithTag("server_name");
+				t.setText(s.acct.world);
+				Button b = (Button) row.findViewWithTag("button");
+				Log.v(TAG,b.toString());
+				b.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View v) {
+						Log.v(TAG,"onClick("+s.acct.world+")");
+						Intent login = new Intent(getActivity(), LoggingIn.class);
+						login.putExtras(s.acct.toBundle());
+						startActivity(login);
+						Log.v(TAG, "doing login on world " + s.acct.world);
+					}
+				});
+				list2.addView(row);
+				active[s.acct.worldid] = true;
+			}
+		}
 		ArrayList<ServerInfo> accounts = sess.servers;
 		Log.v(TAG,"found "+accounts.size());
 		ViewGroup top = (ViewGroup) root.findViewById(R.id.list);
+		top.removeAllViews();
 		Iterator<ServerInfo> i = SessionKeeper.session2.servers.iterator();
 		while (i.hasNext()) {
 			final ServerInfo a = i.next();
-			if (a.offline) {
+			if (active[a.worldid]) {
+			} else if (a.offline) {
 				ViewGroup row = (ViewGroup) inflater.inflate(R.layout.offline_server, top,false);
 				TextView t = (TextView) row.findViewById(R.id.servername);
 				t.setText(a.servername);
@@ -76,7 +121,6 @@ public class ServerList extends Fragment {
 				Log.v(TAG,"offline: "+a.offline);
 			}
 		}
-		return root;
 	}
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		inflater.inflate(R.menu.server_list, menu);

@@ -9,8 +9,15 @@ import com.angeldsis.louapi.Player;
  * and player caches
  */
 public class World {
+	// data that should be shared between connections
 	HashMap<Integer,Alliance> alliances = new HashMap<Integer,Alliance>();
 	HashMap<Integer,Player> players = new HashMap<Integer,Player>();
+	// private data for just this connection, and this world
+	public int Id;
+	public String Name;
+	public World() {
+		Name = "UNK3";
+	}
 	public static World get(int worldid) {
 		// FIXME, reuse them within a world
 		return new World();

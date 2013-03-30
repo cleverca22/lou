@@ -401,7 +401,7 @@ public class LouState {
 			valid[i] = id;
 			m2.update(m);
 
-			if (m2.base.getName().equals("xHavoc")) Log.v(TAG,m.toString());
+			//if (m2.base.getName().equals("xHavoc")) Log.v(TAG,"tag1 "+m.toString());
 		}
 		Iterator<AllianceMember> it = alliancemembers.values().iterator();
 		while (it.hasNext()) {
@@ -421,7 +421,7 @@ public class LouState {
 	public void parseSubs(JSONObject d) {
 		synchronized (subs) {
 			try {
-				Log.v(TAG,d.toString(1));
+				Log.v(TAG,"tag2 "+d.toString(1));
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

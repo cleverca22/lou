@@ -29,6 +29,20 @@ public class Dungeon implements Comparable {
 		return 0;
 	}
 	private int maxloot() {
+		switch (type) {
+		case 3: // hill
+			switch (level) {
+			case 9: return 603048;
+			}
+		case 4: // mountain
+			switch (level) {
+			case 9: return 822160;
+			}
+		case 5: // forest
+			switch (level) {
+			case 9: return 887680;
+			}
+		}
 		switch (level) {
 		case 1: return 320;
 		case 2: return 977;

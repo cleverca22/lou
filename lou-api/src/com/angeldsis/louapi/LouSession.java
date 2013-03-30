@@ -62,6 +62,7 @@ public class LouSession {
 		httpcookie.setPath("/");
 		httpcookie.setVersion(0);
 		try {
+			mCookieManager.getCookieStore().removeAll();
 			mCookieManager.getCookieStore().add(new URI("http://www.lordofultima.com/"),httpcookie);
 			Log.v(TAG, "cookie restored?");
 		} catch (URISyntaxException e) {
@@ -179,7 +180,7 @@ public class LouSession {
 			public void startElement(String uri,String localName,String qName, Attributes attributes) throws SAXException {
 				
 				if (localName.equals("server")) {
-					Log.v(TAG,"server start");
+					//Log.v(TAG,"server start");
 					currentRow = new ServerInfo();
 				} else if (localName.equals("servername")) {
 					state = 1;
@@ -192,7 +193,7 @@ public class LouSession {
 				} else if (localName.equals("serverURL")) {
 					state = 5;
 				} else {
-					Log.v(TAG,"startElement "+localName);
+					//Log.v(TAG,"startElement "+localName);
 				}
 			}
 			public void endElement (String uri, String localName, String qName) {
@@ -236,8 +237,8 @@ public class LouSession {
 						currentRow.pathid = m.group(2);
 					}
 				} else if (size > 0) {
-					String buf = new String(text,start,size);
-					Log.v(TAG,"text: "+state+" "+size+" "+buf);
+					//String buf = new String(text,start,size);
+					//Log.v(TAG,"text: "+state+" "+size+" "+buf);
 				}
 			}
 		};

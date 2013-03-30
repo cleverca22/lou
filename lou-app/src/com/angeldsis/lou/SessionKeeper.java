@@ -46,7 +46,7 @@ import android.util.Log;
 
 public class SessionKeeper extends Service {
 	static final String TAG = "SessionKeeper";
-	ArrayList<Session> sessions;
+	public ArrayList<Session> sessions;
 	int lastSessionid = 0;
 	NotificationManager mNotificationManager;
 	private final IBinder binder = new MyBinder();
@@ -118,7 +118,7 @@ public class SessionKeeper extends Service {
 		Log.v(TAG,this+" onDestroyed");
 		self = null;
 	}
-	static SessionKeeper getInstance() {
+	public static SessionKeeper getInstance() {
 		return self;
 	}
 	void refreshConfig() {
@@ -157,7 +157,7 @@ public class SessionKeeper extends Service {
 		private static final String TAG = "Session";
 		public RPC rpc;
 		LouState state;
-		AccountWrap acct;
+		public AccountWrap acct;
 		Callbacks cb;
 		boolean alive = false,loggingIn;
 		int sessionid;

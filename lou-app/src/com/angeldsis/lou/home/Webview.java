@@ -1,16 +1,9 @@
 package com.angeldsis.lou.home;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.CookieHandler;
-import java.net.CookieManager;
-import java.net.CookieStore;
-import java.net.HttpCookie;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -25,8 +18,6 @@ import com.angeldsis.louapi.LouSession;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -47,6 +38,8 @@ public class Webview extends Fragment implements CookieCallback {
 		v.setWebViewClient(new client());
 		v.getSettings().setJavaScriptEnabled(true);
 		v.loadUrl("https://www.lordofultima.com/mobile/");
+		Exception e = new Exception();
+		Log.v(TAG,"new webview",e);
 		return v;
 	}
 	public class client extends WebViewClient {
@@ -195,14 +188,15 @@ public class Webview extends Fragment implements CookieCallback {
 		public String serverid;
 		public String pathid;
 	}
-	@Override
-	public void done(com.angeldsis.louapi.LouSession.result r) {
-		// TODO Auto-generated method stub
+	@Override public void done(com.angeldsis.louapi.LouSession.result r) {
 		Log.v(TAG,"done?");
 		if (r.worked) {
+			Log.v(TAG,"worked");
 			FragmentTransaction trans = getActivity().getSupportFragmentManager().beginTransaction();
 			trans.replace(R.id.main_frame, new ServerList());
 			trans.commit();
+		} else {
+			Log.v(TAG,"failed");
 		}
 	}
 }

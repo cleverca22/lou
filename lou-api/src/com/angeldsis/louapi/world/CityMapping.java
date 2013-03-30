@@ -1,17 +1,20 @@
 package com.angeldsis.louapi.world;
 
 import com.angeldsis.louapi.data.BaseLou;
+import com.angeldsis.louapi.data.Coord;
+import com.angeldsis.louapi.world.WorldParser.Cell;
 
 public class CityMapping {
 	public int type,f,PalaceLevel,PalaceType,shortplayer,EnlightmentStep,PlunderProtection,
 	PalaceDamage,Points;
 	public boolean Castle,Water,Enlighted,PalaceUpgradeing;
 	public String name;
-	public int i,col,row;
-	public CityMapping(int i, BaseLou y, int col, int row) throws Exception {
+	public int i;
+	public Coord location;
+	public PlayerMapping playerLink;
+	public CityMapping(int i, BaseLou y, int col, int row, Cell cell) throws Exception {
 		this.i = i;
-		this.col = col;
-		this.row = row;
+		location = new Coord(col,row);
 		type = 1;
 		f = y.read4Bytes();
 		Castle = ((f & 1) != 0);

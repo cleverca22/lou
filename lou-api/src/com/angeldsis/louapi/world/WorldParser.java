@@ -1,5 +1,7 @@
 package com.angeldsis.louapi.world;
 
+import java.util.ArrayList;
+
 import org.json2.JSONArray;
 import org.json2.JSONException;
 import org.json2.JSONObject;
@@ -11,7 +13,7 @@ import com.angeldsis.louapi.data.Coord;
 public class WorldParser {
 	private static final String TAG = "WorldParser";
 	public int mincol,maxcol, minrow,maxrow;
-	public Cell[] cells = new Cell[500];
+	public Cell[] cells = new Cell[1024];
 	
 	public WorldParser() {
 		mincol = 4;
@@ -43,6 +45,7 @@ public class WorldParser {
 		int i;
 		try {
 			for (i=0; i<s.length(); i++) {
+				ArrayList<Object> changes = new ArrayList<Object>();
 				JSONObject x = s.getJSONObject(i);
 				int id = x.getInt("i");
 				int row = id >> 5;
@@ -57,20 +60,37 @@ public class WorldParser {
 				JSONArray a = x.optJSONArray("a");
 				JSONArray c = x.optJSONArray("c");
 				JSONArray t = x.optJSONArray("t");
+				if ((p != null) && (p.length() > 0)) {
+					for (int y=0; y<p.length();y++) {
+						BaseLou stream = new BaseLou(p.getString(y));
+						PlayerMapping player = new PlayerMapping(stream);
+						cells[id].players[player.shortid] = player;
+					}
+				}
 				// d is the initial change data?
-				if ((d != null) && (d.length() > 0)) parseWorldChanges(cells[id],d,cb);
-				//if ((p != null) && (p.length() > 0)) Log.v(TAG,"p="+p.toString());
+				if ((d != null) && (d.length() > 0)) parseWorldChanges(cells[id],d,changes);
 				//if ((a != null) && (a.length() > 0)) Log.v(TAG,"a="+a.toString());
-				if ((c != null) && (c.length() > 0)) parseWorldChanges2(cells[id],c,cb);
+				if ((c != null) && (c.length() > 0)) parseWorldChanges2(cells[id],c,changes);
 				if ((t != null) && (t.length() > 0)) Log.v(TAG,"t="+t.toString());
-				cb.cellUpdated(cells[id]);
+				for (int y=0; y<changes.size(); y++) {
+					Object o = changes.get(y);
+					if (o instanceof CityMapping) {
+						CityMapping city = (CityMapping) o;
+						city.playerLink = cells[id].players[city.shortplayer];
+						//System.out.println(String.format("%s player %d %s %s",city.location.format(),city.shortplayer,city.playerLink != null ? city.playerLink.name:"",city.playerLink));
+					} else if (o instanceof PlayerMapping) {
+						PlayerMapping player = (PlayerMapping) o;
+						player.allianceLink = cells[id].alliances[player.shortAlliance];
+					}
+				}
+				cb.cellUpdated(cells[id],changes);
 			}
 		} catch (Exception e) {
 			if (e instanceof JSONException) throw (JSONException) e;
 			e.printStackTrace();
 		}
 	}
-	private void parseWorldChanges2(Cell cell,JSONArray d, WorldCallbacks cb) throws Exception {
+	private void parseWorldChanges2(Cell cell,JSONArray d, ArrayList<Object> changes) throws Exception {
 		int i;
 		for (i=0; i<d.length(); i++) {
 			String x = d.optString(i);
@@ -78,13 +98,7 @@ public class WorldParser {
 			int type1 = y.readByte();
 			switch (type1) {
 			case 2:
-				parseWorldChange(cell,y,false,cb);
-				break;
-			case 4:
-				// FIXME player data
-				break;
-			case 6:
-				// FIXME alliance data
+				parseWorldChange(cell,y,changes);
 				break;
 			case 3: // deletes object?
 				int something = y.read2Bytes();
@@ -96,12 +110,20 @@ public class WorldParser {
 				cell.dungeons[fineid] = null;
 				Log.v(TAG,String.format("%3d:%3d change type %d a/b %d/%d",col,row,type1,finerow,finecol));
 				break;
+			case 4:
+				PlayerMapping p = new PlayerMapping(y);
+				cell.players[p.shortid] = p;
+				break;
+			case 6:
+				AllianceMapping a = new AllianceMapping(y);
+				cell.alliances[a.shortid] = a;
+				break;
 			default:
 				Log.v(TAG,String.format("%3d:%3d change type %d %s",cell.getFineCol(),cell.getFineRow(),type1,x));
 			}
 		}
 	}
-	private void parseWorldChange(Cell cell,BaseLou y,boolean initial, WorldCallbacks cb) throws Exception {
+	private void parseWorldChange(Cell cell,BaseLou y, ArrayList<Object> changes) throws Exception {
 		int packed = y.read2Bytes();
 		int finecol = (packed & 0x1f);
 		int finerow = ((packed >> 5) & 0x1f);
@@ -112,9 +134,10 @@ public class WorldParser {
 		case 1: // city
 			int col = cell.getFineCol() + finecol;
 			int row = cell.getFineRow() + finerow;
-			CityMapping city = new CityMapping((finerow << 0x10) | finecol,y,col,row);
+			CityMapping city = new CityMapping((finerow << 0x10) | finecol,y,col,row,cell);
+			changes.add(city);
 			//log(String.format("%d %d",d,e));
-			//if (Castle) log(String.format("Castle!: %10s, score: %d owner:%d",remainder,Points,Player));
+			//if (city.Castle) System.out.println(String.format("Castle!: score: %d owner:%d",city.Points,city.shortplayer));
 			//if (!Castle) log(String.format("city!: %10s, score: %d owner:%d",remainder,Points,Player));
 			//ctest.add(city);
 			//Log.v(TAG,String.format("city %3d:%3d points:%5d name:%s",city.col,city.row,city.Points,city.name));
@@ -137,7 +160,7 @@ public class WorldParser {
 			if ((d.level > 7)) {
 				//Log.v(TAG,String.format("%3d:%3d %s, level%d, progress%d",d.col,d.row,d.getType(),d.level,d.progress));
 			}
-			cb.dungeonUpdated(d);
+			changes.add(d);
 			break;
 		case 3: // boss
 		case 4: // moongate
@@ -154,20 +177,24 @@ public class WorldParser {
 			//Log.v(TAG,String.format("cell:%d packed:%s d:%2d e:%2d f:%d x:%s",cell.id,packed,d2,e,f,x));
 		}
 	}
-	private void parseWorldChanges(Cell cell, JSONArray d, WorldCallbacks cb) throws Exception {
+	private void parseWorldChanges(Cell cell, JSONArray d, ArrayList<Object> changes) throws Exception {
 		int i;
 		for (i=0; i < d.length(); i++) {
 			String x = d.getString(i);
 			BaseLou y = new BaseLou(x);
-			parseWorldChange(cell,y,true,cb);
+			parseWorldChange(cell, y, changes);
 		}
 	}
 	public static class Cell {
+		public AllianceMapping[] alliances;
+		public PlayerMapping[] players;
 		public Dungeon[] dungeons;
 		public int version,id;
 		public Cell(int id2) {
 			id = id2;
 			dungeons = new Dungeon[1024]; // FIXME
+			players = new PlayerMapping[1024]; // FIXME
+			alliances = new AllianceMapping[1024]; // FIXME
 		}
 		int getFineRow() {
 			// FIXME
@@ -179,7 +206,6 @@ public class WorldParser {
 		}
 	}
 	public interface WorldCallbacks {
-		void cellUpdated(Cell c);
-		void dungeonUpdated(Dungeon d);
+		void cellUpdated(Cell c, ArrayList<Object> changes);
 	}
 }

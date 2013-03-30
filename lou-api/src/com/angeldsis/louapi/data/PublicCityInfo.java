@@ -11,6 +11,8 @@ public class PublicCityInfo {
 	public int x,y;
 	public String name;
 	public PublicCityInfo(World w,JSONObject reply) {
+		System.out.println("world:"+w);
+		System.out.println("reply:"+reply);
 		alliance = w.getAlliance(reply.optInt("a"), reply.optString("an"));
 		name = reply.optString("n");
 		player = w.getPlayer(reply.optInt("p"),reply.optString("pn"));

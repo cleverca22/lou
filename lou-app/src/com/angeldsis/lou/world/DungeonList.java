@@ -50,6 +50,7 @@ public class DungeonList extends WorldUser implements OnItemClickListener {
 				Dungeon d = c.dungeons[j];
 				if (d == null) continue;
 				if (d.state == false) continue;
+				if (d.type != 4) continue; // only mountains
 				allDungeons.add(d);
 			}
 		}

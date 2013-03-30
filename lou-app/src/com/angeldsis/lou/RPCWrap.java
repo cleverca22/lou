@@ -88,16 +88,12 @@ public class RPCWrap extends RPC {
 		return callbacks.getMaxPoll();
 	}
 	@Override
-	public void cellUpdated(final Cell c) {
+	public void cellUpdated(final Cell c, ArrayList<Object> changes) { // FIXME
 		runOnUiThread(new Runnable() {
 			public void run() {
 				callbacks.cellUpdated(c);
 			}
 		});
-	}
-	@Override
-	public void dungeonUpdated(Dungeon d) {
-		callbacks.dungeonUpdated(d);
 	}
 	@Override public void setTimer(long maxdelay) {
 		callbacks.setTimer(maxdelay);
