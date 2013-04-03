@@ -21,7 +21,7 @@ import com.angeldsis.louapi.LouState.City;
 import com.angeldsis.louapi.LouVisData;
 import com.angeldsis.louapi.RPC;
 import com.angeldsis.louapi.RPC.RPCDone;
-import com.angeldsis.louapi.world.Dungeon;
+import com.angeldsis.louapi.Timeout;
 import com.angeldsis.louapi.world.WorldParser.Cell;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -46,6 +46,7 @@ import android.util.Log;
 
 public class SessionKeeper extends Service {
 	static final String TAG = "SessionKeeper";
+	static Timeout slow,fast;
 	public ArrayList<Session> sessions;
 	int lastSessionid = 0;
 	NotificationManager mNotificationManager;
@@ -87,6 +88,13 @@ public class SessionKeeper extends Service {
 	public SessionKeeper() {
 		super();
 		Log.v(TAG,this+" constructor");
+		if (slow == null) {
+			slow = new Timeout();
+			slow.min = 30000; // 30 sec
+			slow.max = 150000; //2min 30sec
+			fast = new Timeout();
+			fast.min = fast.max = 10000; // 10 sec, only when app is open, never when alarm is active
+		}
 	}
 	static public LouSession getSession2() {
 		return session2; // FIXME, create on demand
@@ -401,9 +409,9 @@ public class SessionKeeper extends Service {
 		private void teardown() {
 			chat.teardown();
 		}
-		public int getMaxPoll() {
-			if (cb == null) return 150000;
-			else return 10000;
+		public Timeout getMaxPoll() {
+			if (cb == null) return slow;
+			else return fast;
 		}
 		public void setTimer(long maxdelay) {
 			SessionKeeper.this.setTimer(maxdelay);

@@ -847,25 +847,28 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 				poller.setDelay(getMaxPoll());
 				queue.add(poller);
 			}
-			long start=0,maxdelay=0;
+			long start=0,mindelay=0,maxdelay=0;
 			try {
 				t = queue.peek();
-				maxdelay = 60000;
-				if (t != null) maxdelay = t.getDelay(TimeUnit.MILLISECONDS);
+				mindelay = maxdelay = 60000;
+				if (t != null) {
+					mindelay = t.getDelay(TimeUnit.MILLISECONDS);
+					maxdelay = t.maxtarget - System.currentTimeMillis();
+				}
 				else {
 					Log.v(TAG, "no work found, maybe thread should stop?");
 				}
-				if (maxdelay < 0) maxdelay = 100;
+				if (mindelay < 0) mindelay = 100;
 				//Log.v(TAG,"delay "+maxdelay);
-				setTimer(maxdelay);
+				setTimer(maxdelay); // sets the android alarm manager, to wake the device from sleep mode, up to max-min ms late
 				setThreadActive(false);
 				start = System.currentTimeMillis();
-				Thread.sleep(maxdelay);
+				Thread.sleep(mindelay);
 			} catch (InterruptedException e) {
 				Log.v(TAG,"who woke me!");
 			}
 			long end = System.currentTimeMillis();
-			long overrun = (end-start)-maxdelay;
+			long overrun = (end-start)-mindelay;
 			if (overrun > 10) Log.v(TAG,String.format("%d sleep ran %d too late",maxdelay,overrun));
 		}
 		Log.v(TAG,"dying");
@@ -879,7 +882,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 	public void setTimer(long maxdelay) {
 	}
 	// Poll must occur more often then 5mins
-	protected abstract int getMaxPoll();
+	protected abstract Timeout getMaxPoll();
 	public void startPolling() {
 		polling = true;
 		synchronized(this) {
@@ -913,14 +916,16 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 	}
 	private class MyTimer implements Delayed {
 		Runnable r;
-		long target;
+		long mintarget;
+		long maxtarget;
 		public MyTimer() {}
 		public MyTimer(Runnable r) {
 			this.r = r;
-			target = 0;
+			mintarget = maxtarget = 0;
 		}
-		public void setDelay(int maxPoll) {
-			target = System.currentTimeMillis() + maxPoll;
+		public void setDelay(Timeout maxPoll) {
+			mintarget = System.currentTimeMillis() + maxPoll.min;
+			maxtarget = System.currentTimeMillis() + maxPoll.max;
 		}
 		public Runnable getRunnable() {
 			return r;
@@ -937,7 +942,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 		}
 		@Override
 		public long getDelay(TimeUnit arg0) {
-			return arg0.convert(target - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+			return arg0.convert(mintarget - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
 		}
 	}
 	private class Poller extends MyTimer {
@@ -949,12 +954,12 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 					Poll();
 				}
 			};
-			target = 0;
+			mintarget = maxtarget = 0;
 		}
 		public void pollSoon() {
 			long timepassed = System.currentTimeMillis() - lastpoll;
-			if (timepassed > 2000) target = System.currentTimeMillis();
-			else target = System.currentTimeMillis() + (2000 - timepassed);
+			if (timepassed > 2000) mintarget = maxtarget = System.currentTimeMillis();
+			else mintarget = maxtarget = System.currentTimeMillis() + (2000 - timepassed);
 		}
 	}
 	public void pollSoon() {
