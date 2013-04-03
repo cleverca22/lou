@@ -197,6 +197,7 @@ public class Webview extends Fragment implements CookieCallback {
 			trans.commit();
 		} else {
 			Log.v(TAG,"failed");
+			v.loadUrl("https://www.lordofultima.com/mobile/");
 		}
 	}
 }

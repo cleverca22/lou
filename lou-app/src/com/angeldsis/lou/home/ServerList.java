@@ -25,6 +25,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.webkit.CookieSyncManager;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -137,6 +138,9 @@ public class ServerList extends Fragment {
 			trans.commit();
 			SessionKeeper.session2.logout();
 			getActivity().getSupportFragmentManager().beginTransaction().replace(R.id.main_frame, new Loading()).commit();
+			CookieSyncManager.createInstance(getActivity());
+			android.webkit.CookieManager cookies = android.webkit.CookieManager.getInstance();
+			cookies.removeAllCookie();
 			return true;
 		case R.id.update:
 			Uri location = Uri.parse("http://andoria.angeldsis.com/apks/LouMain.apk");

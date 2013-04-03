@@ -12,7 +12,6 @@ import com.angeldsis.louapi.LouState;
 import com.angeldsis.louapi.LouVisData;
 import com.angeldsis.louapi.RPC;
 import com.angeldsis.louapi.Timeout;
-import com.angeldsis.louapi.world.Dungeon;
 import com.angeldsis.louapi.world.WorldParser.Cell;
 
 public class RPCWrap extends RPC {
