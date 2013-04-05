@@ -8,7 +8,6 @@ import com.google.android.vending.licensing.Policy;
 import com.google.android.vending.licensing.ServerManagedPolicy;
 import com.nullwire.trace.ExceptionHandler;
 
-import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnDismissListener;
@@ -36,7 +35,7 @@ public class LouMain extends FragmentActivity {
 		mChecker = new LicenseChecker(this, new ServerManagedPolicy(this,
 				new AESObfuscator(SALT,getPackageName(),deviceId)),BASE64_PUBLIC_KEY);
 		mLicenseCheckerCallback = new MyLicenseCheckerCallback();
-		mChecker.checkAccess(mLicenseCheckerCallback);
+		//mChecker.checkAccess(mLicenseCheckerCallback);
 		setTheme(SessionUser.getCurrentTheme(this));
 		setContentView(R.layout.main);
 		if (savedInstanceState != null) return;
