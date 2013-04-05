@@ -217,8 +217,10 @@ public class LouSession {
 					case 1:
 						currentRow.servername = buf;
 						m = findid.matcher(buf);
-						if (!m.find()) Log.e(TAG,"cant find worldid in world");
-						currentRow.worldid = Integer.parseInt(m.group());
+						if (!m.find()) {
+							Log.e(TAG,"cant find worldid in world");
+							currentRow.worldid = -1;
+						} else currentRow.worldid = Integer.parseInt(m.group());
 						break;
 					case 2:
 						if (buf.equals("ONLINE")) currentRow.offline = false;
