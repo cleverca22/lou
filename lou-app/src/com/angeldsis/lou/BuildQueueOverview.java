@@ -120,8 +120,8 @@ public class BuildQueueOverview extends SessionUser {
 			
 			holder.payall.setEnabled(!obj.allpaid);
 			
-			holder.wood.setText(""+c.resources[0].getCurrent(state));
-			holder.stone.setText(""+c.resources[1].getCurrent(state));
+			holder.wood.setText(Utils.NumberFormat(c.resources[0].getCurrent(state)));
+			holder.stone.setText(Utils.NumberFormat(c.resources[1].getCurrent(state)));
 			
 			ImageView bar = (ImageView) row.findViewById(R.id.bar);
 			int paid=obj.paid,i,unpaid=obj.unpaid;

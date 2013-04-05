@@ -28,22 +28,33 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 public class Webview extends Fragment implements CookieCallback {
 	private static final String TAG = "Webview";
 	WebView v;
 	LoadPage loadpage;
+	private TextView lastUrl;
 	public View onCreateView (LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+		LinearLayout l = new LinearLayout(getActivity());
+		l.setOrientation(LinearLayout.VERTICAL);
+		
+		lastUrl = new TextView(getActivity());
 		v = new WebView(getActivity());
 		v.setWebViewClient(new client());
 		v.getSettings().setJavaScriptEnabled(true);
 		v.loadUrl("https://www.lordofultima.com/mobile/");
+		
+		l.addView(lastUrl);
+		l.addView(v);
 		Exception e = new Exception();
 		Log.v(TAG,"new webview",e);
-		return v;
+		return l;
 	}
 	public class client extends WebViewClient {
 		public boolean shouldOverrideUrlLoading (WebView view, String url) {
+			lastUrl.setText(url);
 			//try {
 				Log.v(TAG,"shouldOverrideUrlLoading "+url);
 				if (url.equals("http://www.lordofultima.com/mobile/play/change")) {

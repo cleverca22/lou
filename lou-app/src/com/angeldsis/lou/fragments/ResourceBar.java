@@ -1,6 +1,7 @@
 package com.angeldsis.lou.fragments;
 
 import com.angeldsis.lou.R;
+import com.angeldsis.lou.Utils;
 import com.angeldsis.louapi.LouState;
 import com.angeldsis.louapi.LouState.City;
 import com.angeldsis.louapi.Resource;
@@ -50,7 +51,7 @@ public class ResourceBar extends ViewGroup {
 		int x;
 		for (x = 0; x < 4; x++) {
 			Resource r = lastCity.resources[x];
-			counts[x].setText(""+r.getCurrent(state));
+			counts[x].setText(Utils.NumberFormat(r.getCurrent(state)));
 			rates[x].setText(r.getRate());
 			int color;
 			// 25-71% == green
