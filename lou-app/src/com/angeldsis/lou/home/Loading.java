@@ -3,6 +3,7 @@ package com.angeldsis.lou.home;
 import com.angeldsis.lou.R;
 import com.angeldsis.lou.SessionKeeper;
 import com.angeldsis.lou.SessionKeeper.CookieCallback;
+import com.angeldsis.lou.louLogin;
 import com.angeldsis.louapi.LouSession.result;
 
 import android.content.Context;
@@ -49,26 +50,19 @@ public class Loading extends Fragment {
 					}
 					else {
 						Log.e(TAG,"cookie check failed");
-						// assume you need to login again
-						FragmentTransaction trans = getActivity().getSupportFragmentManager().beginTransaction();
-						trans.replace(R.id.main_frame, new Webview());
-						trans.commit();
-						//Intent doLogin = new Intent(getActivity(), louLogin.class);
-						//startActivity(doLogin);
-						//getActivity().finish();
+						Loading.this.openLogin();
 					}
 				}
 			});
-		} else { // open login page
-			Log.v(TAG,"cookie not found");
-			FragmentTransaction trans = getActivity().getSupportFragmentManager().beginTransaction();
-			trans.replace(R.id.main_frame, new Webview());
-			trans.commit();
-			//Intent doLogin = new Intent(getActivity(), louLogin.class);
-			//startActivity(doLogin);
-			//getActivity().finish();
-		}
+		} else openLogin();
+
 		return inflater.inflate(R.layout.loading, container,false);
+	}
+	private void openLogin() {
+		FragmentTransaction trans = getActivity().getSupportFragmentManager().beginTransaction();
+		//trans.replace(R.id.main_frame, new Webview());
+		trans.replace(R.id.main_frame,new louLogin());
+		trans.commit();
 	}
 	public void onStop() {
 		super.onStop();

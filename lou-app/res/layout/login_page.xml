@@ -55,9 +55,9 @@
         android:text="@string/save_pw" />
 
     <Button
+        android:id="@+id/login"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/login" 
-        android:onClick="doLogin" />
+        android:text="@string/login" />
 
 </LinearLayout>

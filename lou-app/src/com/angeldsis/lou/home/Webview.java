@@ -44,7 +44,15 @@ public class Webview extends Fragment implements CookieCallback {
 		v = new WebView(getActivity());
 		v.setWebViewClient(new client());
 		v.getSettings().setJavaScriptEnabled(true);
-		v.loadUrl("https://www.lordofultima.com/mobile/");
+		Bundle b = getArguments();
+		if (b != null) {
+			Log.v(TAG,"arguments found!");
+			String username = b.getString("username");
+			String pw = b.getString("password");
+			String url = "https://www.lordofultima.com/j_security_check";
+			String payload = "j_username="+username+"&j_password="+pw;
+			v.postUrl(url, payload.getBytes());
+		} else v.loadUrl("https://www.lordofultima.com/mobile/");
 		
 		l.addView(lastUrl);
 		l.addView(v);
