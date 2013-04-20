@@ -11,8 +11,10 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.angeldsis.louapi.Log;
 import com.angeldsis.louapi.LouSession;
+import com.angeldsis.louapi.LouSession.result;
 
 public class LouMain {
+	private static final String TAG = "LouMain";
 	static LouMain instance;
 	LouSession session;
 	Display display;
@@ -39,20 +41,16 @@ public class LouMain {
 		auto_world = world;
 		Config config = Config.getConfig();
 		if (config.getRememberMe() != null) {
-			HttpCookie httpcookie = new HttpCookie("REMEMBER_ME_COOKIE",config.getRememberMe());
-			httpcookie.setDomain("www.lordofultima.com");
-			httpcookie.setPath("/");
-			httpcookie.setVersion(0);
-			try {
-				((CookieManager)CookieHandler.getDefault()).getCookieStore()
-						.add(new URI("http://www.lordofultima.com/"),
-								httpcookie);
-				System.out.println("cookie restored?");
-			} catch (URISyntaxException e) {
-				// TODO Auto-generated catch block
-				System.out.println("hard-coded uri not valid"+ e);
+			session.restore_cookie(config.getRememberMe());
+			Log.v(TAG,"checking cookie");
+			result r = session.check_cookie();
+			if (r.worked == false) {
+				boolean worked = DoLogin.login(display, session);
+				if (!worked) {
+					Log.v(TAG,"login failed");
+					return;
+				}
 			}
-			session.check_cookie();
 		} else {
 			boolean worked = DoLogin.login(display,session);
 			if (!worked) return;

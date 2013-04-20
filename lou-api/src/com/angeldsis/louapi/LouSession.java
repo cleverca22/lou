@@ -18,8 +18,10 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,6 +48,7 @@ public class LouSession {
 	public ArrayList<ServerInfo> servers;
 	public String REMEMBER_ME;
 	public long dataage;
+	private test mTest;
 	// handles the login process
 	private class Policy implements CookiePolicy {
 		@Override
@@ -70,9 +73,46 @@ public class LouSession {
 			Log.wtf(TAG, "hard-coded uri not valid", e);
 		}
 	}
+	// this fudges the cookie headers to fix things
+	private static class test extends CookieHandler {
+		CookieManager m;
+		public test(CookieManager mCookieManager) {
+			m = mCookieManager;
+		}
+		@Override public Map<String, List<String>> get(URI arg0, Map<String, List<String>> arg1) throws IOException {
+			return m.get(arg0, arg1);
+		}
+		@Override public void put(URI arg0, Map<String, List<String>> headersIn) throws IOException {
+			Map<String, List<String>> headersOut = new HashMap<String, List<String>>();
+			for (String s : headersIn.keySet()) {
+				if ((s != null) && (s.equals("Set-Cookie"))) {
+					List<String> listIn = new ArrayList<String>(headersIn.get(s));
+					//List<String> listOut = new ArrayList<String>(listIn);
+					int x;
+					for (x=0; x<listIn.size();x++) {
+						String s2 = listIn.get(x);
+						//Log.v(TAG,"s2: "+s2);
+						s2 = s2.replaceAll("; HttpOnly","");
+						s2 = s2.replaceAll(";HTTPONLY","");
+						//Log.v(TAG,"s2: "+s2);
+						listIn.set(x, s2);
+						//List<HttpCookie> something = HttpCookie.parse(s2);
+						//for (HttpCookie cookie : something) {
+							//Log.v(TAG,String.format("cookie!!! %s",cookie.getValue()));
+						//}
+					}
+					headersOut.put(s, listIn);
+				} else {
+					headersOut.put(s, headersIn.get(s));
+				}
+			}
+			m.put(arg0, headersOut);
+		}
+	}
 	public LouSession() {
 		mCookieManager = new CookieManager(null,new Policy());
-		CookieHandler.setDefault(mCookieManager);
+		mTest = new test(mCookieManager);
+		CookieHandler.setDefault(mTest);
 		try {
 			base = new URL("http://lordofultima.com");
 		} catch (MalformedURLException e) {
@@ -82,7 +122,7 @@ public class LouSession {
 	}
 	public result startLogin(String username,String password) {
 		try {
-			URL login = new URL("https://www.lordofultima.com/en/user/login");
+			URL login = new URL("https://www.lordofultima.com/j_security_check");
 			// initial login page
 			HttpsURLConnection conn = (HttpsURLConnection) login.openConnection();
 			conn.setReadTimeout(40000);
@@ -90,9 +130,8 @@ public class LouSession {
 			conn.setRequestMethod("POST");
 			HttpsURLConnection.setFollowRedirects(false);
 			HttpURLConnection.setFollowRedirects(false);
-			String data = "mail="+URLEncoder.encode(username,"UTF-8")+
-				"&password="+URLEncoder.encode(password,"UTF-8")+
-				"&remember_me=on";
+			String data = "j_username="+URLEncoder.encode(username,"UTF-8")+
+				"&j_password="+URLEncoder.encode(password,"UTF-8");
 			conn.setFixedLengthStreamingMode(data.getBytes().length);
 			conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 			conn.setDoOutput(true);
@@ -102,7 +141,7 @@ public class LouSession {
 			conn.connect();
 			int response = conn.getResponseCode();
 			Log.v(TAG,"response code "+response);
-			if (response != 301) {
+			if (response != 302) {
 				// FIXME error;
 				char[] buffer = new char[1024];
 				int size;
@@ -114,22 +153,55 @@ public class LouSession {
 				Log.e(TAG,"error3 "+buf.toString());
 				return null;
 			}
+			dumpCookies();
 			
 			String url2 = conn.getHeaderField("Location");
+			Log.v(TAG,"url2:"+url2);
 			boolean repeat = true;
 			HttpURLConnection conn2;
 			do  {
 				Log.v(TAG,"following redir "+url2);
 				if (url2.equals("/en/game?")) url2 = "http://www.lordofultima.com/en/game?";
 				conn2 = this.doRequest(url2);
-				if (conn2.getResponseCode() == 200) {
+				response = conn2.getResponseCode();
+				Log.v(TAG,"response code "+response);
+				if (response == 200) {
 					repeat = false;
-				} else if (conn2.getResponseCode() == 302) {
+				} else if (response == 301) {
 					url2 = conn2.getHeaderField("Location");
 					Log.v(TAG,"302'd to "+url2);
 				}
 			} while (repeat);
 
+			Log.v(TAG,"Stage 1");
+			char[] buffer = new char[1024];
+			int size;
+			StringBuilder buf = new StringBuilder();
+			InputStreamReader reply1 = new InputStreamReader(conn2.getInputStream());
+			while ((size = reply1.read(buffer, 0, 1024)) != -1) {
+				buf.append(buffer,0,size);
+			}
+			String html = buf.toString();
+			buf = null;
+			Pattern sessionid = Pattern.compile("[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}");
+			Matcher m = sessionid.matcher(html);
+			if (!m.find()) {
+				Log.e(TAG,"error4 "+html);
+				Log.e(TAG,"sessionid not found");
+				return null; // FIXME
+			}
+			String sessionId = m.group(0);
+			Log.v(TAG,"sessionid "+sessionId);
+
+			conn2 = this.doRequest("http://prodcdngame.lordofultima.com/Farm/service.svc/ajaxEndpoint/1/session/"+
+						sessionId+"/worlds");
+			if (conn2.getResponseCode() == 200) {
+			} else {
+				Log.e(TAG,String.format("unknown error %s",conn2.getResponseCode()));
+				return null; // FIXME
+			}
+			
+			System.out.println("final code "+conn2.getResponseCode());
 			final result output = new result();
 			output.worked = false;
 			parse_result(output, conn2.getInputStream());
@@ -156,9 +228,17 @@ public class LouSession {
 			return output;
 		}
 	}
+	private void dumpCookies() {
+		CookieStore store = mCookieManager.getCookieStore();
+		List<HttpCookie> all = store.getCookies();
+		for (HttpCookie c : all) {
+			Log.v(TAG,String.format("Cookie Dump: %s=%s domain:%s secure:%s",c.getName(),c.getValue(),c.getDomain(),c.getSecure() ? "true" : "false"));
+		}
+	}
 	HttpURLConnection doRequest(String url) throws IOException  {
-		Log.v(TAG,"Url2:"+url);
+		Log.v(TAG,"Url3:"+url);
 		URL secondurl = new URL(base,url);
+		Log.v(TAG,"Url4: "+secondurl.toString());
 		HttpURLConnection conn2 = (HttpURLConnection)secondurl.openConnection();
 		conn2.setReadTimeout(20000);
 		conn2.setConnectTimeout(15000);
@@ -171,7 +251,7 @@ public class LouSession {
 		XMLReader xmlReader = XMLReaderFactory.createXMLReader ("org.ccil.cowan.tagsoup.Parser");
 		final ArrayList<ServerInfo> servers = new ArrayList<ServerInfo>();
 		final ArrayList<NewServer> newServers = new ArrayList<NewServer>();
-		final Pattern actioncheck = Pattern.compile("^http://prodgame(\\d+).lordofultima.com/(\\d+)/index.aspx$");
+		final Pattern actioncheck = Pattern.compile("^http://prodgame(\\d+).lordofultima.com/(\\d+)/index.aspx");
 		final Pattern findid = Pattern.compile("\\d+");
 		ContentHandler handler = new DefaultHandler() {
 			NewServer newServer;
@@ -234,9 +314,11 @@ public class LouSession {
 						break;
 					case 5:
 						m = actioncheck.matcher(buf);
-						if (!m.find()) Log.e(TAG,"cant find url parts");
-						currentRow.serverid = m.group(1);
-						currentRow.pathid = m.group(2);
+						if (!m.find()) Log.e(TAG,"cant find url parts "+buf);
+						else {
+							currentRow.serverid = m.group(1);
+							currentRow.pathid = m.group(2);
+						}
 					}
 				} else if (size > 0) {
 					//String buf = new String(text,start,size);
@@ -260,7 +342,7 @@ public class LouSession {
 				cookies = mCookieManager.getCookieStore().get(new URI("http://www.lordofultima.com/"));
 				int x;
 				for (x = 0; x < cookies.size(); x++) {
-					if (cookies.get(x).getName().equals("REMEMBER_ME_COOKIE")) {
+					if (cookies.get(x).getName().equals(cookiename)) {
 						REMEMBER_ME = cookies.get(x).getValue();
 					}
 				}
@@ -277,12 +359,7 @@ public class LouSession {
 		}
 		output.error = true;
 		output.errmsg = "logout link not found";
-		CookieStore store = mCookieManager.getCookieStore();
-		Iterator<HttpCookie> i = store.getCookies().iterator();
-		while (i.hasNext()) {
-			HttpCookie c = i.next();
-			System.out.println("cookie dump"+c.toString());
-		}
+		this.dumpCookies();
 		System.out.println("done");
 	}
 	public class result {
@@ -324,13 +401,13 @@ public class LouSession {
 			if (conn.getResponseCode() == 200) {
 			} else if (conn.getResponseCode() == 302) {
 				String secondurl = conn.getHeaderField("Location");
-				if ("http://www.lordofultima.com/login/auth".equals(secondurl)) {
+				if (secondurl.startsWith("http://www.lordofultima.com/login/auth")) {
 					result obj = new result();
 					Log.e(TAG,String.format("fail 1 %d %s",conn.getResponseCode(),secondurl));
 					obj.worked = false;
 					return obj;
 				} else {
-					Log.e(TAG,"unknown error");
+					Log.e(TAG,"unknown error: "+secondurl);
 					return null; // FIXME
 				}
 			} else {

@@ -11,7 +11,6 @@
             </manifest>
             <fileset dir="bin"/>
             <fileset dir="../lou-api/bin"/>
-            <zipfileset excludes="META-INF/*.SF" src="../lou-api/json-org.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="tagsoup-1.2.1.jar"/>
             <fileset dir="/home/clever/workspace-android/org.eclipse.swt"/>
             <zipfileset excludes="META-INF/*.SF" src="/home/clever/workspace-android/org.eclipse.swt/swt.jar"/>

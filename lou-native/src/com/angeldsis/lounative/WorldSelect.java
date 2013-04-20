@@ -22,6 +22,7 @@ import org.eclipse.swt.widgets.TrayItem;
 import com.angeldsis.louapi.Account;
 import com.angeldsis.louapi.Log;
 import com.angeldsis.louapi.LouSession;
+import com.angeldsis.louapi.ServerInfo;
 
 public class WorldSelect extends Shell {
 	Display display;
@@ -30,14 +31,14 @@ public class WorldSelect extends Shell {
 		super(display);
 		this.display = display;
 		setLayout(new GridLayout(2, false));
-		Iterator<Account> i = session.servers.iterator();
+		Iterator<ServerInfo> i = session.servers.iterator();
 		while (i.hasNext()) {
-			Account a = i.next();
+			ServerInfo a = i.next();
 			if (a.worldid == LouMain.instance.auto_world) {
 				new CoreSession(a,display);
 				return;
 			}
-			new Label(this,0).setText(a.world);
+			new Label(this,0).setText(a.servername);
 			Button b = new Button(this,0);
 			b.setText("login");
 			// FIXME, check if the world already has a CoreSession
@@ -53,10 +54,10 @@ public class WorldSelect extends Shell {
 		new WorldSelect(display, session);
 	}
 	class LoginAction implements MouseListener {
-		private Account a;
-		LoginAction(Account a) {
-			this.a = a;
-			Log.v("WorldSelect","account:"+a.worldid);
+		private ServerInfo a;
+		LoginAction(ServerInfo a2) {
+			this.a = a2;
+			Log.v("WorldSelect","account:"+a2.worldid);
 		}
 		public void mouseDoubleClick(MouseEvent e) {
 		}

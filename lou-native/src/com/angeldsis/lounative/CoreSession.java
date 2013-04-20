@@ -7,6 +7,7 @@ import com.angeldsis.louapi.Account;
 import com.angeldsis.louapi.Log;
 import com.angeldsis.louapi.LouState;
 import com.angeldsis.louapi.RPC.RPCDone;
+import com.angeldsis.louapi.ServerInfo;
 
 public class CoreSession {
 	static final String TAG = "CoreSession";
@@ -17,10 +18,16 @@ public class CoreSession {
 	Display display;
 	IdleTroops idleTroops;
 
-	public CoreSession(Account a, Display display) {
+	public CoreSession(ServerInfo si, Display display) {
 		this.display = display;
-		System.out.println("you picked "+a.world);
+		System.out.println("you picked "+si.servername);
 		state = new LouState();
+		Account a = new Account();
+		a.world = si.servername;
+		a.serverid = si.serverid;
+		a.pathid = si.pathid;
+		a.worldid = si.worldid;
+		a.sessionid = si.sessionId;
 		rpc = new RPCWrap(a,state);
 		state.setRPC(rpc);
 		rpc.OpenSession(true,new RPCDone() {

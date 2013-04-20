@@ -9,6 +9,7 @@ import com.angeldsis.louapi.Log;
 import com.angeldsis.louapi.LouState;
 import com.angeldsis.louapi.LouVisData;
 import com.angeldsis.louapi.RPC;
+import com.angeldsis.louapi.Timeout;
 import com.angeldsis.louapi.world.Dungeon;
 import com.angeldsis.louapi.world.WorldParser.Cell;
 
@@ -86,19 +87,17 @@ public class RPCWrap extends RPC {
 		Log.e(TAG, "startSubstituteSession");
 		// this needs to create a new CoreSession object
 	}
-	@Override public void cellUpdated(Cell c) {
-		// TODO Auto-generated method stub
-	}
-	@Override public void dungeonUpdated(Dungeon d) {
+	@Override public void cellUpdated(Cell c, ArrayList<Object> changes) {
 		// TODO Auto-generated method stub
 	}
 	@Override public void onReportCountUpdate() {
 		Log.w(TAG,"onReportCountUpdate");
 		core.mw.onReportCountUpdate(state.viewed_reports,state.unviewed_reports);
 	}
-	@Override protected int getMaxPoll() {
-		// TODO Auto-generated method stub
-		return 10000;
+	@Override protected Timeout getMaxPoll() {
+		Timeout t = new Timeout();
+		t.min = t.max = 10000;
+		return t;
 	}
 	@Override
 	public boolean uiActive() {
