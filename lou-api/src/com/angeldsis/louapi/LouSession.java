@@ -46,7 +46,7 @@ public class LouSession {
 	static URL base;
 	public CookieManager mCookieManager;
 	public ArrayList<ServerInfo> servers;
-	private String REMEMBER_ME;
+	private String JSESSIONID;
 	private String AWSELB;
 	public long dataage;
 	private test mTest;
@@ -59,10 +59,9 @@ public class LouSession {
 			return true;
 		}
 	}
-	public static final String cookiename = "JSESSIONID";
 	public void restore_cookie(String cookie) {
 		String[] parts = cookie.split(";");
-		HttpCookie httpcookie1 = new HttpCookie(cookiename,parts[0]);
+		HttpCookie httpcookie1 = new HttpCookie("JSESSIONID",parts[0]);
 		httpcookie1.setDomain("www.lordofultima.com");
 		httpcookie1.setPath("/");
 		httpcookie1.setVersion(0);
@@ -86,7 +85,7 @@ public class LouSession {
 		}
 	}
 	public String save_cookie() {
-		return REMEMBER_ME+";"+AWSELB;
+		return JSESSIONID+";"+AWSELB;
 	}
 	// this fudges the cookie headers to fix things
 	private static class test extends CookieHandler {
@@ -357,8 +356,8 @@ public class LouSession {
 				cookies = mCookieManager.getCookieStore().get(new URI("http://www.lordofultima.com/"));
 				int x;
 				for (x = 0; x < cookies.size(); x++) {
-					if (cookies.get(x).getName().equals(cookiename)) {
-						REMEMBER_ME = cookies.get(x).getValue();
+					if (cookies.get(x).getName().equals("JSESSIONID")) {
+						JSESSIONID = cookies.get(x).getValue();
 					} else if (cookies.get(x).getName().equals("AWSELB")) {
 						AWSELB = cookies.get(x).getValue();
 					}

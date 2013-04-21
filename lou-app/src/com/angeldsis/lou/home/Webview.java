@@ -86,7 +86,7 @@ public class Webview extends Fragment implements CookieCallback {
 						String name = c3[0].trim();
 						String value = c3[1];
 						Log.v(TAG,String.format("'%s'='%s'",name,value));
-						if (LouSession.cookiename.equals(name)) JSESSIONID = value;
+						if ("JSESSIONID".equals(name)) JSESSIONID = value;
 						else if ("AWSELB".equals(name)) AWSELB = value;
 					}
 					SessionKeeper.restore_cookie(JSESSIONID+";"+AWSELB);
