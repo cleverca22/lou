@@ -5,11 +5,13 @@ import org.json2.JSONObject;
 
 public class ForumPost {
 	public String msg,playerName;
+	public boolean up;
 	public ForumPost(JSONObject o) throws JSONException {
 		// {"pi":51832,"t":1360038310930,"up":true}
 		msg = o.getString("m");
 		playerName = o.getString("pn");
 		int playerid = o.getInt("pli");
+		up = o.getBoolean("up");
 	}
 
 }

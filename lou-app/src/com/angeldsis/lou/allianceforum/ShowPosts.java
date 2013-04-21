@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -42,6 +43,7 @@ public class ShowPosts extends SessionUser implements GetForumPostCallback {
 			}
 			TextView msg = (TextView) out.findViewById(R.id.msg);
 			TextView poster = (TextView) out.findViewById(R.id.poster);
+			ImageView seen = (ImageView) out.findViewById(R.id.seen);
 			ForumPost p = getItem(index);
 			SpannableStringBuilder b = new SpannableStringBuilder();
 			ArrayList<Span> spans = new ArrayList<Span>();
@@ -50,6 +52,9 @@ public class ShowPosts extends SessionUser implements GetForumPostCallback {
 			msg.setText(b);
 			msg.setMovementMethod(LinkMovementMethod.getInstance());
 			poster.setText(p.playerName);
+			
+			if (p.up) seen.setImageResource(R.drawable.icon_new_post);
+			else seen.setImageResource(R.drawable.icon_old_post);
 			return out;
 		}
 	}

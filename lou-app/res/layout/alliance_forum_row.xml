@@ -2,12 +2,18 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical" >
+    android:orientation="horizontal" >
+
+    <ImageView
+        android:id="@+id/seen"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="@drawable/icon_new_post" />
 
     <TextView
         android:id="@+id/name"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="24dp"
         android:text="Small Text"
         android:textAppearance="?android:attr/textAppearanceSmall" />
 

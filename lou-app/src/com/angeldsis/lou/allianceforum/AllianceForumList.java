@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -54,6 +55,7 @@ public class AllianceForumList extends SessionUser implements GetAllianceForumsC
 				out = AllianceForumList.this.getLayoutInflater().inflate(R.layout.alliance_forum_row, parent,false);
 				h = new ViewHolder();
 				h.name = (TextView) out.findViewById(R.id.name);
+				h.seen = (ImageView) out.findViewById(R.id.seen);
 				out.setTag(h);
 			} else h = (ViewHolder) out.getTag();
 			AllianceForum a = getItem(index);
@@ -66,12 +68,14 @@ public class AllianceForumList extends SessionUser implements GetAllianceForumsC
 				else if (a.forumName.equals("@Offtopic")) msg = r.getString(R.string.offtopic);
 			}
 			h.translated = msg;
-			msg = ""+a.hup+" "+msg;
+			if (a.hup) h.seen.setImageResource(R.drawable.icon_new_post);
+			else h.seen.setImageResource(R.drawable.icon_old_post);
 			h.name.setText(msg);
 			return out;
 		}
 	}
 	private static class ViewHolder {
+		public ImageView seen;
 		public String translated;
 		public TextView name;
 	}

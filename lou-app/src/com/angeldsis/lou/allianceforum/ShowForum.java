@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -29,8 +30,11 @@ public class ShowForum extends SessionUser implements OnItemClickListener, GotFo
 				out = ShowForum.this.getLayoutInflater().inflate(R.layout.forum_thread_row, parent,false);
 			}
 			TextView topic = (TextView) out.findViewById(R.id.topic);
+			ImageView seen = (ImageView) out.findViewById(R.id.seen);
 			ForumThread t = getItem(index);
-			topic.setText(t.hup +" "+t.tt);
+			topic.setText(t.tt);
+			if(t.hup) seen.setImageResource(R.drawable.icon_new_post);
+			else seen.setImageResource(R.drawable.icon_old_post);
 			return out;
 		}
 	}
