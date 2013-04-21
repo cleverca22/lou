@@ -80,24 +80,19 @@ public class Webview extends Fragment implements CookieCallback {
 					Log.v(TAG,"c:"+c);
 					String c2[] = c.split(";");
 					int x;
+					String JSESSIONID=null,AWSELB=null;
 					for (x=0; x < c2.length; x++) {
 						String c3[] = c2[x].split("=");
 						String name = c3[0].trim();
 						String value = c3[1];
 						Log.v(TAG,String.format("'%s'='%s'",name,value));
-						if (LouSession.cookiename.equals(name)) {
-							SessionKeeper.restore_cookie(value);
-							//store.removeAll();
-							//HttpCookie httpcookie = new HttpCookie(name,value);
-							//httpcookie.setDomain("www.lordofultima.com");
-							//httpcookie.setPath("/");
-							//httpcookie.setVersion(0);
-							//store.add(uri, httpcookie);
-							SharedPreferences.Editor trans = getActivity().getSharedPreferences("main", Context.MODE_PRIVATE).edit();
-							trans.putString("cookie", value);
-							trans.commit();
-						}
+						if (LouSession.cookiename.equals(name)) JSESSIONID = value;
+						else if ("AWSELB".equals(name)) AWSELB = value;
 					}
+					SessionKeeper.restore_cookie(JSESSIONID+";"+AWSELB);
+					SharedPreferences.Editor trans = getActivity().getSharedPreferences("main", Context.MODE_PRIVATE).edit();
+					trans.putString("cookie", JSESSIONID+";"+AWSELB);
+					trans.commit();
 					//db.close();
 					//loadpage = new LoadPage();
 					//loadpage.execute("http://www.lordofultima.com/game/world/change");

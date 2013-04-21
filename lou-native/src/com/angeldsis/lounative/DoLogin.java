@@ -83,7 +83,7 @@ public class DoLogin extends Shell implements MouseListener {
 			reply.e.printStackTrace();
 		}
 		if (reply.worked) {
-			config.setRememberMe(session.REMEMBER_ME);
+			config.setRememberMe(session.save_cookie());
 			config.flush();
 			System.out.println("worked");
 			close();

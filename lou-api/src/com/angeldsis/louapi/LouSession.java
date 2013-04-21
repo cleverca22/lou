@@ -46,7 +46,8 @@ public class LouSession {
 	static URL base;
 	public CookieManager mCookieManager;
 	public ArrayList<ServerInfo> servers;
-	public String REMEMBER_ME;
+	private String REMEMBER_ME;
+	private String AWSELB;
 	public long dataage;
 	private test mTest;
 	// handles the login process
@@ -60,18 +61,32 @@ public class LouSession {
 	}
 	public static final String cookiename = "JSESSIONID";
 	public void restore_cookie(String cookie) {
-		HttpCookie httpcookie = new HttpCookie(cookiename,cookie);
-		httpcookie.setDomain("www.lordofultima.com");
-		httpcookie.setPath("/");
-		httpcookie.setVersion(0);
+		String[] parts = cookie.split(";");
+		HttpCookie httpcookie1 = new HttpCookie(cookiename,parts[0]);
+		httpcookie1.setDomain("www.lordofultima.com");
+		httpcookie1.setPath("/");
+		httpcookie1.setVersion(0);
+		HttpCookie httpcookie2 = null;
+		if (parts.length == 2) {
+			httpcookie2 = new HttpCookie("AWSELB",parts[1]);
+			httpcookie2.setDomain("www.lordofultima.com");
+			httpcookie2.setPath("/");
+			httpcookie2.setVersion(0);
+		}
 		try {
 			mCookieManager.getCookieStore().removeAll();
-			mCookieManager.getCookieStore().add(new URI("http://www.lordofultima.com/"),httpcookie);
+			mCookieManager.getCookieStore().add(new URI("http://www.lordofultima.com/"),httpcookie1);
+			if (parts.length == 2) {
+				mCookieManager.getCookieStore().add(new URI("http://www.lordofultima.com/"),httpcookie2);
+			}
 			Log.v(TAG, "cookie restored?");
 		} catch (URISyntaxException e) {
 			// TODO Auto-generated catch block
 			Log.wtf(TAG, "hard-coded uri not valid", e);
 		}
+	}
+	public String save_cookie() {
+		return REMEMBER_ME+";"+AWSELB;
 	}
 	// this fudges the cookie headers to fix things
 	private static class test extends CookieHandler {
@@ -344,6 +359,8 @@ public class LouSession {
 				for (x = 0; x < cookies.size(); x++) {
 					if (cookies.get(x).getName().equals(cookiename)) {
 						REMEMBER_ME = cookies.get(x).getValue();
+					} else if (cookies.get(x).getName().equals("AWSELB")) {
+						AWSELB = cookies.get(x).getValue();
 					}
 				}
 			} catch (URISyntaxException e) {
