@@ -44,6 +44,7 @@ public class BuildQueueOverview extends SessionUser {
 	@Override public void onStop() {
 		session.rpc.setBuildQueueWatching(false);
 		super.onStop();
+		adapter.data = null;
 		adapter.notifyDataSetChanged();
 	}
 	@Override public void onBuildQueueUpdate() {
