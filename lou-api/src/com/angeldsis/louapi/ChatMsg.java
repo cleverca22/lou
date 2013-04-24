@@ -14,6 +14,7 @@ public class ChatMsg {
 		if (C.getString("s").substring(0, 1).equals("C")) hascrown = true;
 		else hascrown = false;
 		if (channel.equals("@A")) tag = "@A";
+		else if (channel.equals("@O")) tag = "@O";
 		else if (channel.equals("privatein") || channel.equals("privateout")) tag = "pm_"+sender;
 		else tag = "@C";
 	}
@@ -24,6 +25,8 @@ public class ChatMsg {
 			return "NULL ["+sender+"] "+message;
 		} else if (channel.equals("@A")) {
 			return "[Alliance] ["+sender+"] "+message;
+		} else if (channel.equals("@O")) {
+			return "[Officer] ["+sender+"] "+message;
 		} else if (channel.equals("privatein")) {
 			return "[PM] ["+sender+"] "+message;
 		} else if (channel.equals("privateout")) {

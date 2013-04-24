@@ -80,6 +80,16 @@ public class ChatWindow extends SessionUser {
 		t2.setIndicator("alliance");
 		mTabHost.addTab(t2);
 		channels.put("alliance", temp);
+		
+		temp = new Channel();
+		temp.type = Type.channel;
+		temp.tag = "officer";
+		temp.key = "@O";
+		TabHost.TabSpec t3 = mTabHost.newTabSpec("officer");
+		t3.setContent(new TabMaker(temp));
+		t3.setIndicator("officer");
+		mTabHost.addTab(t3);
+		channels.put("officer", temp);
 	}
 	@Override protected void onSaveInstanceState(Bundle out) {
 		out.putString("currentTab", mTabHost.getCurrentTabTag());
@@ -224,8 +234,33 @@ public class ChatWindow extends SessionUser {
 					
 					b.setSpan(new ForegroundColorSpan(green), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 					b.setSpan(new NameClicked(c.sender), start, end1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-				}
-				else if (c.channel.equals("privatein") || c.channel.equals("privateout")) {
+				} else if (c.channel.equals("@O")) {
+					start = b.length();
+					String officer = "[Officer]"; // FIXME, translation
+					end = start + officer.length();
+					b.append(officer);
+					int color = getResources().getColor(R.color.chat_officer);
+					b.setSpan(new ForegroundColorSpan(color), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+					
+					if (c.hascrown) {
+						start = b.length();
+						b.append("\uFFFC");
+						end = b.length();
+						b.setSpan(new ImageSpan(crown_drawable), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+					}
+					
+					start = b.length();
+					b.append(c.sender);
+					end1 = b.length();
+					
+					b.append(": ");
+					
+					BBCode.parse(ChatWindow.this,c.message,b,spans);
+					end = b.length();
+					
+					b.setSpan(new ForegroundColorSpan(color), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+					b.setSpan(new NameClicked(c.sender), start, end1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+				} else if (c.channel.equals("privatein") || c.channel.equals("privateout")) {
 					if (c.hascrown) {
 						start = b.length();
 						b.append("\uFFFC");
@@ -378,6 +413,7 @@ public class ChatWindow extends SessionUser {
 			
 			if (c.channel.equals("@A")) currentChannel = channels.get("alliance");
 			else if (c.channel.equals("@C")) currentChannel = channels.get("general");
+			else if (c.channel.equals("@O")) currentChannel = channels.get("officer");
 			else if (c.channel.equals("privatein") || c.channel.equals("privateout")) {
 				currentChannel = channels.get("pm_"+c.sender);
 				if (currentChannel == null) {
@@ -424,6 +460,7 @@ public class ChatWindow extends SessionUser {
 		if (buffer.length() == 0) return;
 		if (buffer.charAt(0) == '/') {} 
 		else if (tag.equals("alliance")) buffer = "/a "+buffer;
+		else if (tag.equals("officer")) buffer = "/o "+buffer;
 		else if (channels.containsKey("pm_"+tag)) {
 			buffer = "/whisper "+tag+" "+buffer;
 		}
@@ -447,5 +484,13 @@ public class ChatWindow extends SessionUser {
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
+	}
+	public void onPause() {
+		super.onPause();
+		Log.v(TAG,"onPause()");
+	}
+	public void onStop() {
+		super.onStop();
+		Log.v(TAG,"onStop()");
 	}
 }
