@@ -112,4 +112,9 @@ public class RPCWrap extends RPC {
 	@Override public void onDefenseOverviewUpdate() {
 		core.onDefenseOverviewUpdate();
 	}
+	@Override
+	public void onEnlightenedCityChanged() {
+		// TODO Auto-generated method stub
+		
+	}
 }
