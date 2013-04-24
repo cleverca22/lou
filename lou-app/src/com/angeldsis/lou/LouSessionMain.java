@@ -165,31 +165,37 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 		Log.v(TAG,session.state.cities.get(arg2).toString());
 		session.state.changeCity(session.state.cities.get(arg2));
 	}
+	private static class ViewHolder {
+		public TextView name;
+		public ResourceBar bar2;
+	}
 	class cityList extends ArrayAdapter<City> {
 		cityList(Context c) {
 			super(c,0);
 		}
-		public void clear() {
-			super.clear();
-		}
 		public View getView(int position, View convertView, ViewGroup parent) {
-			// FIXME, use convertView
-			LinearLayout row;
-			row = new LinearLayout(LouSessionMain.this);
-			row.setOrientation(LinearLayout.VERTICAL);
-			TextView name = new TextView(LouSessionMain.this);
+			ViewHolder holder;
+			if (convertView == null) {
+				LinearLayout row = new LinearLayout(LouSessionMain.this);
+				row.setOrientation(LinearLayout.VERTICAL);
+				holder = new ViewHolder();
+				holder.name = new TextView(LouSessionMain.this);
+				row.addView(holder.name);
+
+				FrameLayout bar = new FrameLayout(LouSessionMain.this);
+				holder.bar2 = new ResourceBar(LouSessionMain.this);
+				holder.bar2.setState(session.state);
+				bar.addView(holder.bar2);
+				row.addView(bar);
+
+				row.setTag(holder);
+				convertView = row;
+			} else holder = (ViewHolder) convertView.getTag();
+			
 			City i = getItem(position);
-			name.setText(i.name);
-			row.addView(name);
-			// FIXME
-			FrameLayout bar = new FrameLayout(LouSessionMain.this);
-			ResourceBar bar2 = new ResourceBar(LouSessionMain.this);
-			Log.v(TAG,"bar2:"+bar2);
-			bar2.setState(session.state);
-			bar2.update(i);
-			bar.addView(bar2);
-			row.addView(bar);
-			return row;
+			holder.bar2.update(i);
+			holder.name.setText(i.name);
+			return convertView;
 		}
 	}
 	@Override
