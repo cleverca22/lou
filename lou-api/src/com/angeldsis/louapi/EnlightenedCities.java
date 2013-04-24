@@ -81,9 +81,8 @@ public class EnlightenedCities {
 					break;
 				}
 			}
-			if (name == null) {
+			if (y.has("n") == false) {
 				data.remove(result);
-				Log.v(TAG,"removed element");
 				continue;
 			}
 			if (result == null) {
