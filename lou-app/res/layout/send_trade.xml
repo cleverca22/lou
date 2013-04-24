@@ -240,6 +240,19 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" >
 
+            <CheckBox
+                android:id="@+id/palace"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="palaceChanged"
+                android:text="Palace Donation" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -361,6 +374,7 @@
         </LinearLayout>
 
         <Button
+            android:id="@+id/send_res"
             style="?android:attr/buttonStyleSmall"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

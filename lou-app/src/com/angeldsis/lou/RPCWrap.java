@@ -114,4 +114,7 @@ public class RPCWrap extends RPC {
 	@Override public void onDefenseOverviewUpdate() {
 		callbacks.onDefenseOverviewUpdate();
 	}
+	@Override public void onEnlightenedCityChanged() {
+		callbacks.onEnlightenedCityChanged();
+	}
 }

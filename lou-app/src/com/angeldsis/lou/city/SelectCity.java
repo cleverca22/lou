@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -19,15 +20,20 @@ import com.angeldsis.louapi.data.Coord;
 
 public class SelectCity extends LinearLayout implements OnItemSelectedListener {
 	CitySelected callback;
+	int palaceLocation = -1;
 	private static final String TAG = "SelectCity";
 	public class MyAdapter extends BaseAdapter {
 		@Override public int getCount() {
-			return SelectCity.this.allCities.length + SelectCity.this.allBookmarks.length;
+			int palace = (palaceLocation == -1) ? 0 : 1;
+			return palace + SelectCity.this.allCities.length + SelectCity.this.allBookmarks.length;
 		}
 		@Override public Object getItem(int position) {
-			int size1 = SelectCity.this.allCities.length;
-			if (position < size1) return SelectCity.this.allCities[position];
-			else return SelectCity.this.allBookmarks[position - size1];
+			int size1 = (palaceLocation == -1) ? 0 : 1;
+			int size2 = SelectCity.this.allCities.length;
+			
+			if (position < size1) return palaceLocation;
+			else if (position < size2) return SelectCity.this.allCities[position - size1];
+			else return SelectCity.this.allBookmarks[position - (size2 + size1)];
 		}
 		@Override public long getItemId(int position) {
 			Object o = getItem(position);
@@ -45,6 +51,12 @@ public class SelectCity extends LinearLayout implements OnItemSelectedListener {
 				row = v;
 			} else v = (TextView) row;
 
+			if ((palaceLocation != -1) && (position == 0)) {
+				Coord c = Coord.fromCityId((Integer)o);
+				v.setText("Palace "+c.getContinent()+" "+c.format());
+				return row;
+			} else if (palaceLocation != -1) position = position - 1;
+			
 			if (position < SelectCity.this.allCities.length) {
 				City c = (City) o;
 				v.setText(String.format("%3s %7s %s",c.location.getContinent(),c.location.format(),c.name));
@@ -111,6 +123,7 @@ public class SelectCity extends LinearLayout implements OnItemSelectedListener {
 		spinner.setAdapter(adapter);
 	}
 	@Override public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
+		Log.v(TAG,"onItemSelected",new Exception());
 		callback.selected(Coord.getX(arg3),Coord.getY(arg3));
 	}
 	@Override
@@ -120,5 +133,8 @@ public class SelectCity extends LinearLayout implements OnItemSelectedListener {
 	}
 	public interface CitySelected {
 		void selected(int x, int y);
+	}
+	public void setPalace(int targetCity) {
+		palaceLocation = targetCity;
 	}
 }

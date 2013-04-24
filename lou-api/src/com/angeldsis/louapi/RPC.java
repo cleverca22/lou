@@ -44,11 +44,13 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 	World world = new World();
 	public BuildQueueParser buildQueueParser;
 	DefenseOverviewParser defenseOverviewParser;
+	public EnlightenedCities enlightenedCities;
 
 	public RPC(Account acct, LouState state) {
 		this.account = acct;
 		this.state = state;
 		aam = new AllianceAttackMonitor(this);
+		enlightenedCities = new EnlightenedCities();
 		requestid = 0;
 		urlbase = "http://prodgame"+acct.serverid+".lordofultima.com/"+acct.pathid+"/Presentation/Service.svc/ajaxEndpoint/";
 		chat_queue = new ArrayList<String>();
@@ -597,6 +599,9 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 				requests += "\fWORLD:"+worldParser.getRequestDetails();
 				//Log.v(TAG,requests);
 			}
+			if (enlightenedCities != null) {
+				requests += "\fECO:"+enlightenedCities.getRequestDetails();
+			}
 			requests += aam.getRequestDetails();
 			requests += "\fTE:";
 			if (buildQueueParser != null) {
@@ -641,6 +646,8 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			parseVIS(D);
 		} else if (C.equals("WORLD")) {
 			if (worldParser != null) worldParser.parse(p,this);
+		} else if (C.equals("ECO")) {
+			if (enlightenedCities != null) enlightenedCities.parse(p,this);
 		} else if (C.equals("BQO")) {
 			if (buildQueueParser != null) buildQueueParser.parse(p.getJSONArray("D"),this);
 		} else if (C.equals("CITY")) {
@@ -1279,4 +1286,5 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 		}
 	}
 	public abstract void onDefenseOverviewUpdate();
+	public abstract void onEnlightenedCityChanged();
 }

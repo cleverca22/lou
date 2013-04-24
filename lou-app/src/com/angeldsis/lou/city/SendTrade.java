@@ -1,11 +1,13 @@
 package com.angeldsis.lou.city;
 
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.SeekBar;
@@ -31,15 +33,28 @@ public class SendTrade extends SessionUser implements CitySelected, GotOrderTarg
 	boolean byland = true;
 	String targetPlayer;
 	boolean loaded = false;
+	private boolean palaceDonation;
+	CheckBox palace;
+	Button send_res;
 	public void onCreate(Bundle b) {
 		super.onCreate(b);
 		if (Build.VERSION.SDK_INT > 13) initApi14();
 		setContentView(R.layout.send_trade);
 		byLand = (CheckBox) findViewById(R.id.byLand);
 		byLand.setChecked(true);
+		palace = (CheckBox) findViewById(R.id.palace);
 		player = (TextView) findViewById(R.id.player);
 		city = (TextView) findViewById(R.id.city);
 		time = (TextView) findViewById(R.id.time);
+		send_res = (Button) findViewById(R.id.send_res);
+		
+		Intent i = getIntent();
+		Bundle args = i.getExtras();
+		if (args.containsKey("targetCity")) {
+			targetCity = args.getInt("targetCity");
+			palaceDonation = true;
+			palace.setChecked(true);
+		}
 	}
 	@Override public void session_ready() {
 		if (!loaded) {
@@ -49,6 +64,7 @@ public class SendTrade extends SessionUser implements CitySelected, GotOrderTarg
 			initBar(3,R.id.setFood,R.id.showFood);
 			SelectCity s = (SelectCity) findViewById(R.id.selectCity);
 			s.session_ready(session.rpc.state,this,this);
+			if (targetCity != -1) s.setPalace(targetCity);
 			loaded = true;
 			((TextView)findViewById(R.id.source)).setText(session.rpc.state.currentCity.name);
 			updateMaxRes();
@@ -111,16 +127,15 @@ public class SendTrade extends SessionUser implements CitySelected, GotOrderTarg
 		b.setMax(val);
 		e.setText(""+b.getProgress());
 	}
-	@Override
-	public void selected(int x, int y) {
+	@Override public void selected(int x, int y) {
+		Log.v(TAG,String.format("selected %d:%d",x,y));
 		targetCity = Coord.toCityId(x, y);
 		((EditText)findViewById(R.id.x)).setText(""+x);
 		((EditText)findViewById(R.id.y)).setText(""+y);
 		//session.rpc.GetPublicCityInfo(targetCity, this);
 		session.rpc.GetOrderTargetInfo(session.rpc.state.currentCity,x,y,this);
 	}
-	@Override
-	public void done(OrderTargetInfo p) {
+	@Override public void done(OrderTargetInfo p) {
 		if (p.alliance != null) {
 			player.setText(p.player.getName()+" ("+p.alliance.name+")");
 		} else {
@@ -141,14 +156,21 @@ public class SendTrade extends SessionUser implements CitySelected, GotOrderTarg
 		Log.v(TAG,"time is "+time+String.format(" speed1 %d", speedone));
 		Log.v(TAG,"distance is "+distance);
 		this.time.setText(String.format("%dh",(int)time/3600));
+		
+		if (distance == -1) {
+			send_res.setEnabled(false);
+		} else {
+			send_res.setEnabled(true);
+		}
 	}
 	public void sendTrade(View v) {
+		Log.v(TAG,"sending resources...");
 		int[] resources = {0,0,0,0};
 		resources[0] = ((SeekBar)findViewById(R.id.setWood)).getProgress();
 		resources[1] = ((SeekBar)findViewById(R.id.setStone)).getProgress();
 		resources[2] = ((SeekBar)findViewById(R.id.setIron)).getProgress();
 		resources[3] = ((SeekBar)findViewById(R.id.setFood)).getProgress();
-		session.rpc.TradeDirect(session.rpc.state.currentCity,resources,byland,targetPlayer,Coord.fromCityId(targetCity),false,this);
+		session.rpc.TradeDirect(session.rpc.state.currentCity,resources,byland,targetPlayer,Coord.fromCityId(targetCity),palaceDonation,this);
 	}
 	@Override
 	public void done(int reply) {
@@ -201,5 +223,10 @@ public class SendTrade extends SessionUser implements CitySelected, GotOrderTarg
 		updateBar(1,R.id.setStone,R.id.showStone);
 		updateBar(2,R.id.setIron,R.id.showIron);
 		updateBar(3,R.id.setFood,R.id.showFood);
+		Coord c = Coord.fromCityId(targetCity);
+		this.selected(c.x,c.y); // FIXME, reuse data from GetOrderTargetInfo
+	}
+	public void palaceChanged(View v) {
+		palaceDonation = palace.isChecked();
 	}
 }

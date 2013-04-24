@@ -18,6 +18,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 public class IdleUnits extends SessionUser implements OnItemClickListener {
+	private static final String TAG = "IdleUnits";
 	MyTableRow.LayoutParameters grid = new MyTableRow.LayoutParameters();
 	ListView list;
 	IdleUnitAdapter mAdapter;

@@ -35,7 +35,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 
 public class SessionUser extends FragmentActivity implements Callbacks {
-	static final String TAG = "SessionUser";
+	private static final String TAG = "SessionUser";
 	SessionKeeper mService;
 	boolean mBound;
 	protected AccountWrap acct;
@@ -222,6 +222,11 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 			i = new Intent(Intent.ACTION_VIEW,location);
 			startActivity(i);
 			return true;
+		case R.id.el_city_list:
+			i = new Intent(this,EnlightenedCityList.class);
+			i.putExtras(acct.toBundle());
+			startActivity(i);
+			return true;
 		}
 		return super.onOptionsItemSelected(item);
 	}
@@ -246,4 +251,5 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 		
 	}
 	@Override public void onDefenseOverviewUpdate() {}
+	@Override public void onEnlightenedCityChanged() {}
 }

@@ -443,6 +443,9 @@ public class SessionKeeper extends Service {
 		public void onDefenseOverviewUpdate() {
 			if (cb != null) cb.onDefenseOverviewUpdate();
 		}
+		public void onEnlightenedCityChanged() {
+			if (cb != null) cb.onEnlightenedCityChanged();
+		}
 	}
 	public void setTimer(long maxdelay) {
 		long target = System.currentTimeMillis() + maxdelay + 10000;
@@ -452,6 +455,7 @@ public class SessionKeeper extends Service {
 	}
 	public interface Callbacks {
 		void visDataReset();
+		void onEnlightenedCityChanged();
 		void onDefenseOverviewUpdate();
 		void cellUpdated(Cell c);
 		void onBuildQueueUpdate();
