@@ -21,7 +21,6 @@ import org.eclipse.swt.widgets.TabItem;
 
 public class ChatWindow extends Shell implements SelectionListener {
 	static final String TAG = "ChatWindow";
-	private Text text;
 	private Text msg_input;
 	RPCWrap rpc;
 	private TabFolder tabFolder;
@@ -66,11 +65,8 @@ public class ChatWindow extends Shell implements SelectionListener {
 	private TabData continent,alliance,officer,PM;
 	public ChatWindow(Display display,RPCWrap rpc) {
 		this.rpc = rpc;
-		setLayout(new GridLayout(2, true));
+		setLayout(new GridLayout(1, true));
 		setText("Chat");
-		
-		text = new Text(this, SWT.BORDER | SWT.WRAP | SWT.V_SCROLL | SWT.MULTI);
-		text.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		tabFolder = new TabFolder(this, SWT.NONE);
 		tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
@@ -83,7 +79,6 @@ public class ChatWindow extends Shell implements SelectionListener {
 		
 		msg_input = new Text(this, SWT.BORDER);
 		msg_input.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		new Label(this, SWT.NONE);
 		msg_input.addListener(SWT.KeyUp, new Listener() {
 			public void handleEvent(Event e) {
 				if (e.keyCode == 13) {
@@ -95,13 +90,10 @@ public class ChatWindow extends Shell implements SelectionListener {
 	}
 	protected void checkSubclass() {}
 	public void handle_msg(ChatMsg c) {
-		if (c.tag.equals("@C")) continent.handle_msg(c);
-		else if (c.tag.equals("@A")) alliance.handle_msg(c);
+		if (c.tag.equals("@A")) alliance.handle_msg(c);
 		else if (c.tag.equals("@O")) officer.handle_msg(c);
-		else {
-			String msg = text.getText() + "\r\n" + c.toString();
-			text.setText(msg);
-			text.setSelection(msg.length());
+		else { // @C and all others
+			continent.handle_msg(c);
 		}
 		forceActive();
 	}
