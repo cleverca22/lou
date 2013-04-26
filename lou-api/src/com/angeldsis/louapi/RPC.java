@@ -443,7 +443,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 				rpcreply reply2 = new rpcreply();
 				if (reply.e != null) {
 					if (reply.e instanceof UnknownHostException) {
-						Log.w(TAG,"dns error, retrying");
+						Log.w(TAG,"dns error, retrying "+urlbase);
 					} else if (reply.e instanceof FileNotFoundException) {
 						Log.e(TAG, "wtf, file not found?? " + urlbase + function);
 						stopPolling();
@@ -570,45 +570,59 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			JSONObject obj = new JSONObject();
 			obj.put("requestid", requestid);
 			requestid++;
-			String requests = "CITY:"+state.currentCity.cityid;
-			if (state.fetchVis) {
-				requests += "\fVIS:c:"+state.currentCity.cityid+":0:-1085:-638:775:565:"+state.currentCity.visreset; // FIXME last field is reset, check webfrontend.vis.Main.js for others
+			City c = state.currentCity;
+			ArrayList<String> requests = new ArrayList<String>();
+			if (c != null) {
+				requests.add("CITY:"+c.cityid);
+				if (state.fetchVis) {
+					requests.add("VIS:c:"+state.currentCity.cityid+":0:-1085:-638:775:565:"+state.currentCity.visreset); // FIXME last field is reset, check webfrontend.vis.Main.js for others
+				}
 			}
 			if (chat_queue.size() > 0) {
 				String msg = chat_queue.remove(0);
-				requests = requests + "\fCHAT:"+msg;
+				requests.add("CHAT:"+msg);
 				if (chat_queue.size() > 0) {
 					Log.v(TAG,"need to poll again");
 					queue.remove(poller);
 					poller.pollSoon();
 					queue.add(poller);
 				}
-			} else requests = requests + "\fCHAT:";
-			requests += "\fPLAYER:";
-			if (state.getFullPlayerData)requests += "a";
-			requests += "\fTIME:"+System.currentTimeMillis();
-			requests += "\fREPORT:";
-			requests += "\fSERVER:";
-			if (checkAlliance()) requests += "\fALLIANCE:";
-			requests += "\fSUBSTITUTION:";
+			} else requests.add("CHAT:");
+			requests.add("PLAYER:"+ (state.getFullPlayerData ? "a" : ""));
+			requests.add("TIME:"+System.currentTimeMillis());
+			requests.add("REPORT:");
+			requests.add("SERVER:");
+			if (checkAlliance()) requests.add("ALLIANCE:");
+			requests.add("SUBSTITUTION:");
 			if (state.userActivity) {
 				state.userActivity = false;
-				requests += "\fUA:";
+				requests.add("UA:");
 			}
 			if (worldParser != null) {
-				requests += "\fWORLD:"+worldParser.getRequestDetails();
+				requests.add("WORLD:"+worldParser.getRequestDetails());
 				//Log.v(TAG,requests);
 			}
 			if (enlightenedCities != null) {
-				requests += "\fECO:"+enlightenedCities.getRequestDetails();
+				requests.add("ECO:"+enlightenedCities.getRequestDetails());
 			}
-			requests += aam.getRequestDetails();
-			requests += "\fTE:";
+			aam.getRequestDetails(requests);
+			requests.add("TE:");
 			if (buildQueueParser != null) {
-				requests += "\fBQO:"+buildQueueParser.getRequestDetails();
+				requests.add("BQO:"+buildQueueParser.getRequestDetails());
 			}
-			if (defenseOverviewParser != null) requests += "\fDEFO:"+defenseOverviewParser.getRequestDetails();
-			obj.put("requests",requests);
+			if (defenseOverviewParser != null) requests.add("DEFO:"+defenseOverviewParser.getRequestDetails());
+			
+			// FIXME
+			StringBuilder b = new StringBuilder();
+			Iterator<String> i = requests.iterator();
+			String s = i.next();
+			b.append(s);
+			while (i.hasNext()) {
+				s = i.next();
+				b.append("\f");
+				b.append(s);
+			}
+			obj.put("requests",b.toString());
 			doRPC("Poll",obj,this,new RPCCallback() {
 				void requestDone(rpcreply r) throws JSONException {
 					int x;
@@ -665,7 +679,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 				int step = item.getInt("s");
 				state.currentCity.resources[i-1].set(d,b,m,step,state);
 			}
-			state.processCityPacket(D);
+			state.processCityPacket(D,world);
 			runOnUiThread(new Runnable () {public void run() {
 				gotCityData();
 			}});

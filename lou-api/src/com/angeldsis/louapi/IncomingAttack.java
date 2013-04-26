@@ -6,6 +6,8 @@ import java.util.Observable;
 import org.json2.JSONException;
 import org.json2.JSONObject;
 
+import com.angeldsis.louapi.data.World;
+
 public class IncomingAttack extends Observable {
 	enum DataSource { alliance, player, city };
 	DataSource lastDataSource;
@@ -73,7 +75,7 @@ public class IncomingAttack extends Observable {
 		setChanged();
 		notifyObservers(this);
 	}
-	public void updateAllianceType(JSONObject a) {
+	public void updateAllianceType(JSONObject a, World world) {
 		lastDataSource = DataSource.alliance;
 		// 0==unknown
 		// 5==internal attack or beseiged, probly not type
@@ -83,7 +85,7 @@ public class IncomingAttack extends Observable {
 		targetCityName = a.optString("tcn");
 
 		sourceCityName = a.optString("cn");
-		sourceAlliance = Alliance.get(a.optInt("a"), a.optString("an"));
+		sourceAlliance = world.getAlliance(a.optInt("a"), a.optString("an"));
 		total_strength_attacker = a.optInt("ta");
 		total_strength_defender = a.optInt("td");
 		defender = a.optString("tpn");

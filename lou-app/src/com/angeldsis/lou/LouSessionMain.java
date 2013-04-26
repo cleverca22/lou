@@ -151,19 +151,20 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 	public void onChat(ArrayList<ChatMsg> c) {
 		// FIXME, give some ui notice
 	}
-	@Override
-	public void cityListChanged() {
+	@Override public void cityListChanged() {
+		// FIXME, use .toArray
 		Log.v(TAG,"cityListChanged()");
 		mAdapter.clear();
-		Iterator<City> i = session.state.cities.iterator();
+		Iterator<City> i = session.state.cities.values().iterator();
 		while (i.hasNext()) {
 			mAdapter.add(i.next());
 		}
 	}
 	@Override
-	public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
-		Log.v(TAG,session.state.cities.get(arg2).toString());
-		session.state.changeCity(session.state.cities.get(arg2));
+	public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long id) {
+		Log.v(TAG,"id:"+id);
+		Log.v(TAG,session.state.cities.get((int)id).toString());
+		session.state.changeCity(session.state.cities.get((int)id));
 	}
 	private static class ViewHolder {
 		public TextView name;
@@ -172,6 +173,9 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 	class cityList extends ArrayAdapter<City> {
 		cityList(Context c) {
 			super(c,0);
+		}
+		public long getItemId(int position) {
+			return getItem(position).cityid;
 		}
 		public View getView(int position, View convertView, ViewGroup parent) {
 			ViewHolder holder;

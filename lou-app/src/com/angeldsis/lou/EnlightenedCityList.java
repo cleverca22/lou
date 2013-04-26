@@ -1,19 +1,18 @@
 package com.angeldsis.lou;
 
-import java.util.ArrayList;
+import java.util.TreeMap;
 
 import com.angeldsis.lou.city.SendTrade;
 import com.angeldsis.louapi.EnlightenedCities.EnlightenedCity;
 import com.angeldsis.louapi.data.Coord;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -26,9 +25,10 @@ public class EnlightenedCityList extends SessionUser {
 		super.onCreate(sis);
 		params = new MyTableRow.LayoutParameters();
 		setContentView(R.layout.el_city_list);
+		adapter = new CityList();
+		((ListView)findViewById(R.id.list)).setAdapter(adapter);
 	}
 	private static class ViewHolder {
-
 		public TextView coord;
 		public TextView level;
 		public TextView wood;
@@ -41,15 +41,26 @@ public class EnlightenedCityList extends SessionUser {
 	}
 	@Override public void onEnlightenedCityChanged() {
 		EnlightenedCity[] data;
-		ArrayList<EnlightenedCity> datain = session.rpc.enlightenedCities.data;
+		TreeMap<Integer,EnlightenedCity> datain = session.rpc.enlightenedCities.data;
 		data = new EnlightenedCity[datain.size()];
-		datain.toArray(data);
-		adapter = new CityList(this,data);
-		((ListView)findViewById(R.id.list)).setAdapter(adapter);
+		datain.values().toArray(data);
+		adapter.setData(data);
 	}
-	private class CityList extends ArrayAdapter<EnlightenedCity> {
-		public CityList(Context context, EnlightenedCity[] objects) {
-			super(context, 0, objects);
+	private class CityList extends BaseAdapter {
+		EnlightenedCity[] data;
+		@Override public int getCount() {
+			if (data == null) return 0;
+			return data.length;
+		}
+		public void setData(EnlightenedCity[] data) {
+			this.data = data;
+			this.notifyDataSetChanged();
+		}
+		@Override public long getItemId(int position) {
+			return getItem(position).id;
+		}
+		@Override public EnlightenedCity getItem(int position) {
+			return data[position];
 		}
 		public View getView(int position,View convertView,ViewGroup root) {
 			final ViewHolder holder;

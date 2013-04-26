@@ -5,6 +5,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.TimeZone;
+import java.util.TreeMap;
 
 import org.json2.JSONArray;
 import org.json2.JSONException;
@@ -16,6 +17,7 @@ import com.angeldsis.louapi.data.BuildQueue;
 import com.angeldsis.louapi.data.Coord;
 import com.angeldsis.louapi.data.SubRequest;
 import com.angeldsis.louapi.data.UnitCount;
+import com.angeldsis.louapi.data.World;
 import com.google.gson.annotations.SerializedName;
 
 public class LouState {
@@ -23,7 +25,7 @@ public class LouState {
 	transient int AllianceId;
 	transient String AllianceName;
 	transient public Player self;
-	@SerializedName("cities") public ArrayList<City> cities;
+	@SerializedName("cities") public TreeMap<Integer,City> cities;
 	transient public City currentCity;
 	transient public Counter gold;
 	transient public ManaCounter mana;
@@ -57,15 +59,15 @@ public class LouState {
 		subs = new ArrayList<SubRequest>();
 	}
 	public City findCityById(int cityid) {
-		for (City c : cities) if (c.cityid == cityid) return c;
-		return null;
+		return cities.get(cityid);
 	}
 	public void processPlayerInfo(JSONObject obj) throws JSONException {
+		// FIXME, shouldnt rebuild the entire array on each pass
 		Log.v(TAG,obj.toString(1));
 		JSONArray cities = obj.getJSONArray("Cities");
 		int x;
-		ArrayList<City> old = this.cities;
-		this.cities = new ArrayList<City>();
+		TreeMap<Integer,City> old = this.cities;
+		this.cities = new TreeMap<Integer,City>();
 		for (x = 0; x < cities.length(); x++) {
 			JSONObject cityin = cities.getJSONObject(x);
 			City cityout = null;
@@ -73,30 +75,22 @@ public class LouState {
 			
 			// find and re-use the old city object if it already exists
 			if (old != null) {
-				Iterator<City> i = old.iterator();
-				while (i.hasNext()) {
-					City c = i.next();
-					Log.v(TAG,c.name+""+c.cityid+"=="+cityid);
-					if (c.cityid == cityid) {
-						cityout = c;
-						i.remove();
-						break;
-					}
-				}
+				cityout = old.get(cityid);
+				if (cityout != null) old.remove(cityout);
 			}
 			if (cityout == null) {
 				cityout = new City();
 			}
 			cityout.name = cityin.getString("n");
 			cityout.cityid = cityid;
-			this.cities.add(cityout);
+			this.cities.put(cityid,cityout);
 		}
-		currentCity = this.cities.get(0);
+		currentCity = this.cities.values().iterator().next(); // FIXME
 		AllianceId = obj.getInt("AllianceId");
 		if (AllianceId > 0) AllianceName = obj.getString("AllianceName");
 		self = Player.get(obj.optInt("Id"),obj.getString("Name"));
 	}
-	public class City {
+	public class City implements Comparable<Integer> {
 		private static final String TAG = "City";
 		@SerializedName("res") public Resource[] resources;
 		@SerializedName("name") public String name;
@@ -137,15 +131,17 @@ public class LouState {
 				if (units.length != 20) units = new UnitCount[20];
 			}
 		}
-		public long getCityid() {
-			return cityid;
-		}
 		public boolean hasVisData() {
 			synchronized(this) {
 				if (visData == null) return false;
 				if (visData.size() > 0) return true;
 				return false;
 			}
+		}
+		@Override public int compareTo(Integer o) {
+			if (cityid < o) return -1;
+			if (cityid > o) return 1;
+			return 0;
 		}
 	}
 	public void parsePlayerUpdate(JSONObject d) throws JSONException {
@@ -244,7 +240,7 @@ public class LouState {
 	public void setRPC(RPC rpc2) {
 		rpc = rpc2;
 	}
-	public void processCityPacket(JSONObject p) throws JSONException {
+	public void processCityPacket(JSONObject p, World world) throws JSONException {
 		JSONArray q = p.optJSONArray("q");
 		int x;
 		if (q != null) {
@@ -307,11 +303,11 @@ public class LouState {
 		JSONArray to = p.optJSONArray("to");
 		if (ti != null) {
 			//Log.v(TAG,"ti:"+ti.length());
-			ArrayList<Trade> trade_in = parseTrades(ti);
+			ArrayList<Trade> trade_in = parseTrades(ti, world);
 		}
 		if (to != null) {
 			//Log.v(TAG,"to:"+to.length());
-			ArrayList<Trade> trade_out = parseTrades(to);
+			ArrayList<Trade> trade_out = parseTrades(to, world);
 		}
 		JSONArray traders = p.optJSONArray("t");
 		Log.v(TAG,"traders:"+traders);
@@ -339,7 +335,7 @@ public class LouState {
 			rpc.onNewAttack(a);
 		}
 	}
-	private ArrayList<Trade> parseTrades(JSONArray list) {
+	private ArrayList<Trade> parseTrades(JSONArray list, World world) {
 		ArrayList<Trade> out = new ArrayList<Trade>();
 		int j;
 		for (j = 0; j < list.length(); j++) {
@@ -351,7 +347,7 @@ public class LouState {
 			int end = t.optInt("es");
 			int id = t.optInt("i");
 			//Log.v(TAG,"r:"+contents+" cn:"+cityName+" ss:"+start+" es:"+end);
-			Trade trade = new Trade(t);
+			Trade trade = new Trade(t,world);
 		}
 		return out;
 	}
@@ -372,9 +368,9 @@ public class LouState {
 		static final int Return = 2;
 		static final int ReturnFromCancel = 6;
 		static final int WorkingPalaceSupport = 7;
-		public Trade(JSONObject t) {
+		public Trade(JSONObject t, World world) {
 			player = Player.get(t.optInt("p"),t.optString("pn"));
-			alliance = Alliance.get(t.optInt("a"),t.optString("an"));
+			alliance = world.getAlliance(t.optInt("a"),t.optString("an"));
 			transport = t.optInt("tt");
 			type = t.optInt("t");
 			state = t.optInt("s");

@@ -103,11 +103,8 @@ public class SelectCity extends LinearLayout implements OnItemSelectedListener {
 		mActivity = a;
 		callback = cb;
 		allCities = new City[state.cities.size()];
+		state.cities.values().toArray(allCities);
 		int i = 0;
-		for (City c : state.cities) {
-			allCities[i] = c;
-			i++;
-		}
 		SharedPreferences p = mActivity.getSharedPreferences("bookmarks", Context.MODE_PRIVATE);
 		String part = p.getString("bookmarks", "");
 		if (part.length() > 0) {

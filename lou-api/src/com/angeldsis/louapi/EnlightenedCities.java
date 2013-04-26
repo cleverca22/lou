@@ -1,13 +1,13 @@
 package com.angeldsis.louapi;
 
-import java.util.ArrayList;
+import java.util.TreeMap;
 
 import org.json2.JSONArray;
 import org.json2.JSONException;
 import org.json2.JSONObject;
 
 public class EnlightenedCities {
-	public static class EnlightenedCity {
+	public static class EnlightenedCity implements Comparable<Integer> {
 		public int id;
 		public static final int[] res_needed = { 10000000, 30000000, 60000000, 100000000, 250000000,
 			350000000, 500000000, 800000000 ,-1, 1500000000 };
@@ -48,10 +48,15 @@ public class EnlightenedCities {
 				else incoming_stone = in.getInt("s");
 			}
 		}
+		@Override public int compareTo(Integer arg0) {
+			if (this.id < arg0) return -1;
+			if (this.id > arg0)return 1; 
+			return 0;
+		}
 	}
 	private static final String TAG = "EnlightenedCities";
 	private boolean initial;
-	public ArrayList<EnlightenedCity> data;
+	public TreeMap<Integer,EnlightenedCity> data;
 	EnlightenedCities() {
 		initial = true;
 	}
@@ -66,28 +71,23 @@ public class EnlightenedCities {
 		JSONObject D = p.getJSONObject("D");
 		//Log.v(TAG,D.toString());
 		int flush = D.optInt("f");
-		if (flush == 1) this.data = new ArrayList<EnlightenedCity>();
+		if (flush == 1) this.data = new TreeMap<Integer,EnlightenedCity>();
 		JSONArray c = D.optJSONArray("c");
 		int x;
 		for (x=0; x<c.length(); x++) {
 			JSONObject y = c.getJSONObject(x);
 			Log.v(TAG,y.toString());
 			int id = y.getInt("i");
-			String name = y.optString("n");
-			EnlightenedCity result = null;
-			for (EnlightenedCity needle : data) {
-				if (needle.id == id) {
-					result = needle;
-					break;
-				}
-			}
+			EnlightenedCity result = data.get(id);
 			if (y.has("n") == false) {
-				data.remove(result);
+				if (result != null) {
+					data.remove(result);
+				}
 				continue;
 			}
 			if (result == null) {
 				result = new EnlightenedCity(id,y,rpc);
-				data.add(result);
+				data.put(id,result);
 			} else {
 				result.update(y);
 			}

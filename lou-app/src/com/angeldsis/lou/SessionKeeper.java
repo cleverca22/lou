@@ -308,7 +308,7 @@ public class SessionKeeper extends Service {
 				
 				Log.v(TAG,"state:"+this.state);
 				Log.v(TAG,"cities:"+this.state.cities);
-				Iterator<City> i = this.state.cities.iterator();
+				Iterator<City> i = this.state.cities.values().iterator();
 				while (i.hasNext()) i.next().fix(this.state);
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block

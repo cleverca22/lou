@@ -183,8 +183,6 @@ public class ChatWindow extends SessionUser {
 		}
 		@Override
 		public long getItemId(int position) {
-			Log.v(TAG,"getItemId");
-			// TODO Auto-generated method stub
 			return position;
 		}
 		@Override
@@ -307,7 +305,6 @@ public class ChatWindow extends SessionUser {
 			return row;
 		}
 		public void setSource(ChatHistory chat,Channel c) {
-			Log.v(TAG,this.toString()+" setSource");
 			source = chat;
 			channel = c;
 			update();

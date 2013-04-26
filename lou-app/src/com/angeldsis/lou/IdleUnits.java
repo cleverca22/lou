@@ -43,7 +43,7 @@ public class IdleUnits extends SessionUser implements OnItemClickListener {
 	}
 	@Override public void onDefenseOverviewUpdate() {
 		City[] list2 = new City[session.rpc.state.cities.size()];
-		list2 = session.rpc.state.cities.toArray(list2);
+		list2 = session.rpc.state.cities.values().toArray(list2);
 		Arrays.sort(list2, new Comparator<City>(){
 			@Override
 			public int compare(City a, City b) {

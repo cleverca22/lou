@@ -19,7 +19,7 @@ public class BuildMenu extends DialogFragment {
 	static final private String TAG = "BuildMenu";
 	public static BuildMenu newInstance(City city,int coord) {
 		Bundle args = new Bundle();
-		args.putLong("cityid", city.getCityid());
+		args.putLong("cityid", city.cityid);
 		args.putInt("coord", coord);
 		BuildMenu f = new BuildMenu();
 		f.setArguments(args);

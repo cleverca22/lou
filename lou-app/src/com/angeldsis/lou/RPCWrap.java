@@ -60,7 +60,7 @@ public class RPCWrap extends RPC {
 	}
 	@Override
 	public void runOnUiThread(Runnable r) {
-		Log.v("RPCWrap","posting "+r+" to "+handler);
+		//Log.v("RPCWrap","posting "+r+" to "+handler);
 		handler.post(r);
 	}
 	@Override

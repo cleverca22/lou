@@ -165,7 +165,7 @@ public class CityView extends SessionUser implements Callbacks, LayoutCallbacks 
 		newFragment.show(ft, "dialog");
 	}
 	public void do_build(long cityid,int structureid,int coord) {
-		if (cityid != session.state.currentCity.getCityid()) {
+		if (cityid != session.state.currentCity.cityid) {
 			Log.e(TAG,"wrong city!!!");
 		}
 		Log.v(TAG,String.format("%s %s", structureid,coord));

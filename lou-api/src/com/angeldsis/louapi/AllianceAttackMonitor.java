@@ -20,12 +20,11 @@ public class AllianceAttackMonitor {
 			new_ia = ia;
 		}
 	}
-	public String getRequestDetails() {
+	public void getRequestDetails(ArrayList<String> requests) {
 		if ((ia != new_ia) && alwaysMonitor) {
 			Log.v(TAG,"checking");
-			return "\fALL_AT:a";
+			requests.add("ALL_AT:a");
 		}
-		return "";
 	}
 	public void parseReply(JSONObject d) {
 		int v = d.optInt("v");
@@ -41,10 +40,10 @@ public class AllianceAttackMonitor {
 				IncomingAttack att = rpc.state.findById(id,rpc.state.incoming_attacks);
 				if (att == null) { // its new
 					att = new IncomingAttack(rpc.state,id);
-					att.updateAllianceType(attack);
+					att.updateAllianceType(attack,rpc.world);
 					rpc.onNewAttack(att);
 				} else {
-					att.updateAllianceType(attack);
+					att.updateAllianceType(attack,rpc.world);
 				}
 				newlist.add(att);
 			}

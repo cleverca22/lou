@@ -56,7 +56,7 @@ public class IdleTroops extends Shell {
 		Composite container = new Composite(list,SWT.NONE);
 		container.setLayout(new GridLayout(3, false));
 		//container.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
-		for (final City c : rpc.state.cities) {
+		for (final City c : rpc.state.cities.values()) {
 			int zerks = 0;
 			if (c.units != null) {
 				if (c.units[6] != null) {
