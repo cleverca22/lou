@@ -41,5 +41,7 @@
         <activity android:name=".world.SendAttack"></activity>
         <activity android:name="IdleUnits"></activity>
         <activity android:name="EnlightenedCityList"></activity>
-    </application>
+        <activity android:name="FragmentUser"></activity>
+        <activity android:name="SingleFragment"></activity>
+        </application>
 </manifest>

@@ -45,12 +45,14 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 	public BuildQueueParser buildQueueParser;
 	DefenseOverviewParser defenseOverviewParser;
 	public EnlightenedCities enlightenedCities;
+	public FoodWarningParser foodWarnings;
 
 	public RPC(Account acct, LouState state) {
 		this.account = acct;
 		this.state = state;
 		aam = new AllianceAttackMonitor(this);
 		enlightenedCities = new EnlightenedCities();
+		foodWarnings = new FoodWarningParser();
 		requestid = 0;
 		urlbase = "http://prodgame"+acct.serverid+".lordofultima.com/"+acct.pathid+"/Presentation/Service.svc/ajaxEndpoint/";
 		chat_queue = new ArrayList<String>();
@@ -565,7 +567,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 	public abstract void cityChanged();
 	public abstract void cityListChanged();
 	public void Poll() {
-		Log.v(TAG,"Poll");
+		//Log.v(TAG,"Poll");
 		try {
 			JSONObject obj = new JSONObject();
 			obj.put("requestid", requestid);
@@ -604,6 +606,9 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			}
 			if (enlightenedCities != null) {
 				requests.add("ECO:"+enlightenedCities.getRequestDetails());
+			}
+			if (foodWarnings != null) {
+				requests.add("FOODO:"+foodWarnings.getRequestDetails());
 			}
 			aam.getRequestDetails(requests);
 			requests.add("TE:");
@@ -662,6 +667,8 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			if (worldParser != null) worldParser.parse(p,this);
 		} else if (C.equals("ECO")) {
 			if (enlightenedCities != null) enlightenedCities.parse(p,this);
+		} else if (C.equals("FOODO")) {
+			if (foodWarnings != null) foodWarnings.parse(p,this);
 		} else if (C.equals("BQO")) {
 			if (buildQueueParser != null) buildQueueParser.parse(p.getJSONArray("D"),this);
 		} else if (C.equals("CITY")) {
@@ -733,7 +740,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			state.parseSubs(D);
 		} else if (C.equals("TE")) {
 			JSONObject D = p.getJSONObject("D");
-			Log.v(TAG,"TE: packet "+D.toString());
+			//Log.v(TAG,"TE: packet "+D.toString());
 		} else if (C.equals("DEFO")) {
 			defenseOverviewParser.parse(p.getJSONArray("D"),this);
 		} else {
@@ -861,7 +868,6 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 				setThreadActive(true);
 				Runnable r = t.getRunnable();
 				r.run();
-				
 			}
 			runOnUiThread(ticker);
 			if (polling && !queue.contains(poller)) {
@@ -1301,4 +1307,5 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 	}
 	public abstract void onDefenseOverviewUpdate();
 	public abstract void onEnlightenedCityChanged();
+	public abstract void onFoodWarning();
 }

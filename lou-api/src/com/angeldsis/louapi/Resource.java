@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName;
 
 public class Resource {
 	static final String[] names = {"wood","stone","iron","food"};
-	@SerializedName("d") double delta; // gain per step
+	@SerializedName("d") public double delta; // gain per step
 	@SerializedName("b") double base; // last value
 	@SerializedName("s") long step; // value of step at that time
 	@SerializedName("m") int max;

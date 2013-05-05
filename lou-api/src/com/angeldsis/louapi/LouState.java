@@ -143,6 +143,10 @@ public class LouState {
 			if (cityid > o) return 1;
 			return 0;
 		}
+		public int foodEmptyTime(LouState state) {
+			Log.v(TAG,String.format("delta:%f, current: %d",resources[3].delta,resources[3].getCurrent(state)));
+			return (int) (resources[3].getCurrent(state) / (resources[3].delta * -1));
+		}
 	}
 	public void parsePlayerUpdate(JSONObject d) throws JSONException {
 		getFullPlayerData = false;

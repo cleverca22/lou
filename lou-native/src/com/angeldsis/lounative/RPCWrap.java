@@ -117,4 +117,9 @@ public class RPCWrap extends RPC {
 		// TODO Auto-generated method stub
 		
 	}
+	@Override
+	public void onFoodWarning() {
+		// TODO Auto-generated method stub
+		
+	}
 }

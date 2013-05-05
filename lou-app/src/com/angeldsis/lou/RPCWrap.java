@@ -117,4 +117,7 @@ public class RPCWrap extends RPC {
 	@Override public void onEnlightenedCityChanged() {
 		callbacks.onEnlightenedCityChanged();
 	}
+	@Override public void onFoodWarning() {
+		callbacks.onFoodWarning();
+	}
 }

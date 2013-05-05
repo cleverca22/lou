@@ -6,6 +6,7 @@ import com.angeldsis.lou.SessionKeeper.Callbacks;
 import com.angeldsis.lou.SessionKeeper.MyBinder;
 import com.angeldsis.lou.allianceforum.AllianceForumList;
 import com.angeldsis.lou.city.SendTrade;
+import com.angeldsis.lou.fragments.FoodWarnings;
 import com.angeldsis.lou.home.DisconnectedDialog;
 import com.angeldsis.lou.world.DungeonList;
 import com.angeldsis.louapi.ChatMsg;
@@ -80,7 +81,10 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 			userActive();
 		}
 	}
-	public void session_ready() {}
+	public void session_ready() {
+		cityChanged();
+		gotCityData();
+	}
 	private ServiceConnection mConnection = new ServiceConnection() {
 		public void onServiceConnected(ComponentName className, IBinder service) {
 			MyBinder binder = (MyBinder)service;
@@ -121,6 +125,7 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 	 */
 	public void onChat(ArrayList<ChatMsg> d) {}
 	public void onEjected() {
+		// keep in sync with FragmentUser.onEjected
 		Log.v(TAG,"you have been logged out");
 		// FIXME give a better error
 		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
@@ -139,6 +144,7 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 	public void visDataUpdated() {
 		Log.v(TAG,"vis count "+session.rpc.state.currentCity.visData.size());
 	}
+	/** triggers with data for the current city has changed **/
 	public void gotCityData() {}
 	public void tick() {}
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -227,6 +233,12 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 			i.putExtras(acct.toBundle());
 			startActivity(i);
 			return true;
+		case R.id.foodWarning:
+			i = new Intent(this,SingleFragment.class);
+			i.putExtras(acct.toBundle());
+			i.putExtra("fragment", FoodWarnings.class);
+			startActivity(i);
+			return true;
 		}
 		return super.onOptionsItemSelected(item);
 	}
@@ -234,22 +246,17 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 		super.onDestroy();
 		Log.v(TAG,"onDestroy");
 	}
-	@Override
-	public void loginDone() {}
+	@Override public void loginDone() {}
 	@Override public void onVisObjAdded(LouVisData[] v) {}
-	@Override
-	public boolean onNewAttack(IncomingAttack a) {
+	@Override public boolean onNewAttack(IncomingAttack a) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 	@Override public void onReportCountUpdate() {}
 	@Override public void onSubListChanged() {}
 	@Override public void onBuildQueueUpdate() {}
-	@Override
-	public void cellUpdated(Cell c) {
-		// TODO Auto-generated method stub
-		
-	}
+	@Override public void cellUpdated(Cell c) {}
 	@Override public void onDefenseOverviewUpdate() {}
 	@Override public void onEnlightenedCityChanged() {}
+	@Override public void onFoodWarning() {}
 }

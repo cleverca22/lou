@@ -12,6 +12,7 @@ import java.util.Iterator;
 import org.json2.JSONObject;
 
 import com.angeldsis.lou.chat.ChatHistory;
+import com.angeldsis.lou.fragments.FoodWarnings;
 import com.angeldsis.louapi.ChatMsg;
 import com.angeldsis.louapi.IncomingAttack;
 import com.angeldsis.louapi.LouSession;
@@ -78,6 +79,7 @@ public class SessionKeeper extends Service {
 	static final int STILL_OPEN = 0x100;
 	static final int UNREAD_MESSAGE = 0x200;
 	static final int INCOMING_ATTACK = 0x300;
+	static final int FOOD_WARNING = 0x400;
 
 	public class MyBinder extends Binder {
 		public SessionKeeper getService() {
@@ -160,7 +162,7 @@ public class SessionKeeper extends Service {
 		}
 		return START_NOT_STICKY;
 	}
-	NotificationCompat.Builder mBuilder,chatBuilder,incomingAttackBuilder;
+	NotificationCompat.Builder mBuilder,chatBuilder,incomingAttackBuilder,foodWarning;
 	public class Session {
 		private static final String TAG = "Session";
 		public RPC rpc;
@@ -383,7 +385,6 @@ public class SessionKeeper extends Service {
 				PendingIntent resultPendingIntent = stackBuilder
 						.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT, options);
 				incomingAttackBuilder.setContentIntent(resultPendingIntent);
-
 				
 				Notification n = incomingAttackBuilder.build();
 				int id = (INCOMING_ATTACK | sessionid) + (a.id << 15);
@@ -446,6 +447,42 @@ public class SessionKeeper extends Service {
 		public void onEnlightenedCityChanged() {
 			if (cb != null) cb.onEnlightenedCityChanged();
 		}
+		public void onFoodWarning() {
+			if (cb != null) cb.onFoodWarning();
+			Iterator<City> i = rpc.foodWarnings.warnings.values().iterator();
+			while (i.hasNext()) {
+				City c = i.next();
+				int timeLeft = c.foodEmptyTime(rpc.state);
+				if (timeLeft > (4 * 3600)) continue;
+				Log.v(TAG,"food empty time: "+timeLeft+" "+c.name);
+				
+				Bundle options = acct.toBundle();
+				
+				Intent resultIntent = new Intent(SessionKeeper.this,SingleFragment.class);
+				resultIntent.putExtra("fragment", FoodWarnings.class);
+				resultIntent.putExtras(options);
+				
+				Intent homeIntent = new Intent(SessionKeeper.this,LouSessionMain.class);
+				homeIntent.putExtras(options);
+				
+				TaskStackBuilder stackBuilder = TaskStackBuilder.create(SessionKeeper.this);
+				stackBuilder.addParentStack(SingleFragment.class);
+				stackBuilder.addNextIntent(homeIntent);
+				stackBuilder.addNextIntent(resultIntent);
+				
+				PendingIntent resultPendingIntent = stackBuilder
+						.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT, options);
+				foodWarning.setContentIntent(resultPendingIntent);
+				foodWarning.setContentText(c.name +" runs out of food in "+((int)timeLeft/60/60)+" hours");
+				long x = System.currentTimeMillis() + (timeLeft*1000);
+				foodWarning.setWhen(x);
+				
+				Notification n = foodWarning.build();
+				n.contentView.setTextViewText(R.id.time, "test");
+				int id = (FOOD_WARNING | sessionid) + (c.cityid << 15);
+				mNotificationManager.notify(id, n);
+			}
+		}
 	}
 	public void setTimer(long maxdelay) {
 		long target = System.currentTimeMillis() + maxdelay + 10000;
@@ -455,6 +492,7 @@ public class SessionKeeper extends Service {
 	}
 	public interface Callbacks {
 		void visDataReset();
+		void onFoodWarning();
 		void onEnlightenedCityChanged();
 		void onDefenseOverviewUpdate();
 		void cellUpdated(Cell c);
@@ -489,6 +527,11 @@ public class SessionKeeper extends Service {
 					.setContentText("FIXME")
 					.setAutoCancel(true)
 					.setVibrate(pattern);
+			foodWarning = new NotificationCompat.Builder(SessionKeeper.this).setSmallIcon(R.drawable.ic_launcher)
+					.setContentTitle("food warning")
+					.setContentText("FIXME")
+					.setAutoCancel(true).setOnlyAlertOnce(true)
+					.setVibrate(pattern).setDefaults(Notification.DEFAULT_SOUND);
 			mNotificationManager = (NotificationManager) getSystemService(SessionKeeper.NOTIFICATION_SERVICE);
 			Logger.init();
 		}

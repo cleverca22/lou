@@ -16,6 +16,9 @@ public class Coord {
 	public String getContinent() {
 		return String.format("C%d%d",y/100,x/100);
 	}
+	public int getContinentInt() {
+		return ((y/100)*10) + (x/100);
+	}
 	public static int toCityId(int x, int y) {
 		return x | (y << 0x10);
 	}

@@ -53,4 +53,6 @@
     </string-array>
         <string name="theme">Theme</string>
         <string name="max_transport">Max transport capacity</string>
+        <string name="avail_carts">Available Carts:</string>
+        <string name="filter_continent">Filter By Continent</string>
 </resources>
