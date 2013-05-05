@@ -47,4 +47,7 @@
     <attr name="android:tag"/>
     <attr name="android:visibility"/>
 </declare-styleable>
+<declare-styleable name="ElCityList">
+    <attr name="rowHighlight1" format="color"/>
+</declare-styleable>
 </resources>

@@ -1,12 +1,18 @@
 package com.angeldsis.lou;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.TreeMap;
 
+import com.angeldsis.lou.city.SelectCity;
 import com.angeldsis.lou.city.SendTrade;
 import com.angeldsis.louapi.EnlightenedCities.EnlightenedCity;
 import com.angeldsis.louapi.data.Coord;
 
 import android.content.Intent;
+import android.content.res.TypedArray;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -14,6 +20,7 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -21,6 +28,8 @@ public class EnlightenedCityList extends SessionUser {
 	private static final String TAG = "EnlightenedCityList";
 	MyTableRow.LayoutParameters params;
 	CityList adapter;
+	boolean loaded;
+	boolean filter = true;
 	public void onCreate(Bundle sis) {
 		super.onCreate(sis);
 		params = new MyTableRow.LayoutParameters();
@@ -34,39 +43,54 @@ public class EnlightenedCityList extends SessionUser {
 		public TextView wood;
 		public TextView stone;
 		public EnlightenedCity city;
+		public TextView comment;
 	}
 	@Override public void session_ready() {
-		super.session_ready();
+		Log.v(TAG,"session_ready()");
 		onEnlightenedCityChanged();
+		if (!loaded) {
+			SelectCity s = (SelectCity) findViewById(R.id.selectCity);
+			s.setMode(SelectCity.ChangeCurrentCity);
+			s.session_ready(session.rpc.state,this);
+			loaded = true;
+		}
+		super.session_ready();
 	}
 	@Override public void onEnlightenedCityChanged() {
+		Log.v(TAG,"onEnlightenedCityChanged()");
 		EnlightenedCity[] data;
 		TreeMap<Integer,EnlightenedCity> datain = session.rpc.enlightenedCities.data;
 		data = new EnlightenedCity[datain.size()];
 		datain.values().toArray(data);
-		adapter.setData(data);
+		adapter.setData(datain.values());
 	}
 	private class CityList extends BaseAdapter {
-		EnlightenedCity[] data;
+		Collection<EnlightenedCity> realData;
+		ArrayList<EnlightenedCity> data;
+		int continent;
+		CityList() {
+			data = new ArrayList<EnlightenedCity>();
+		}
 		@Override public int getCount() {
 			if (data == null) return 0;
-			return data.length;
+			return data.size();
 		}
-		public void setData(EnlightenedCity[] data) {
-			this.data = data;
-			this.notifyDataSetChanged();
+		public void setData(Collection<EnlightenedCity> collection) {
+			realData = collection;
+			filterContinent(continent);
 		}
 		@Override public long getItemId(int position) {
 			return getItem(position).id;
 		}
 		@Override public EnlightenedCity getItem(int position) {
-			return data[position];
+			return data.get(position);
 		}
 		public View getView(int position,View convertView,ViewGroup root) {
 			final ViewHolder holder;
+			MyTableRow row;
 			if (convertView == null) {
 				convertView = EnlightenedCityList.this.getLayoutInflater().inflate(R.layout.el_city_row, root, false);
-				MyTableRow row = (MyTableRow) convertView;
+				row = (MyTableRow) convertView;
 				row.bind(params);
 				holder = new ViewHolder();
 				row.setTag(holder);
@@ -74,6 +98,7 @@ public class EnlightenedCityList extends SessionUser {
 				holder.level = (TextView)row.findViewById(R.id.level);
 				holder.wood = (TextView)row.findViewById(R.id.wood);
 				holder.stone = (TextView)row.findViewById(R.id.stone);
+				holder.comment = (TextView) row.findViewById(R.id.comment);
 				Button b = (Button) row.findViewById(R.id.button);
 				b.setOnClickListener(new OnClickListener() {
 					@Override public void onClick(View v) {
@@ -83,16 +108,31 @@ public class EnlightenedCityList extends SessionUser {
 						i.putExtra("targetCity", holder.city.id);
 						startActivity(i);
 					}});
-			} else holder = (ViewHolder) convertView.getTag();
+			} else {
+				row = (MyTableRow) convertView;
+				holder = (ViewHolder) convertView.getTag();
+			}
 			
 			holder.city = getItem(position);
 			Coord coord = Coord.fromCityId(holder.city.id);
 			holder.level.setText(""+holder.city.palace_level);
-			holder.coord.setText(coord.getContinent()+" "+coord.format());
+			holder.coord.setText(coord.format());
+			holder.comment.setText(holder.city.comment);
 			
 			int needed = EnlightenedCity.res_needed[holder.city.palace_level];
 			int missing_wood = needed - (holder.city.wood + holder.city.normal[0].getCurrent(session.rpc.state) + holder.city.incoming_wood);
 			int missing_stone = needed - (holder.city.stone + holder.city.normal[1].getCurrent(session.rpc.state) + holder.city.incoming_stone);
+			
+			// [1:00:08 AM] [RD] Mr. Liver: if hlp & !not full > greeen or highlighting in some way
+			TypedArray a = obtainStyledAttributes(null, R.styleable.ElCityList);
+			int color = a.getColor(R.styleable.ElCityList_rowHighlight1, 0);
+			a.recycle();
+			if (color == 0) { throw new IllegalStateException("You forgot to put the attr on the theme, artard"); }
+			int green = color;
+			int transparent = Color.TRANSPARENT;
+			if ((missing_wood > 0) || (missing_stone > 0)) {
+				row.setBackgroundColor(green);
+			} else row.setBackgroundColor(transparent);
 			
 			if (missing_wood > 0) holder.wood.setText(Utils.NumberFormat(missing_wood));
 			else holder.wood.setText("overfilled "+Utils.NumberFormat(missing_wood * -1));
@@ -101,5 +141,37 @@ public class EnlightenedCityList extends SessionUser {
 			else holder.stone.setText("overfilled "+Utils.NumberFormat(missing_stone * -1));
 			return convertView;
 		}
+		public void filterContinent(int continent) {
+			this.continent = continent;
+			data.clear();
+			if (continent == -1) {
+				// FIXME
+				Iterator<EnlightenedCity> i = realData.iterator();
+				while (i.hasNext()) {
+					data.add(i.next());
+				}
+			} else {
+				Iterator<EnlightenedCity> i = realData.iterator();
+				while (i.hasNext()) {
+					EnlightenedCity c = i.next();
+					if (c.location.getContinentInt() == continent) data.add(c);
+				}
+			}
+			notifyDataSetChanged();
+		}
+	}
+	public void filterChanged(View v) {
+		CheckBox c = (CheckBox) v;
+		filter = c.isChecked();
+		cityChanged();
+	}
+	public void cityChanged() {
+		if (filter) {
+			int continent = session.state.currentCity.location.getContinentInt();
+			adapter.filterContinent(continent);
+		} else adapter.filterContinent(-1);
+	}
+	public void gotCityData() {
+		((TextView)findViewById(R.id.avail_carts)).setText(String.format("%d",session.state.currentCity.freecarts));
 	}
 }

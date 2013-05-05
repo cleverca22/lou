@@ -14,7 +14,7 @@
         android:id="@+id/coord"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="C15 (5xx:1xx)"
+        android:text="5xx:1xx"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
     <TextView
@@ -36,5 +36,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Send Res" />
+
+    <TextView
+        android:id="@+id/comment"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Medium Text"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
 
 </com.angeldsis.lou.MyTableRow>

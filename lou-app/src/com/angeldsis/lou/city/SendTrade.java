@@ -63,7 +63,9 @@ public class SendTrade extends SessionUser implements CitySelected, GotOrderTarg
 			initBar(2,R.id.setIron,R.id.showIron);
 			initBar(3,R.id.setFood,R.id.showFood);
 			SelectCity s = (SelectCity) findViewById(R.id.selectCity);
-			s.session_ready(session.rpc.state,this,this);
+			s.setHook(this);
+			s.setMode(SelectCity.ModeNormal);
+			s.session_ready(session.rpc.state,this);
 			if (targetCity != -1) s.setPalace(targetCity);
 			loaded = true;
 			((TextView)findViewById(R.id.source)).setText(session.rpc.state.currentCity.name);

@@ -1,5 +1,6 @@
 package com.angeldsis.lou.city;
 
+import junit.framework.Assert;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -22,6 +23,8 @@ public class SelectCity extends LinearLayout implements OnItemSelectedListener {
 	CitySelected callback;
 	int palaceLocation = -1;
 	private static final String TAG = "SelectCity";
+	public static final int ChangeCurrentCity = 1;
+	public static final int ModeNormal = 2;
 	public class MyAdapter extends BaseAdapter {
 		@Override public int getCount() {
 			int palace = (palaceLocation == -1) ? 0 : 1;
@@ -79,6 +82,8 @@ public class SelectCity extends LinearLayout implements OnItemSelectedListener {
 	MyAdapter adapter;
 	Activity mActivity;
 	Spinner spinner;
+	private int mode = -1;
+	private LouState mState;
 	public SelectCity(Context context) {
 		super(context);
 		init(context);
@@ -99,29 +104,40 @@ public class SelectCity extends LinearLayout implements OnItemSelectedListener {
 		}
 		spinner.setOnItemSelectedListener(this);
 	}
-	public void session_ready(LouState state,Activity a, CitySelected cb) {
-		mActivity = a;
+	public void setHook(CitySelected cb) {
 		callback = cb;
+	}
+	public void session_ready(LouState state,Activity a) {
+		Assert.assertFalse("setMode must be called first", -1 == mode);
+		mActivity = a;
 		allCities = new City[state.cities.size()];
 		state.cities.values().toArray(allCities);
-		int i = 0;
-		SharedPreferences p = mActivity.getSharedPreferences("bookmarks", Context.MODE_PRIVATE);
-		String part = p.getString("bookmarks", "");
-		if (part.length() > 0) {
-			String[] bookmarks = part.split(",");
-			allBookmarks = new int[bookmarks.length];
-			i = 0;
-			for (String b : bookmarks) {
-				allBookmarks[i] = Coord.fromString(b);
-				i++;
-			}
+		mState = state;
+		boolean showBookmarks = true;
+		if (mode == ChangeCurrentCity) showBookmarks = false;
+		
+		if (showBookmarks) {
+			int i = 0;
+			SharedPreferences p = mActivity.getSharedPreferences("bookmarks", Context.MODE_PRIVATE);
+			String part = p.getString("bookmarks", "");
+			if (part.length() > 0) {
+				String[] bookmarks = part.split(",");
+				allBookmarks = new int[bookmarks.length];
+				i = 0;
+				for (String b : bookmarks) {
+					allBookmarks[i] = Coord.fromString(b);
+					i++;
+				}
+			} else allBookmarks = new int[0];
 		} else allBookmarks = new int[0];
 		adapter = new MyAdapter();
 		spinner.setAdapter(adapter);
 	}
 	@Override public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
-		Log.v(TAG,"onItemSelected",new Exception());
-		callback.selected(Coord.getX(arg3),Coord.getY(arg3));
+		//Log.v(TAG,"onItemSelected",new Exception());
+		if (mode == ChangeCurrentCity) {
+			mState.changeCity((City) adapter.getItem(arg2));
+		} else callback.selected(Coord.getX(arg3),Coord.getY(arg3));
 	}
 	@Override
 	public void onNothingSelected(AdapterView<?> arg0) {
@@ -133,5 +149,8 @@ public class SelectCity extends LinearLayout implements OnItemSelectedListener {
 	}
 	public void setPalace(int targetCity) {
 		palaceLocation = targetCity;
+	}
+	public void setMode(int mode) {
+		this.mode = mode;
 	}
 }

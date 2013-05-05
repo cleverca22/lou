@@ -6,21 +6,26 @@ import org.json2.JSONArray;
 import org.json2.JSONException;
 import org.json2.JSONObject;
 
+import com.angeldsis.louapi.data.Coord;
+
 public class EnlightenedCities {
 	public static class EnlightenedCity implements Comparable<Integer> {
 		public int id;
+		public Coord location;
 		public static final int[] res_needed = { 10000000, 30000000, 60000000, 100000000, 250000000,
-			350000000, 500000000, 800000000 ,-1, 1500000000 };
+			350000000, 500000000, 800000000 ,1000000000, 1500000000 };
 		// dedicated wood/stone
 		public int wood,stone;
 		public int incoming_wood,incoming_stone;
 		public Resource[] normal;
 		public int shrine_type,palace_level;
-		String comment,name;
+		public String comment;
+		String name;
 		int endstep;
 		Player player;
 		public EnlightenedCity(int id2, JSONObject y, RPC rpc) throws JSONException {
 			id = id2;
+			location = Coord.fromCityId(id);
 			normal = new Resource[2];
 			normal[0] = new Resource(rpc.state,1);
 			normal[1] = new Resource(rpc.state,2);
@@ -76,7 +81,7 @@ public class EnlightenedCities {
 		int x;
 		for (x=0; x<c.length(); x++) {
 			JSONObject y = c.getJSONObject(x);
-			Log.v(TAG,y.toString());
+			//Log.v(TAG,y.toString());
 			int id = y.getInt("i");
 			EnlightenedCity result = data.get(id);
 			if (y.has("n") == false) {
