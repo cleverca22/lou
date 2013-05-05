@@ -24,7 +24,6 @@
             </manifest>
             <fileset dir="bin"/>
             <fileset dir="../lou-api/bin"/>
-            <zipfileset excludes="META-INF/*.SF" src="../lou-api/json-org.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="tagsoup-1.2.1.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="../swt-win32/swt.jar"/>
         </jar>
@@ -37,7 +36,6 @@
             </manifest>
             <fileset dir="bin"/>
             <fileset dir="../lou-api/bin"/>
-            <zipfileset excludes="META-INF/*.SF" src="../lou-api/json-org.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="tagsoup-1.2.1.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="../swt-win64/swt.jar"/>
         </jar>

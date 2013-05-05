@@ -1,27 +1,16 @@
 package com.angeldsis.lou;
 
 import com.angeldsis.lou.home.Loading;
-import com.google.android.vending.licensing.AESObfuscator;
-import com.google.android.vending.licensing.LicenseChecker;
-import com.google.android.vending.licensing.LicenseCheckerCallback;
-import com.google.android.vending.licensing.Policy;
-import com.google.android.vending.licensing.ServerManagedPolicy;
 import com.nullwire.trace.ExceptionHandler;
 
-import android.content.DialogInterface;
-import android.content.DialogInterface.OnCancelListener;
-import android.content.DialogInterface.OnDismissListener;
 import android.os.Bundle;
-import android.provider.Settings.Secure;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 
 public class LouMain extends FragmentActivity {
 	private static final String TAG = "LouMain";
-	private LicenseChecker mChecker;
-	private MyLicenseCheckerCallback mLicenseCheckerCallback;
-	private static final String BASE64_PUBLIC_KEY = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAznzSvQ6HIxOE5lZwOf20F8/VbrTMcCm/cdyX3RKFt9bGYbeJPUfzSejt+g1H/EygbWigfE9F7gGOD8TcIpYxOzsskIrbb0gu53opK8mRiCYps88o35YbBSYF3p+GWhohzD9YDSpXdJMXBCwWAJPDEJrS0wPyUqp0ROGiA6Nj8KWj5C/XX/hxJR5EymMa5NIuHDcmc22P4CH5DnQBjU9D8cvKJOdIs8WUwL3fP4r2cyBewrLjreFBkUIpoKIkbVerYt91+8QAftqMzXItgR80lRW48eeabHQbJUag8yhxLd0+a6no7UM8MpRoZqNPc7FMrfHyJNHo7NH/cc0ROnvlkwIDAQAB";
-	private static final byte[] SALT = new byte[] { -100, -13, 60, -110, 29, -15, 65, 121, -65, 80, -13, -113, -62, -104, -52, 61, 70, -95, -114, -19 };
+	//private static final String BASE64_PUBLIC_KEY = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAznzSvQ6HIxOE5lZwOf20F8/VbrTMcCm/cdyX3RKFt9bGYbeJPUfzSejt+g1H/EygbWigfE9F7gGOD8TcIpYxOzsskIrbb0gu53opK8mRiCYps88o35YbBSYF3p+GWhohzD9YDSpXdJMXBCwWAJPDEJrS0wPyUqp0ROGiA6Nj8KWj5C/XX/hxJR5EymMa5NIuHDcmc22P4CH5DnQBjU9D8cvKJOdIs8WUwL3fP4r2cyBewrLjreFBkUIpoKIkbVerYt91+8QAftqMzXItgR80lRW48eeabHQbJUag8yhxLd0+a6no7UM8MpRoZqNPc7FMrfHyJNHo7NH/cc0ROnvlkwIDAQAB";
+	//private static final byte[] SALT = new byte[] { -100, -13, 60, -110, 29, -15, 65, 121, -65, 80, -13, -113, -62, -104, -52, 61, 70, -95, -114, -19 };
 
 	/** Called when the activity is first created. */
 	@Override
@@ -31,11 +20,6 @@ public class LouMain extends FragmentActivity {
 		super.onCreate(savedInstanceState);
 		// Debug.startMethodTracing();
 		
-		String deviceId = Secure.getString(getContentResolver(), Secure.ANDROID_ID);
-		mChecker = new LicenseChecker(this, new ServerManagedPolicy(this,
-				new AESObfuscator(SALT,getPackageName(),deviceId)),BASE64_PUBLIC_KEY);
-		mLicenseCheckerCallback = new MyLicenseCheckerCallback();
-		//mChecker.checkAccess(mLicenseCheckerCallback);
 		setTheme(SessionUser.getCurrentTheme(this));
 		setContentView(R.layout.main);
 		if (savedInstanceState != null) return;
@@ -51,52 +35,8 @@ public class LouMain extends FragmentActivity {
 		// byte[] data;
 		// click.write(data,0,20096);
 
-	private class MyLicenseCheckerCallback implements LicenseCheckerCallback {
-		@Override
-		public void allow(int reason) {
-			if (isFinishing()) return;
-			Log.v(TAG,"Allowed");
-		}
-		@Override
-		public void dontAllow(int reason) {
-			if (isFinishing()) return;
-			if (reason == Policy.RETRY) {
-				// FIXME, handle this better
-				// disabled so kindle can handle it
-				//mChecker.checkAccess(mLicenseCheckerCallback);
-				Log.v(TAG,"need to retry");
-				//AlertDialog.Builder b = new AlertDialog.Builder(LouMain.this);
-				//b.setMessage("unable to connect to playstore");
-				//Quiter quiter = new Quiter();
-				//b.setOnCancelListener(quiter);
-				//AlertDialog d = b.create();
-				//d.show();
-			}else {
-				// FIXME give a better error
-				Log.v(TAG,"not allowed");
-				LouMain.this.finish();
-			}
-		}
-		@Override
-		public void applicationError(int errorCode) {
-			if (isFinishing()) return;
-			Log.v(TAG,"error "+errorCode);
-		}
-	}
-	class Quiter implements OnDismissListener, OnCancelListener {
-		@Override public void onDismiss(DialogInterface dialog) {
-			quit();
-		}
-		private void quit() {
-			LouMain.this.finish();
-		}
-		@Override public void onCancel(DialogInterface dialog) {
-			quit();
-		}
-	};
 	protected void onDestroy() {
 		super.onDestroy();
-		mChecker.onDestroy();
 		Log.v(TAG,"onDestroy");
 	}
 }
