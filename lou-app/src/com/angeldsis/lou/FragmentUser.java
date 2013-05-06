@@ -140,9 +140,7 @@ public class FragmentUser extends FragmentActivity implements Callbacks {
 	@Override
 	public void onPlayerData() {
 	}
-	@Override
-	public void onChat(ArrayList<ChatMsg> d) {
-	}
+	@Override public boolean onChat(ArrayList<ChatMsg> d) { return false; }
 	@Override
 	public void gotCityData() {
 	}

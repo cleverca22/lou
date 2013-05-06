@@ -34,4 +34,8 @@ public class ChatMsg {
 		}
 		return sender+" "+channel+" "+message;
 	}
+	public boolean isPm() {
+		if (channel.equals("priatein")) return true;
+		return false;
+	}
 }

@@ -393,7 +393,7 @@ public class ChatWindow extends SessionUser {
 			}
 		}
 	}
-	public void onChat(ArrayList<ChatMsg> recent) {
+	public boolean onChat(ArrayList<ChatMsg> recent) {
 		long start = System.currentTimeMillis();
 		Iterator<ChatMsg> i = recent.iterator();
 		while (i.hasNext()) {
@@ -449,6 +449,7 @@ public class ChatWindow extends SessionUser {
 		}
 		long end = System.currentTimeMillis();
 		Log.v(TAG,"onChat time: "+(end-start));
+		return true;
 	}
 	public void sendMsg(View v) {
 		String tag = mTabHost.getCurrentTabTag();

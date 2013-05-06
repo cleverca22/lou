@@ -148,9 +148,6 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 		i.putExtras(acct.toBundle());
 		startActivity(i);
 	}
-	public void onChat(ArrayList<ChatMsg> c) {
-		// FIXME, give some ui notice
-	}
 	@Override public void cityListChanged() {
 		// FIXME, use .toArray
 		Log.v(TAG,"cityListChanged()");

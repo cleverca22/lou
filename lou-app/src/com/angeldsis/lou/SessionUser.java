@@ -123,7 +123,7 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 	}
 	/** ignore the event for most, if any subclass needs it, override
 	 */
-	public void onChat(ArrayList<ChatMsg> d) {}
+	@Override public boolean onChat(ArrayList<ChatMsg> d) { return false; }
 	public void onEjected() {
 		// keep in sync with FragmentUser.onEjected
 		Log.v(TAG,"you have been logged out");

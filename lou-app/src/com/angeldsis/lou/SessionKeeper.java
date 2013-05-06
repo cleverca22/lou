@@ -248,8 +248,10 @@ public class SessionKeeper extends Service {
 			for (ChatMsg m : d) {
 				Log.v(TAG,m.toString());
 			}
-			if (cb != null) cb.onChat(d);
-			else {
+			boolean handled = false;
+			if (cb != null) handled = cb.onChat(d);
+			
+			if (!handled) {
 				//Log.v(TAG,"uncaught message");
 				
 				Bundle options = acct.toBundle();
@@ -266,8 +268,11 @@ public class SessionKeeper extends Service {
 						.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT, options);
 				chatBuilder.setContentIntent(resultPendingIntent);
 
-				chatBuilder.setContentText(d.get(d.size()-1).toString());
-				mNotificationManager.notify(UNREAD_MESSAGE | sessionid, chatBuilder.build());
+				ChatMsg cm = d.get(d.size()-1);
+				chatBuilder.setContentText(cm.toString());
+				int sound = 0;
+				if (cm.isPm()) sound = Notification.DEFAULT_SOUND;
+				mNotificationManager.notify(UNREAD_MESSAGE | sessionid, chatBuilder.setDefaults(sound).build());
 			}
 		}
 		public void setCallback(Callbacks cb1) {
@@ -455,6 +460,10 @@ public class SessionKeeper extends Service {
 			while (i.hasNext()) {
 				City c = i.next();
 				int timeLeft = c.foodEmptyTime(rpc.state);
+				if (timeLeft == 0) {
+					Log.v(TAG,"wtf, this city is in the warning list "+c.name);
+					continue;
+				}
 				if (timeLeft > (4 * 3600)) continue;
 				Log.v(TAG,"food empty time: "+timeLeft+" "+c.name);
 				
@@ -513,7 +522,8 @@ public class SessionKeeper extends Service {
 		void onCityChanged();
 		void onEjected();
 		void onPlayerData();
-		void onChat(ArrayList<ChatMsg> d);
+		/** called when new chat messages arrive, return true to block the notification **/
+		boolean onChat(ArrayList<ChatMsg> d);
 		void gotCityData();
 		void tick();
 	}
