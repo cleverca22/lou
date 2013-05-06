@@ -120,8 +120,8 @@ public class EnlightenedCityList extends SessionUser {
 			holder.comment.setText(holder.city.comment);
 			
 			int needed = EnlightenedCity.res_needed[holder.city.palace_level];
-			int missing_wood = needed - (holder.city.wood + holder.city.normal[0].getCurrent(session.rpc.state) + holder.city.incoming_wood);
-			int missing_stone = needed - (holder.city.stone + holder.city.normal[1].getCurrent(session.rpc.state) + holder.city.incoming_stone);
+			int missing_wood = needed - (holder.city.wood + holder.city.getResourceCount(session.rpc.state, 0) + holder.city.incoming_wood);
+			int missing_stone = needed - (holder.city.stone + holder.city.getResourceCount(session.rpc.state, 1) + holder.city.incoming_stone);
 			
 			// [1:00:08 AM] [RD] Mr. Liver: if hlp & !not full > greeen or highlighting in some way
 			TypedArray a = obtainStyledAttributes(null, R.styleable.ElCityList);

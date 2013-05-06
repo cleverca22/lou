@@ -14,29 +14,18 @@ public class Resource {
 		name = names[type];
 	}
 	public void set(double d, double b, int m, int s, LouState state) {
-		int oldval = getCurrent(state);
+		//int oldval = getCurrent(state);
 		//Log.v("Resource","d:"+delta+" b:"+base+" m:"+max+" s:"+step);
 		delta = d;
 		base = b;
 		max = m;
 		step = s;
 		//Log.v("Resource","d:"+delta+" b:"+base+" m:"+max+" s:"+step);
-		int newval = getCurrent(state);
-		if (oldval != newval) {
-			if (oldval < newval) Log.v("Resource",name+" went up "+(newval - oldval));
-			else Log.v("Resource",name+" went down "+(oldval - newval));
-		}
-	}
-	public int getCurrent(LouState state) {
-		int stepsPassed = (int) (state.getServerStep() - step);
-		double newVal = stepsPassed * delta + base;
-		if (newVal > max) return max;
-		return (int) newVal;
-	}
-	public String getRate() {
-		// FIXME
-		double rate = delta * 3600;
-		return ""+(int)rate;
+		//int newval = getCurrent(state);
+		//if (oldval != newval) {
+		//	if (oldval < newval) Log.v("Resource",name+" went up "+(newval - oldval));
+		//	else Log.v("Resource",name+" went down "+(oldval - newval));
+		//}
 	}
 	public int getMax() {
 		return max;

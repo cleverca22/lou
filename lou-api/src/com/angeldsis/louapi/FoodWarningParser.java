@@ -34,6 +34,7 @@ public class FoodWarningParser {
 			if (data.has("d")) {
 				if (warnings.containsKey(id)) warnings.remove(id);
 			} else {
+				// FIXME, this delta includes food consumption
 				JSONObject r = data.getJSONObject("r");
 				City c = rpc.state.cities.get(id);
 				double d = r.getDouble("d");

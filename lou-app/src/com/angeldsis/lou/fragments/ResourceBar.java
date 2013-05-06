@@ -51,8 +51,9 @@ public class ResourceBar extends ViewGroup {
 		int x;
 		for (x = 0; x < 4; x++) {
 			Resource r = lastCity.resources[x];
-			counts[x].setText(Utils.NumberFormat(r.getCurrent(state)));
-			rates[x].setText(r.getRate());
+			int current = lastCity.getResourceCount(state,x);
+			counts[x].setText(Utils.NumberFormat(current));
+			rates[x].setText(Utils.NumberFormat((int) lastCity.getResourceRate(state, x)));
 			int color;
 			// 25-71% == green
 			// 82-88% == yellow
@@ -60,10 +61,11 @@ public class ResourceBar extends ViewGroup {
 			// 100% == red!
 			if (r.getMax() == 0) color = android.R.color.white;
 			else {
-				int percent = (r.getCurrent(state) * 100) / r.getMax();
+				int percent = (current * 100) / r.getMax();
 				if (percent == 100) color = R.color.resource_red;
 				else if (percent > 90) color = R.color.resource_orange;
 				else if (percent > 82) color = R.color.resource_yellow;
+				else if (percent < 0) color = R.color.resource_red;
 				else color = R.color.resource_green;
 			}
 			counts[x].setTextColor(self.getContext().getResources().getColor(color));

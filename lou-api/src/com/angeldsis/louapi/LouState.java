@@ -105,6 +105,7 @@ public class LouState {
 		transient public boolean autoBuildDefense, autoBuildEconomy;
 		transient public int autoBuildTypeFlags;
 		@SerializedName("units") public UnitCount[] units;
+		public double foodConsumption, foodConsumptionSupporter, foodConsumptionQueue;
 		City() {
 			resources = new Resource[4];
 			int i;
@@ -144,8 +145,26 @@ public class LouState {
 			return 0;
 		}
 		public int foodEmptyTime(LouState state) {
-			Log.v(TAG,String.format("delta:%f, current: %d",resources[3].delta,resources[3].getCurrent(state)));
-			return (int) (resources[3].getCurrent(state) / (resources[3].delta * -1));
+			if (resources[3].delta >= 0) return 0;
+			Log.v(TAG,String.format("delta:%f, current: %d",resources[3].delta,getResourceCount(state,3)));
+			return (int) (getResourceCount(state,3) / (resources[3].delta * -1));
+		}
+		public int getResourceCount(LouState state,int id) {
+			int stepsPassed = (int) (state.getServerStep() - resources[id].step);
+			double delta = resources[id].delta;
+			if (id == 3) {
+				delta -= foodConsumption + foodConsumptionSupporter;
+			}
+			double newVal = stepsPassed * delta + resources[id].base;
+			if (newVal > resources[id].max) return resources[id].max;
+			return (int) newVal;
+		}
+		public double getResourceRate(LouState state,int id) {
+			double delta = resources[id].delta;
+			if (id == 3) {
+				delta -= foodConsumption + foodConsumptionSupporter;
+			}
+			return delta * 3600;
 		}
 	}
 	public void parsePlayerUpdate(JSONObject d) throws JSONException {
@@ -328,6 +347,11 @@ public class LouState {
 		c.autoBuildEconomy = p.getBoolean("ae");
 		c.autoBuildTypeFlags = p.getInt("at");
 		Log.v(TAG,String.format("%s %b %b %d", c.name,c.autoBuildDefense,c.autoBuildEconomy,c.autoBuildTypeFlags));
+		
+		c.foodConsumption = p.getDouble("fc");
+		c.foodConsumptionSupporter = p.getDouble("fcs");
+		c.foodConsumptionQueue = p.getDouble("fcq");
+		Log.v(TAG,String.format("%f %f %f",c.foodConsumption,c.foodConsumptionSupporter,c.foodConsumptionQueue));
 	}
 	private class NewAttackEvent implements Runnable {
 		IncomingAttack a;

@@ -58,6 +58,13 @@ public class EnlightenedCities {
 			if (this.id > arg0)return 1; 
 			return 0;
 		}
+		public int getResourceCount(LouState state,int id) {
+			int stepsPassed = (int) (state.getServerStep() - normal[id].step);
+			double delta = normal[id].delta;
+			double newVal = stepsPassed * delta + normal[id].base;
+			if (newVal > normal[id].max) return normal[id].max;
+			return (int) newVal;
+		}
 	}
 	private static final String TAG = "EnlightenedCities";
 	private boolean initial;

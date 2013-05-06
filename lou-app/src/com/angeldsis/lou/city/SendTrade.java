@@ -74,10 +74,9 @@ public class SendTrade extends SessionUser implements CitySelected, GotOrderTarg
 		updateCarts();
 	}
 	private void initBar(final int pos, int id, int id2) {
-		Resource resource = session.rpc.state.currentCity.resources[pos];
 		final SeekBar b = (SeekBar) findViewById(id);
 		final EditText e = (EditText) findViewById(id2);
-		b.setMax(resource.getCurrent(session.rpc.state));
+		b.setMax(session.rpc.state.currentCity.getResourceCount(session.rpc.state, pos));
 		b.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
 			@Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
 				if (fromUser) {
@@ -113,10 +112,9 @@ public class SendTrade extends SessionUser implements CitySelected, GotOrderTarg
 		updateBar(pos,id,id2);
 	}
 	private void updateBar(int pos,int id1,int id2) {
-		Resource resource = session.rpc.state.currentCity.resources[pos];
 		final SeekBar b = (SeekBar) findViewById(id1);
 		final EditText e = (EditText) findViewById(id2);
-		int resmax = resource.getCurrent(session.rpc.state);
+		int resmax = session.rpc.state.currentCity.getResourceCount(session.rpc.state, pos);
 		int capacityUsed = 0; // FIXME
 		int val,maxcapacity;
 		if (byland) {
@@ -210,11 +208,11 @@ public class SendTrade extends SessionUser implements CitySelected, GotOrderTarg
 	}
 	private void updateMaxRes() {
 		LouState state = session.rpc.state;
-		Resource[] r = state.currentCity.resources;
-		setField(R.id.maxWood,r[0].getCurrent(state));
-		setField(R.id.maxStone,r[1].getCurrent(state));
-		setField(R.id.maxIron,r[2].getCurrent(state));
-		setField(R.id.maxFood,r[3].getCurrent(state));
+		City c = state.currentCity;
+		setField(R.id.maxWood,c.getResourceCount(state, 0));
+		setField(R.id.maxStone,c.getResourceCount(state, 1));
+		setField(R.id.maxIron,c.getResourceCount(state, 2));
+		setField(R.id.maxFood,c.getResourceCount(state, 3));
 	}
 	private void setField(int id, int value) {
 		((TextView)findViewById(id)).setText("/"+value);
