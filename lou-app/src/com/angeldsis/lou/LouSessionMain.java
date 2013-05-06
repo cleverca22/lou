@@ -97,7 +97,7 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 			onReportCountUpdate();
 		}
 	}
-	public void cityChanged() {
+	public void onCityChanged() {
 		Log.v(TAG,"cityChanged");
 		TextView city = (TextView) findViewById(R.id.current_city);
 		city.setText(session.state.currentCity.name);

@@ -163,9 +163,9 @@ public class EnlightenedCityList extends SessionUser {
 	public void filterChanged(View v) {
 		CheckBox c = (CheckBox) v;
 		filter = c.isChecked();
-		cityChanged();
+		onCityChanged();
 	}
-	public void cityChanged() {
+	public void onCityChanged() {
 		if (filter) {
 			int continent = session.state.currentCity.location.getContinentInt();
 			adapter.filterContinent(continent);

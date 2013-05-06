@@ -17,7 +17,7 @@ import android.view.ViewGroup;
 
 public class Loading extends Fragment {
 	Boolean stopped;
-	private static final String TAG = "LoadingFragment";
+	private static final String TAG = "home.Loading";
 	@Override
 	public View onCreateView (LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		Log.v(TAG,"onCreateView");

@@ -190,7 +190,7 @@ public class SendTrade extends SessionUser implements CitySelected, GotOrderTarg
 		((TextView)findViewById(R.id.cartCapacity)).setText(String.format("%d",city.freecarts * 1000));
 		((TextView)findViewById(R.id.shipCapacity)).setText(String.format("%d",city.freeships * 10000));
 	}
-	public void cityChanged() {
+	public void onCityChanged() {
 		((TextView)findViewById(R.id.source)).setText(session.rpc.state.currentCity.name);
 		updateMaxRes();
 		updateBar(0,R.id.setWood,R.id.showWood);

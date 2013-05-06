@@ -226,7 +226,7 @@ public class LouState {
 	public void changeCity(City city) {
 		currentCity = city;
 		rpc.interrupt();
-		rpc.cityChanged(); // FIXME, maybe fire this after the new data is in
+		rpc.onCityChanged(); // FIXME, maybe fire this after the new data is in
 		city.visData.clear(); // the code wasn't receiving updates, re-fetch it
 		city.visreset = 1;
 		rpc.pollSoon();

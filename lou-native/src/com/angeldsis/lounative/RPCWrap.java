@@ -46,7 +46,7 @@ public class RPCWrap extends RPC {
 		
 	}
 	@Override
-	public void cityChanged() {
+	public void onCityChanged() {
 		Log.v(TAG,"current city changed");
 		core.cityChanged();
 	}

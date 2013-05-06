@@ -6,6 +6,7 @@ import java.util.Observable;
 import org.json2.JSONException;
 import org.json2.JSONObject;
 
+import com.angeldsis.louapi.data.Coord;
 import com.angeldsis.louapi.data.World;
 
 public class IncomingAttack extends Observable {
@@ -22,6 +23,7 @@ public class IncomingAttack extends Observable {
 	public String sourceCityName;
 	public int total_strength_attacker,total_strength_defender,tc;
 	public boolean targetIsMe;
+	public Coord sourceLocation,targetLocation;
 	/*public IncomingAttack(JSONObject X) throws JSONException {
 	}*/
 	public IncomingAttack(LouState state, int id) {
@@ -31,11 +33,12 @@ public class IncomingAttack extends Observable {
 	}
 	public void updateCityType(JSONObject x) throws JSONException {
 		targetIsMe = true;
+		defender = state.self.getName();
 		lastDataSource = DataSource.city;
 		start = x.getInt("ss");
 		end = x.getInt("es");
 
-		int city = x.getInt("c");
+		sourceLocation = Coord.fromCityId(x.getInt("c"));
 		int alliance = x.getInt("a");
 		int stepMoongate = x.getInt("ms");
 		boolean isMoongate = x.getBoolean("m");
@@ -53,13 +56,15 @@ public class IncomingAttack extends Observable {
 	}
 	public void updatePlayerType(JSONObject X) throws JSONException {
 		targetIsMe = true;
+		defender = state.self.getName();
 		lastDataSource = DataSource.player;
 		start = X.getInt("ss");
 		end = X.getInt("es");
 
 		// FIXME, actually use these fields
 		// FIXME, not all fields extracted
-		int city = X.getInt("c");
+		sourceLocation = Coord.fromCityId(X.getInt("c"));
+		targetLocation = Coord.fromCityId(X.getInt("tc"));
 		int alliance = X.getInt("a");
 		int stepMoongate = X.getInt("ms");
 		boolean isMoongate = X.getBoolean("m");
@@ -97,7 +102,7 @@ public class IncomingAttack extends Observable {
 		boolean b = a.optBoolean("b"); // baron capture?
 		int cp = a.optInt("cp"); // claim power?
 
-		int c = a.optInt("c");
+		sourceLocation = Coord.fromCityId(a.optInt("c"));
 		int ms = a.optInt("ms");
 		int tp = a.optInt("tp");
 		boolean m = a.optBoolean("m"); // moongate used?

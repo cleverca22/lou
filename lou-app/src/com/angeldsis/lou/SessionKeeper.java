@@ -338,8 +338,8 @@ public class SessionKeeper extends Service {
 			//doing_network.release();
 			teardown();
 		}
-		public void cityChanged() {
-			if (cb != null) cb.cityChanged();
+		public void onCityChanged() {
+			if (cb != null) cb.onCityChanged();
 		}
 		public void logout() {
 			rpc.stopPolling();
@@ -447,6 +447,8 @@ public class SessionKeeper extends Service {
 		public void onEnlightenedCityChanged() {
 			if (cb != null) cb.onEnlightenedCityChanged();
 		}
+		// FIXME, doesnt set any timer to warn you when key points happen
+		// only notices changes when the server sends an update to any city
 		public void onFoodWarning() {
 			if (cb != null) cb.onFoodWarning();
 			Iterator<City> i = rpc.foodWarnings.warnings.values().iterator();
@@ -477,6 +479,9 @@ public class SessionKeeper extends Service {
 				long x = System.currentTimeMillis() + (timeLeft*1000);
 				foodWarning.setWhen(x);
 				
+				if (timeLeft > 3600) foodWarning.setOnlyAlertOnce(true);
+				else foodWarning.setOnlyAlertOnce(false);
+				
 				Notification n = foodWarning.build();
 				n.contentView.setTextViewText(R.id.time, "test");
 				int id = (FOOD_WARNING | sessionid) + (c.cityid << 15);
@@ -504,7 +509,8 @@ public class SessionKeeper extends Service {
 		void loginDone();
 		void visDataUpdated();
 		void cityListChanged();
-		void cityChanged();
+		/** called when the current city changes **/
+		void onCityChanged();
 		void onEjected();
 		void onPlayerData();
 		void onChat(ArrayList<ChatMsg> d);
@@ -530,7 +536,7 @@ public class SessionKeeper extends Service {
 			foodWarning = new NotificationCompat.Builder(SessionKeeper.this).setSmallIcon(R.drawable.ic_launcher)
 					.setContentTitle("food warning")
 					.setContentText("FIXME")
-					.setAutoCancel(true).setOnlyAlertOnce(true)
+					.setAutoCancel(true)
 					.setVibrate(pattern).setDefaults(Notification.DEFAULT_SOUND);
 			mNotificationManager = (NotificationManager) getSystemService(SessionKeeper.NOTIFICATION_SERVICE);
 			Logger.init();

@@ -1,5 +1,6 @@
 package com.angeldsis.lou;
 
+import com.angeldsis.louapi.LouState.City;
 import com.angeldsis.louapi.RPC.GotPublicCityInfo;
 import com.angeldsis.louapi.data.Coord;
 import com.angeldsis.louapi.data.PublicCityInfo;
@@ -13,6 +14,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 public class ShowCoord extends SessionUser implements GotPublicCityInfo {
@@ -65,6 +67,17 @@ public class ShowCoord extends SessionUser implements GotPublicCityInfo {
 	}
 	@Override
 	public void done(PublicCityInfo p) {
-		((TextView)findViewById(R.id.y)).setText(p.player.getName());
+		((TextView)findViewById(R.id.owner)).setText(p.player.getName());
+		Button switchto = (Button) findViewById(R.id.switchto);
+		if (p.player.getId() == session.rpc.state.self.getId()) {
+			switchto.setVisibility(View.VISIBLE);
+		} else {
+			switchto.setVisibility(View.GONE);
+		}
+	}
+	public void switchToCity(View v) {
+		City c = session.rpc.state.cities.get(self.toCityId());
+		session.rpc.state.changeCity(c);
+		finish();
 	}
 }

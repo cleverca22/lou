@@ -83,7 +83,7 @@ public class FragmentUser extends FragmentActivity implements Callbacks {
 		}
 	}
 	public void session_ready() {
-		cityChanged();
+		onCityChanged();
 		gotCityData();
 		Iterator<FragmentBase> i = hooks.iterator();
 		while (i.hasNext()) i.next().session_ready();
@@ -123,7 +123,7 @@ public class FragmentUser extends FragmentActivity implements Callbacks {
 	public void cityListChanged() {
 	}
 	@Override
-	public void cityChanged() {
+	public void onCityChanged() {
 	}
 	@Override
 	public void onEjected() {

@@ -55,4 +55,5 @@
         <string name="max_transport">Max transport capacity</string>
         <string name="avail_carts">Available Carts:</string>
         <string name="filter_continent">Filter By Continent</string>
+        <string name="switchto">Switch To City</string>
 </resources>

@@ -17,6 +17,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -94,6 +95,7 @@ public class ServerList extends Fragment {
 		while (i.hasNext()) {
 			final ServerInfo a = i.next();
 			if (active[a.worldid]) {
+			//} else if (a.serverid == null) { FIXME
 			} else if (a.offline) {
 				ViewGroup row = (ViewGroup) inflater.inflate(R.layout.offline_server, top,false);
 				TextView t = (TextView) row.findViewById(R.id.servername);
@@ -129,8 +131,13 @@ public class ServerList extends Fragment {
 	}
 	@Override public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		case R.id.refresh:
-			return false; // FIXME
+		case R.id.refresh: {
+			SessionKeeper.session2.servers = null;
+			FragmentTransaction trans = getActivity().getSupportFragmentManager().beginTransaction();
+			trans.replace(R.id.main_frame, new Loading());
+			trans.commit();
+			return true;
+		}
 		case R.id.logout:
 			Log.v(TAG,"doing logout");
 			SharedPreferences.Editor trans = getActivity().getSharedPreferences("main", Context.MODE_PRIVATE).edit();

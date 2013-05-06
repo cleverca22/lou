@@ -88,7 +88,7 @@ public class IdleUnits extends SessionUser implements OnItemClickListener {
 		City c = mAdapter.getItem(arg2);
 		session.rpc.state.changeCity(c);
 	}
-	public void cityChanged() {
+	public void onCityChanged() {
 		Log.v(TAG,"city changed!");
 		updateCityName();
 	}

@@ -522,7 +522,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 					runOnUiThread(new Runnable() {
 						public void run() {
 							cityListChanged();
-							cityChanged();
+							onCityChanged();
 						}
 					});
 				}
@@ -564,7 +564,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 		void done(AllianceForum[] output);
 	}
 	public abstract void runOnUiThread(Runnable r);
-	public abstract void cityChanged();
+	public abstract void onCityChanged();
 	public abstract void cityListChanged();
 	public void Poll() {
 		//Log.v(TAG,"Poll");

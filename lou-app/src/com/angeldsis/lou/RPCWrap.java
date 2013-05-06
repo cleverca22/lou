@@ -51,8 +51,8 @@ public class RPCWrap extends RPC {
 		callbacks.onEjected();
 	}
 	@Override
-	public void cityChanged() {
-		callbacks.cityChanged();
+	public void onCityChanged() {
+		callbacks.onCityChanged();
 	}
 	@Override
 	public void cityListChanged() {

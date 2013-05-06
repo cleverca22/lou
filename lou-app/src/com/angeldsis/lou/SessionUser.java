@@ -82,7 +82,7 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 		}
 	}
 	public void session_ready() {
-		cityChanged();
+		onCityChanged();
 		gotCityData();
 	}
 	private ServiceConnection mConnection = new ServiceConnection() {
@@ -136,7 +136,7 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 		f.show(ft, "dialog");
 	}
 	public void onPlayerData() {}
-	public void cityChanged() {}
+	public void onCityChanged() {}
 	public void cityListChanged() {}
 	public void visDataReset() {
 		Log.v(TAG,"vis count "+session.rpc.state.currentCity.visData.size()+" "+session.rpc.state.currentCity.hashCode());

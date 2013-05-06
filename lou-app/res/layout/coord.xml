@@ -11,7 +11,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="x"
+            android:text="Coord"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
         <TextView
@@ -30,17 +30,24 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="y"
+            android:text="owner:"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
         <TextView
-            android:id="@+id/y"
+            android:id="@+id/owner"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Small Text"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
     </LinearLayout>
+
+    <Button
+        android:id="@+id/switchto"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="switchToCity"
+        android:text="@string/switchto" />
 
     <FrameLayout
         android:id="@+id/bookmarkState"
