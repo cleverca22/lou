@@ -106,6 +106,8 @@ public class LouState {
 		transient public int autoBuildTypeFlags;
 		@SerializedName("units") public UnitCount[] units;
 		public double foodConsumption, foodConsumptionSupporter, foodConsumptionQueue;
+		public ArrayList<Trade> trade_in;
+		public ArrayList<Trade> trade_out;
 		City() {
 			resources = new Resource[4];
 			int i;
@@ -324,13 +326,14 @@ public class LouState {
 		} else currentCity.units = null;
 		JSONArray ti = p.optJSONArray("ti");
 		JSONArray to = p.optJSONArray("to");
+		City c = currentCity;
 		if (ti != null) {
 			//Log.v(TAG,"ti:"+ti.length());
-			ArrayList<Trade> trade_in = parseTrades(ti, world);
+			c.trade_in = parseTrades(ti, world);
 		}
 		if (to != null) {
 			//Log.v(TAG,"to:"+to.length());
-			ArrayList<Trade> trade_out = parseTrades(to, world);
+			c.trade_out = parseTrades(to, world);
 		}
 		JSONArray traders = p.optJSONArray("t");
 		Log.v(TAG,"traders:"+traders);
@@ -342,7 +345,6 @@ public class LouState {
 			currentCity.freeships = ship.getInt("c");
 			currentCity.maxships = ship.getInt("tc");
 		}
-		City c = currentCity;
 		c.autoBuildDefense = p.getBoolean("ad");
 		c.autoBuildEconomy = p.getBoolean("ae");
 		c.autoBuildTypeFlags = p.getInt("at");

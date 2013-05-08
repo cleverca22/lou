@@ -239,6 +239,12 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 			i.putExtra("fragment", FoodWarnings.class);
 			startActivity(i);
 			return true;
+		case R.id.cityCore:
+			i = new Intent(this,SingleFragment.class);
+			i.putExtras(acct.toBundle());
+			i.putExtra("fragment", CityCore.class);
+			startActivity(i);
+			return true;
 		}
 		return super.onOptionsItemSelected(item);
 	}

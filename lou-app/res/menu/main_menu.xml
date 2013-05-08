@@ -12,4 +12,5 @@
     <item android:id="@+id/idleunits" android:title="Idle Units"></item>
     <item android:id="@+id/update" android:title="Update"></item>
     <item android:id="@+id/foodWarning" android:title="Food Warnings"></item>
+    <item android:id="@+id/cityCore" android:title="City Core"></item>
 </menu>

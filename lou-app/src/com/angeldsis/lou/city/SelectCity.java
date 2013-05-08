@@ -5,7 +5,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -132,6 +131,17 @@ public class SelectCity extends LinearLayout implements OnItemSelectedListener {
 		} else allBookmarks = new int[0];
 		adapter = new MyAdapter();
 		spinner.setAdapter(adapter);
+		if (mode == ChangeCurrentCity) {
+			int i;
+			for (i=0; i<allCities.length; i++) {
+				City c = allCities[i];
+				if (c == state.currentCity) {
+					break;
+				}
+			}
+			if (palaceLocation != -1) i++;
+			spinner.setSelection(i);
+		}
 	}
 	@Override public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
 		//Log.v(TAG,"onItemSelected",new Exception());
@@ -148,6 +158,7 @@ public class SelectCity extends LinearLayout implements OnItemSelectedListener {
 		void selected(int x, int y);
 	}
 	public void setPalace(int targetCity) {
+		Assert.assertFalse("setMode must be called first", -1 == mode);
 		palaceLocation = targetCity;
 	}
 	public void setMode(int mode) {
