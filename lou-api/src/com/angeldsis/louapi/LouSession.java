@@ -470,7 +470,11 @@ public class LouSession {
 			parse_result(output, conn2.getInputStream());
 			return output;
 		} catch (UnknownHostException e) {
-			System.out.println("dns error"+ e);
+			Log.e(TAG,"dns error",e);
+			result output = new result();
+			output.worked = false;
+			output.e = e;
+			return output;
 		} catch (MalformedURLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

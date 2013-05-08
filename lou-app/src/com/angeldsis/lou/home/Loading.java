@@ -1,5 +1,7 @@
 package com.angeldsis.lou.home;
 
+import java.net.UnknownHostException;
+
 import com.angeldsis.lou.R;
 import com.angeldsis.lou.SessionKeeper;
 import com.angeldsis.lou.SessionKeeper.CookieCallback;
@@ -7,6 +9,8 @@ import com.angeldsis.lou.louLogin;
 import com.angeldsis.louapi.LouSession.result;
 
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -21,6 +25,19 @@ public class Loading extends Fragment {
 	@Override
 	public View onCreateView (LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		Log.v(TAG,"onCreateView");
+		ConnectivityManager cm = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo ni = cm.getActiveNetworkInfo();
+		if ((ni == null) || !ni.isConnected()) {
+			Fragment f = new ShowError();
+			Bundle b = new Bundle();
+			
+			b.putInt("msgid", R.string.network_offline);
+			
+			f.setArguments(b);
+			getActivity().getSupportFragmentManager().beginTransaction()
+				.replace(R.id.main_frame, f).commit();
+			return null;
+		}
 		stopped = false;
 		if ((SessionKeeper.session2 != null) && (SessionKeeper.session2.servers != null) &&
 				(SessionKeeper.session2.servers.size() > 0)) {
@@ -49,8 +66,21 @@ public class Loading extends Fragment {
 						}
 					}
 					else {
-						Log.e(TAG,"cookie check failed");
-						Loading.this.openLogin();
+						if (r.e == null) {
+							Log.e(TAG,"cookie check failed");
+							Loading.this.openLogin();
+						} else {
+							Log.e(TAG,"error",r.e);
+							Fragment f = new ShowError();
+							Bundle b = new Bundle();
+							
+							if (r.e instanceof UnknownHostException) b.putString("message", "dns error");
+							else b.putString("message", "unknown error");
+							
+							f.setArguments(b);
+							getActivity().getSupportFragmentManager().beginTransaction()
+								.replace(R.id.main_frame, f).commit();
+						}
 					}
 				}
 			});

@@ -141,8 +141,9 @@ public class FragmentUser extends FragmentActivity implements Callbacks {
 	public void onPlayerData() {
 	}
 	@Override public boolean onChat(ArrayList<ChatMsg> d) { return false; }
-	@Override
-	public void gotCityData() {
+	@Override public void gotCityData() {
+		Iterator<FragmentBase> i = hooks.iterator();
+		while (i.hasNext()) i.next().gotCityData();
 	}
 	@Override
 	public void tick() {
