@@ -7,6 +7,12 @@
         <item name="android:windowBackground">@drawable/win_mainoverlay_paper</item>
         <!-- <item name="android:actionBarStyle">@style/actionStyle</item>
         <item name="android:textViewStyle">@style/textstyle</item>  -->
-        <item name="rowHighlight1">#ff00ff00</item>
+        <item name="rowHighlight1">#ffff4d4d</item>
+    </style>
+    <style name="holo_light" parent="android:Theme.Holo.Light">
+        <item name="rowHighlight1">#ffff4d4d</item>
+    </style>
+    <style name="holo" parent="android:Theme.Holo">
+        <item name="rowHighlight1">#ffff4d4d</item>
     </style>
 </resources>

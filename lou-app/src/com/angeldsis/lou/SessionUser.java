@@ -53,8 +53,8 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 	public static int getCurrentTheme(Context c) {
 		SharedPreferences p = c.getSharedPreferences("com.angeldsis.lou_preferences",MODE_PRIVATE);
 		String theme = p.getString("theme","holo");
-		if (theme.equals("holo")) return android.R.style.Theme_Holo;
-		else if (theme.equals("holo_light")) return android.R.style.Theme_Holo_Light;
+		if (theme.equals("holo")) return R.style.holo;
+		else if (theme.equals("holo_light")) return R.style.holo_light;
 		else if (theme.equals("lou")) return R.style.theme1;
 		else return android.R.style.Theme;
 	}
