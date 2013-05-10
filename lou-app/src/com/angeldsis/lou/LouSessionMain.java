@@ -1,11 +1,9 @@
 package com.angeldsis.lou;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 
 import com.angeldsis.lou.fragments.ResourceBar;
 import com.angeldsis.lou.reports.Reports;
-import com.angeldsis.louapi.ChatMsg;
 import com.angeldsis.louapi.LouState;
 import com.angeldsis.louapi.LouState.City;
 import com.google.ads.AdRequest;
@@ -115,6 +113,11 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 		resource_bar.update(session.state.currentCity);
 		TextView city = (TextView) findViewById(R.id.current_city);
 		city.setText(session.state.currentCity.name);
+		int x;
+		for (x=list.getChildCount() - 1; x >= 0; x--) {
+			ViewHolder holder = (ViewHolder) list.getChildAt(x).getTag();
+			holder.bar2.update();
+		}
 	}
 	public void tick() {
 		// called from the network thread, needs to re-dir to main one
@@ -225,11 +228,8 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 	@Override public void run() {
 		int x;
 		for (x=list.getChildCount() - 1; x >= 0; x--) {
-			View v = list.getChildAt(x).findViewById(R.id.resource_bar);
-			if (v instanceof ResourceBar) {
-				ResourceBar b = (ResourceBar) v;
-				b.update();
-			}
+			ViewHolder holder = (ViewHolder) list.getChildAt(x).getTag();
+			holder.bar2.update();
 		}
 		resource_bar.update();
 		h.removeCallbacks(this);
