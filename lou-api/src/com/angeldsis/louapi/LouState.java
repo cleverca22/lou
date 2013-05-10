@@ -329,14 +329,14 @@ public class LouState {
 		City c = currentCity;
 		if (ti != null) {
 			//Log.v(TAG,"ti:"+ti.length());
-			c.trade_in = parseTrades(ti, world);
+			c.trade_in = parseTrades(ti, world,Trade.IN);
 		}
 		if (to != null) {
 			//Log.v(TAG,"to:"+to.length());
-			c.trade_out = parseTrades(to, world);
+			c.trade_out = parseTrades(to, world,Trade.OUT);
 		}
 		JSONArray traders = p.optJSONArray("t");
-		Log.v(TAG,"traders:"+traders);
+		//Log.v(TAG,"traders:"+traders);
 		if ((traders != null) && (traders.length()>0)) {
 			JSONObject land = traders.getJSONObject(0);
 			JSONObject ship = traders.getJSONObject(1);
@@ -365,7 +365,7 @@ public class LouState {
 			rpc.onNewAttack(a);
 		}
 	}
-	private ArrayList<Trade> parseTrades(JSONArray list, World world) {
+	private ArrayList<Trade> parseTrades(JSONArray list, World world, int direction) {
 		ArrayList<Trade> out = new ArrayList<Trade>();
 		int j;
 		for (j = 0; j < list.length(); j++) {
@@ -375,13 +375,13 @@ public class LouState {
 			int city = t.optInt("c");
 			int start = t.optInt("ss");
 			int end = t.optInt("es");
-			int id = t.optInt("i");
 			//Log.v(TAG,"r:"+contents+" cn:"+cityName+" ss:"+start+" es:"+end);
-			Trade trade = new Trade(t,world);
+			Trade trade = new Trade(t,world,direction);
+			out.add(trade);
 		}
 		return out;
 	}
-	class Trade {
+	public class Trade {
 		Alliance alliance;
 		Player player;
 		int type;
@@ -390,6 +390,8 @@ public class LouState {
 		static final int Direct = 2;
 		static final int TradeMinisterRequested = 3;
 		static final int TradeMinisterSurplus = 4;
+		static final int IN = 0;
+		static final int OUT = 1;
 		int transport;
 		static final int Land = 1;
 		static final int Ship = 2;
@@ -398,12 +400,15 @@ public class LouState {
 		static final int Return = 2;
 		static final int ReturnFromCancel = 6;
 		static final int WorkingPalaceSupport = 7;
-		public Trade(JSONObject t, World world) {
+		public int direction,id;
+		public Trade(JSONObject t, World world, int direction) {
 			player = Player.get(t.optInt("p"),t.optString("pn"));
 			alliance = world.getAlliance(t.optInt("a"),t.optString("an"));
 			transport = t.optInt("tt");
 			type = t.optInt("t");
 			state = t.optInt("s");
+			this.direction = direction;
+			id = t.optInt("i");
 		}
 	}
 	public void parseAllianceUpdate(JSONObject d) throws JSONException {

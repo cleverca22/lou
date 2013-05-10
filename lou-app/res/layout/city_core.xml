@@ -10,4 +10,10 @@
         android:layout_height="wrap_content" >
     </com.angeldsis.lou.city.SelectCity>
 
+    <ListView
+        android:id="@+id/trades"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+    </ListView>
+
 </LinearLayout>
