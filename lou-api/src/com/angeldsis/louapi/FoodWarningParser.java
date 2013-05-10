@@ -37,6 +37,8 @@ public class FoodWarningParser {
 				// FIXME, this delta includes food consumption
 				JSONObject r = data.getJSONObject("r");
 				City c = rpc.state.cities.get(id);
+				// FIXME, ugly hack fix to just zero food consumption
+				c.foodConsumption = c.foodConsumptionQueue = c.foodConsumptionSupporter = 0;
 				double d = r.getDouble("d");
 				double b = r.getDouble("b");
 				int m = r.getInt("m");
@@ -45,7 +47,8 @@ public class FoodWarningParser {
 				warnings.put(id, c);
 				double secondsleft = c.foodEmptyTime(rpc.state);
 				Date runsout = new Date(System.currentTimeMillis() + (1000 * (long)secondsleft));
-				Log.v(TAG,String.format("hours: %d %s %s",(int)(secondsleft/60/60),c.name,runsout));
+				//Log.v(TAG,String.format("s/b %d %f",s,b));
+				//Log.v(TAG,String.format("hours: %d %s %s",(int)(secondsleft/60/60),c.name,runsout));
 			}
 		}
 		rpc.runOnUiThread(new Runnable() {
