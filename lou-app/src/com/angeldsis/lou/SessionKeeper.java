@@ -166,7 +166,7 @@ public class SessionKeeper extends Service {
 	public class Session {
 		private static final String TAG = "Session";
 		public RPC rpc;
-		LouState state;
+		public LouState state;
 		public AccountWrap acct;
 		Callbacks cb;
 		boolean alive = false,loggingIn;
