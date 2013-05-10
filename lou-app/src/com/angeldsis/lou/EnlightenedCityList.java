@@ -7,6 +7,7 @@ import java.util.TreeMap;
 
 import com.angeldsis.lou.city.SelectCity;
 import com.angeldsis.lou.city.SendTrade;
+import com.angeldsis.lou.fragments.ResourceBar;
 import com.angeldsis.louapi.EnlightenedCities.EnlightenedCity;
 import com.angeldsis.louapi.data.Coord;
 
@@ -54,6 +55,7 @@ public class EnlightenedCityList extends SessionUser {
 			s.session_ready(session.rpc.state,this);
 			loaded = true;
 		}
+		((ResourceBar)findViewById(R.id.resourceBar)).setState(session.state);
 		super.session_ready();
 	}
 	@Override public void onEnlightenedCityChanged() {
@@ -130,7 +132,11 @@ public class EnlightenedCityList extends SessionUser {
 			if (color == 0) { throw new IllegalStateException("You forgot to put the attr on the theme, artard"); }
 			int green = color;
 			int transparent = Color.TRANSPARENT;
-			if ((missing_wood > 0) || (missing_stone > 0)) {
+			if (holder.city.comment.contains(">100% Faith")) {
+				row.setBackgroundColor(transparent);
+			} else if ((missing_wood > 0) || (missing_stone > 0)) {
+				row.setBackgroundColor(green);
+			} else if (holder.city.comment.contains("HLP")) {
 				row.setBackgroundColor(green);
 			} else row.setBackgroundColor(transparent);
 			
@@ -172,6 +178,8 @@ public class EnlightenedCityList extends SessionUser {
 		} else adapter.filterContinent(-1);
 	}
 	public void gotCityData() {
+		Log.v(TAG,"gotCityData()");
 		((TextView)findViewById(R.id.avail_carts)).setText(String.format("%d",session.state.currentCity.freecarts));
+		((ResourceBar)findViewById(R.id.resourceBar)).update(session.state.currentCity);
 	}
 }
