@@ -5,7 +5,6 @@
     android:orientation="vertical" >
 
     <ScrollView
-        android:id="@+id/scrollView1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" >
 
@@ -21,15 +20,13 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Source City:"
-                    android:textAppearance="?android:attr/textAppearanceSmall" />
+                    android:text="Source City:" />
 
-                <TextView
-                    android:id="@+id/source"
+                <com.angeldsis.lou.city.SelectCity
+                    android:id="@+id/changeCity"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="5dp"
-                    android:textAppearance="?android:attr/textAppearanceSmall" />
+                    android:layout_height="wrap_content" >
+                </com.angeldsis.lou.city.SelectCity>
 
             </LinearLayout>
 
@@ -266,9 +263,8 @@
 
             <EditText
                 android:id="@+id/showWood"
-                android:layout_width="wrap_content"
+                android:layout_width="100dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:ems="10"
                 android:inputType="number" />
 
@@ -297,9 +293,8 @@
 
             <EditText
                 android:id="@+id/showStone"
-                android:layout_width="wrap_content"
+                android:layout_width="100dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:ems="10"
                 android:inputType="number" />
 
@@ -328,9 +323,8 @@
 
             <EditText
                 android:id="@+id/showIron"
-                android:layout_width="wrap_content"
+                android:layout_width="100dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:ems="10"
                 android:inputType="number" />
 
@@ -359,9 +353,8 @@
 
             <EditText
                 android:id="@+id/showFood"
-                android:layout_width="wrap_content"
+                android:layout_width="100dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:ems="10"
                 android:inputType="number" />
 

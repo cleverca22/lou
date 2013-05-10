@@ -15,12 +15,12 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import com.angeldsis.lou.R;
 import com.angeldsis.lou.SessionUser;
+import com.angeldsis.lou.Utils;
 import com.angeldsis.lou.city.SelectCity.CitySelected;
 import com.angeldsis.louapi.LouState;
 import com.angeldsis.louapi.LouState.City;
 import com.angeldsis.louapi.RPC.GotOrderTargetInfo;
 import com.angeldsis.louapi.RPC.TradeDirectDone;
-import com.angeldsis.louapi.Resource;
 import com.angeldsis.louapi.data.Coord;
 import com.angeldsis.louapi.data.OrderTargetInfo;
 
@@ -36,6 +36,7 @@ public class SendTrade extends SessionUser implements CitySelected, GotOrderTarg
 	private boolean palaceDonation;
 	CheckBox palace;
 	Button send_res;
+	SelectCity changeCity;
 	public void onCreate(Bundle b) {
 		super.onCreate(b);
 		if (Build.VERSION.SDK_INT > 13) initApi14();
@@ -47,6 +48,8 @@ public class SendTrade extends SessionUser implements CitySelected, GotOrderTarg
 		city = (TextView) findViewById(R.id.city);
 		time = (TextView) findViewById(R.id.time);
 		send_res = (Button) findViewById(R.id.send_res);
+		changeCity = (SelectCity) findViewById(R.id.changeCity);
+		changeCity.setMode(SelectCity.ChangeCurrentCity);
 		
 		Intent i = getIntent();
 		Bundle args = i.getExtras();
@@ -68,8 +71,8 @@ public class SendTrade extends SessionUser implements CitySelected, GotOrderTarg
 			s.session_ready(session.rpc.state,this);
 			if (targetCity != -1) s.setPalace(targetCity);
 			loaded = true;
-			((TextView)findViewById(R.id.source)).setText(session.rpc.state.currentCity.name);
 			updateMaxRes();
+			changeCity.session_ready(session.state, this);
 		}
 		updateCarts();
 	}
@@ -83,6 +86,7 @@ public class SendTrade extends SessionUser implements CitySelected, GotOrderTarg
 					int val = progress;
 					e.setText(""+val);
 					targets[pos] = val;
+					SendTrade.this.tweakMax(pos);
 				}
 			}
 			@Override public void onStartTrackingTouch(SeekBar seekBar) {
@@ -111,11 +115,17 @@ public class SendTrade extends SessionUser implements CitySelected, GotOrderTarg
 		});
 		updateBar(pos,id,id2);
 	}
+	private void tweakMax(int pos) {
+		if (pos != 0) updateBar(0,R.id.setWood,R.id.showWood);
+		if (pos != 1) updateBar(1,R.id.setStone,R.id.showStone);
+		if (pos != 2) updateBar(2,R.id.setIron,R.id.showIron);
+		if (pos != 3) updateBar(3,R.id.setFood,R.id.showFood);
+	}
 	private void updateBar(int pos,int id1,int id2) {
 		final SeekBar b = (SeekBar) findViewById(id1);
 		final EditText e = (EditText) findViewById(id2);
 		int resmax = session.rpc.state.currentCity.getResourceCount(session.rpc.state, pos);
-		int capacityUsed = 0; // FIXME
+		int capacityUsed = targets[0] + targets[1] + targets[2] + targets[3];
 		int val,maxcapacity;
 		if (byland) {
 			maxcapacity = (session.rpc.state.currentCity.freecarts * 1000) - capacityUsed;
@@ -180,6 +190,7 @@ public class SendTrade extends SessionUser implements CitySelected, GotOrderTarg
 		TextView out = (TextView) findViewById(R.id.result);
 		if (reply == 0) out.setText("worked");
 		else out.setText("error "+reply);
+		session.rpc.pollSoon();
 	}
 	private void updateCarts() {
 		City city = session.rpc.state.currentCity;
@@ -189,13 +200,14 @@ public class SendTrade extends SessionUser implements CitySelected, GotOrderTarg
 		((TextView)findViewById(R.id.shipCapacity)).setText(String.format("%d",city.freeships * 10000));
 	}
 	public void onCityChanged() {
-		((TextView)findViewById(R.id.source)).setText(session.rpc.state.currentCity.name);
 		updateMaxRes();
 		updateBar(0,R.id.setWood,R.id.showWood);
 		updateBar(1,R.id.setStone,R.id.showStone);
 		updateBar(2,R.id.setIron,R.id.showIron);
 		updateBar(3,R.id.setFood,R.id.showFood);
 		// FIXME, re-run selected() for new distance, and parts of initBar to update max
+		TextView out = (TextView) findViewById(R.id.result);
+		out.setText("city changed");
 	}
 	public void gotCityData() {
 		// FIXME, run parts of initBar to update max
@@ -215,7 +227,7 @@ public class SendTrade extends SessionUser implements CitySelected, GotOrderTarg
 		setField(R.id.maxFood,c.getResourceCount(state, 3));
 	}
 	private void setField(int id, int value) {
-		((TextView)findViewById(id)).setText("/"+value);
+		((TextView)findViewById(id)).setText("/"+Utils.NumberFormat(value));
 	}
 	public void landChanged(View v) {
 		byland = byLand.isChecked();

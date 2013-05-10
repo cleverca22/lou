@@ -6,11 +6,8 @@ import com.angeldsis.louapi.LouState;
 import com.angeldsis.louapi.LouState.City;
 import com.angeldsis.louapi.Resource;
 
-import android.annotation.TargetApi;
 import android.content.Context;
-import android.os.Build;
-import android.os.Handler;
-import android.util.Log;
+import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -29,7 +26,11 @@ public class ResourceBar extends ViewGroup {
 		super(context);
 		self = inflate(context,R.layout.resource_bar, null);
 		addView(self);
-		setId(R.id.resource_bar);
+	}
+	public ResourceBar(Context context, AttributeSet attrs) {
+		super(context,attrs);
+		self = inflate(context,R.layout.resource_bar, null);
+		addView(self);
 	}
 	void init() {
 		if (counts != null) return;
