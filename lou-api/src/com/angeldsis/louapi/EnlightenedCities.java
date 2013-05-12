@@ -23,6 +23,7 @@ public class EnlightenedCities {
 		String name;
 		int endstep;
 		Player player;
+		public boolean known = false;
 		public EnlightenedCity(int id2, JSONObject y, RPC rpc) throws JSONException {
 			id = id2;
 			location = Coord.fromCityId(id);
@@ -74,7 +75,6 @@ public class EnlightenedCities {
 	}
 	public String getRequestDetails() {
 		if (initial) {
-			initial = false;
 			return "a";
 		}
 		return "";
@@ -82,8 +82,10 @@ public class EnlightenedCities {
 	public void parse(JSONObject p, final RPC rpc) throws JSONException {
 		JSONObject D = p.getJSONObject("D");
 		//Log.v(TAG,D.toString());
-		int flush = D.optInt("f");
-		if (flush == 1) this.data = new TreeMap<Integer,EnlightenedCity>();
+		if (!D.isNull("f")) {
+			int flush = D.optInt("f");
+			if (flush == 1) this.data = new TreeMap<Integer,EnlightenedCity>();
+		}
 		JSONArray c = D.optJSONArray("c");
 		int x;
 		for (x=0; x<c.length(); x++) {
@@ -99,11 +101,13 @@ public class EnlightenedCities {
 			}
 			if (result == null) {
 				result = new EnlightenedCity(id,y,rpc);
+				if (initial) result.known = true;
 				data.put(id,result);
 			} else {
 				result.update(y);
 			}
 		}
+		initial = false;
 		rpc.runOnUiThread(new Runnable() {
 			@Override public void run() {
 				rpc.onEnlightenedCityChanged();

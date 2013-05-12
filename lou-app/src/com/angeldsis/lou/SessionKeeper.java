@@ -14,6 +14,7 @@ import org.json2.JSONObject;
 import com.angeldsis.lou.chat.ChatHistory;
 import com.angeldsis.lou.fragments.FoodWarnings;
 import com.angeldsis.louapi.ChatMsg;
+import com.angeldsis.louapi.EnlightenedCities.EnlightenedCity;
 import com.angeldsis.louapi.IncomingAttack;
 import com.angeldsis.louapi.LouSession;
 import com.angeldsis.louapi.LouSession.result;
@@ -80,6 +81,7 @@ public class SessionKeeper extends Service {
 	static final int UNREAD_MESSAGE = 0x200;
 	static final int INCOMING_ATTACK = 0x300;
 	static final int FOOD_WARNING = 0x400;
+	static final int EJECTED = 0x500;
 
 	public class MyBinder extends Binder {
 		public SessionKeeper getService() {
@@ -173,6 +175,7 @@ public class SessionKeeper extends Service {
 		int sessionid;
 		public ChatHistory chat;
 		boolean threadActive;
+		public boolean dingOnMessage;
 		Session(AccountWrap acct2, int sessionid) {
 			Log.v(TAG,"new Session");
 			loggingIn = true;
@@ -271,6 +274,7 @@ public class SessionKeeper extends Service {
 				ChatMsg cm = d.get(d.size()-1);
 				chatBuilder.setContentText(cm.toString());
 				int sound = 0;
+				if (dingOnMessage) sound = Notification.DEFAULT_SOUND;
 				if (cm.isPm()) sound = Notification.DEFAULT_SOUND;
 				mNotificationManager.notify(UNREAD_MESSAGE | sessionid, chatBuilder.setDefaults(sound).build());
 			}
@@ -336,12 +340,22 @@ public class SessionKeeper extends Service {
 		public void onEjected() {
 			alive = false;
 			if (cb != null) cb.onEjected();
-			//mNotificationManager.cancel(STILL_OPEN | sessionid);
 			SessionKeeper.this.stopForeground(true);
 			sessions.remove(this);
 			rpc.stopLooping();
 			//doing_network.release();
 			teardown();
+			NotificationCompat.Builder b = new NotificationCompat.Builder(SessionKeeper.this)
+				.setContentText("you have been disconnected")
+				.setDefaults(Notification.DEFAULT_SOUND);
+
+			Intent resultIntent = new Intent(SessionKeeper.this,LouMain.class);
+			TaskStackBuilder stackBuilder = TaskStackBuilder.create(SessionKeeper.this);
+			stackBuilder.addParentStack(LouMain.class);
+			stackBuilder.addNextIntent(resultIntent);
+			PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+			b.setContentIntent(resultPendingIntent);
+			mNotificationManager.notify(SessionKeeper.EJECTED | sessionid, b.build());
 		}
 		public void onCityChanged() {
 			if (cb != null) cb.onCityChanged();
@@ -349,7 +363,6 @@ public class SessionKeeper extends Service {
 		public void logout() {
 			rpc.stopPolling();
 			rpc.stopLooping();
-			//mNotificationManager.cancel(STILL_OPEN | sessionid);
 			SessionKeeper.this.stopForeground(true);
 			alive = false;
 			sessions.remove(this);
@@ -423,7 +436,7 @@ public class SessionKeeper extends Service {
 			SessionKeeper.this.setTimer(maxdelay);
 		}
 		public void setThreadActive(boolean b) {
-			if (b == true) {
+			if (b == true) { // need to aquire lock
 				synchronized(this) {
 					if (lockLocked == false) {
 						lockLocked = true;
@@ -432,7 +445,9 @@ public class SessionKeeper extends Service {
 				}
 			}
 			threadActive = b;
-			SessionKeeper.this.checkState("setThreadActive "+b);
+			
+			// may be able to release lock
+			if (b == false) SessionKeeper.this.checkState("setThreadActive");
 		}
 		public void onBuildQueueUpdate() {
 			if (cb != null) cb.onBuildQueueUpdate();
@@ -450,6 +465,18 @@ public class SessionKeeper extends Service {
 			if (cb != null) cb.onDefenseOverviewUpdate();
 		}
 		public void onEnlightenedCityChanged() {
+			Iterator<EnlightenedCity> i = rpc.enlightenedCities.data.values().iterator();
+			ArrayList<EnlightenedCity> list = new ArrayList<EnlightenedCity>();
+			while (i.hasNext()) {
+				EnlightenedCity c = i.next();
+				if (c.known) continue;
+				list.add(c);
+			}
+			NotificationCompat.Builder b = new NotificationCompat.Builder(SessionKeeper.this);
+			b.setContentTitle("new city EL'd");
+			b.setContentText(String.format("%d cities enlightened",list.size()));
+			mNotificationManager.notify(0, b.build());
+			
 			if (cb != null) cb.onEnlightenedCityChanged();
 		}
 		// FIXME, doesnt set any timer to warn you when key points happen
@@ -620,14 +647,21 @@ public class SessionKeeper extends Service {
 			if (lockLocked) {
 				//Log.v(TAG,"checkState "+reason+" session count: "+sessions.size());
 				boolean anyActive = false;
-				for (Session s : sessions) if (s.threadActive) anyActive = true;
+				int i;
+				for (i=sessions.size() - 1; i >=0; i--) {
+					Session s = sessions.get(i);
+					if (s.threadActive) {
+						anyActive = true;
+						Log.v(TAG,"session active: "+s.acct.world);
+					}
+				}
 				//Log.v(TAG,"active:"+anyActive);
 				if ((anyActive == false) && lockLocked) {
 					//Log.v(TAG,"releasing wakelock");
 					doing_network.release();
 					lockLocked = false;
 				} else {
-					Log.v(TAG,"leaving it locked "+anyActive);
+					Log.v(TAG,reason+" leaving it locked "+anyActive);
 				}
 			} else {
 				Log.v(TAG,"lock not locked");

@@ -148,7 +148,7 @@ public class LouState {
 		}
 		public int foodEmptyTime(LouState state) {
 			if (resources[3].delta >= 0) return 0;
-			Log.v(TAG,String.format("delta:%f, current: %d",resources[3].delta,getResourceCount(state,3)));
+			//Log.v(TAG,String.format("delta:%f, current: %d steps: %d %d",resources[3].delta,getResourceCount(state,3),resources[3].step,state.getServerStep()));
 			return (int) (getResourceCount(state,3) / (resources[3].delta * -1));
 		}
 		public int getResourceCount(LouState state,int id) {
@@ -173,10 +173,10 @@ public class LouState {
 		getFullPlayerData = false;
 		JSONArray cg = d.optJSONArray("cg");
 		boolean female = d.getBoolean("f");
-		Log.v(TAG,"cg:"+cg+" f:"+female);
+		//Log.v(TAG,"cg:"+cg+" f:"+female);
 		// FIXME check d.c array for changes to cities array
 		JSONArray c = d.optJSONArray("c");
-		Log.v(TAG,"c:"+c);
+		//Log.v(TAG,"c:"+c);
 		if (d.has("g")) {
 			JSONObject g = d.optJSONObject("g");
 			double base = g.optDouble("b");
@@ -273,7 +273,7 @@ public class LouState {
 			for (x=0; x < q.length(); x++) queue[x] = new BuildQueue(q.getJSONObject(x));
 			currentCity.queue = queue;
 		} else if ((q == null) && (currentCity.queue.length != 0)) currentCity.queue = new BuildQueue[0];
-		Log.v(TAG,"city debug "+currentCity+p.toString());
+		Log.v(TAG,"city debug "+currentCity+" "+p.toString());
 		currentCity.build_queue_start = p.optInt("bqs");
 		currentCity.build_queue_end = p.optInt("bqe");
 		Log.v(TAG, String.format("bqs %d, bqe %d",currentCity.build_queue_start,currentCity.build_queue_end));

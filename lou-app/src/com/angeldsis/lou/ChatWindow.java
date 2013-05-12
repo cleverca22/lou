@@ -29,6 +29,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TabHost;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 import com.angeldsis.lou.BBCode.Span;
 import com.angeldsis.lou.chat.ChatHistory;
@@ -135,6 +136,7 @@ public class ChatWindow extends SessionUser {
 		private ChatHistory source;
 		private Channel channel;
 		private Calendar c3;
+		SessionKeeper.Session leakme; // FIXME, ugly hack
 		int lastCount = 0;
 		//SparseArray<ChatMsg> cache;
 		Drawable crown_drawable = getResources().getDrawable(R.drawable.icon_lou_public_other_world);
@@ -196,8 +198,9 @@ public class ChatWindow extends SessionUser {
 			
 			if (c != null) {
 				ArrayList<Span> spans = new ArrayList<Span>();
-				if (session == null) throw new IllegalStateException("session was null!");
-				if (session.state == null) throw new IllegalStateException("session.state was null!");
+				if ((leakme == null) && (session != null)) leakme = session;
+				if (leakme == null) throw new IllegalStateException("session was null!");
+				if (leakme.state == null) throw new IllegalStateException("session.state was null!");
 				c3.setTime(new Date(c.ts));
 				formatTime(c3,b);
 				b.append(' ');
@@ -332,6 +335,7 @@ public class ChatWindow extends SessionUser {
 		Log.v(TAG,"onStart");
 	}
 	public void session_ready() {
+		((ToggleButton)findViewById(R.id.dingOnMsg)).setChecked(session.dingOnMessage);
 		for (Channel c : channels.values()) {
 			//c.oldmessagelist.removeAllViews();
 			c.adapter.setSource(session.chat,c);
@@ -490,5 +494,8 @@ public class ChatWindow extends SessionUser {
 	public void onStop() {
 		super.onStop();
 		Log.v(TAG,"onStop()");
+	}
+	public void dingClick(View v) {
+		session.dingOnMessage = ((ToggleButton)v).isChecked();
 	}
 }

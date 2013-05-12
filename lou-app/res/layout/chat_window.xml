@@ -39,7 +39,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:ems="10"
-            android:inputType="textCapSentences|textAutoCorrect|textAutoComplete" />
+            android:inputType="textCapSentences|textAutoCorrect" />
 
         <Button
             style="?android:attr/buttonStyleSmall"
@@ -48,6 +48,15 @@
             android:layout_weight="1"
             android:onClick="sendMsg"
             android:text="@string/send" />
+
+        <ToggleButton
+            android:id="@+id/dingOnMsg"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="dingClick"
+            android:textOff="Don&apos;t Ding"
+            android:textOn="Ding" />
 
     </LinearLayout>
 
