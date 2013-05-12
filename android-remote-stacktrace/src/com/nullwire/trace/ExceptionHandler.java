@@ -62,7 +62,7 @@ public class ExceptionHandler {
 	 * @param context
 	 */
 	public static boolean register(Context context) {
-		Log.i(TAG, "Registering default exceptions handler");
+		//Log.i(TAG, "Registering default exceptions handler");
 		// Get information about the Package
 		PackageManager pm = context.getPackageManager();
 		try {
@@ -82,11 +82,11 @@ public class ExceptionHandler {
 			e.printStackTrace();
 		}
 
-		Log.i(TAG, "TRACE_VERSION: " + G.TraceVersion);
-		Log.d(TAG, "APP_VERSION: " + G.APP_VERSION);
-		Log.d(TAG, "APP_PACKAGE: " + G.APP_PACKAGE);
-		Log.d(TAG, "FILES_PATH: " + G.FILES_PATH);
-		Log.d(TAG, "URL: " + G.URL);
+		//Log.i(TAG, "TRACE_VERSION: " + G.TraceVersion);
+		//Log.d(TAG, "APP_VERSION: " + G.APP_VERSION);
+		//Log.d(TAG, "APP_PACKAGE: " + G.APP_PACKAGE);
+		//Log.d(TAG, "FILES_PATH: " + G.FILES_PATH);
+		//Log.d(TAG, "URL: " + G.URL);
 		
 		boolean stackTracesFound = false;
 		// We'll return true if any stack traces were found
@@ -101,8 +101,8 @@ public class ExceptionHandler {
 				submitStackTraces();
 				UncaughtExceptionHandler currentHandler = Thread.getDefaultUncaughtExceptionHandler();
 				if (currentHandler != null) {
-					Log.d(TAG, "current handler class="+currentHandler.getClass().getName());
-				}	
+					//Log.d(TAG, "current handler class="+currentHandler.getClass().getName());
+				}
 				// don't register again if already registered
 				if (!(currentHandler instanceof DefaultExceptionHandler)) {
 					// Register default exceptions handler
@@ -110,7 +110,7 @@ public class ExceptionHandler {
 							new DefaultExceptionHandler(currentHandler));
 				}
 			}
-       	}.start();
+		}.start();
 		
 		return stackTracesFound;
 	}
@@ -121,7 +121,7 @@ public class ExceptionHandler {
 	 * @param Url
 	 */
 	public static void register(Context context, String url) {
-		Log.i(TAG, "Registering default exceptions handler: " + url);
+		//Log.i(TAG, "Registering default exceptions handler: " + url);
 		// Use custom URL
 		G.URL = url;
 		// Call the default register method
@@ -155,7 +155,7 @@ public class ExceptionHandler {
 	 */
 	public static void submitStackTraces() {
 		try {
-			Log.d(TAG, "Looking for exceptions in: " + G.FILES_PATH);
+			//Log.d(TAG, "Looking for exceptions in: " + G.FILES_PATH);
 			String[] list = searchForStackTraces();
 			if ( list != null && list.length > 0 ) {
 				Log.d(TAG, "Found "+list.length+" stacktrace(s)");
