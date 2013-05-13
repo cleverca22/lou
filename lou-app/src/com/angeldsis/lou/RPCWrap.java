@@ -107,9 +107,9 @@ public class RPCWrap extends RPC {
 	@Override public boolean uiActive() {
 		return callbacks.uiActive();
 	}
-	public void logRequest(int req,int reply,String func) {
-		super.logRequest(req, reply, func);
-		callbacks.logRequest(req,reply,func);
+	@Override public void logRequest(int req,int reply,String func, int nettime,int parse1) {
+		super.logRequest(req, reply, func,nettime,parse1);
+		callbacks.logRequest(req,reply,func,nettime,parse1);
 	}
 	@Override public void onDefenseOverviewUpdate() {
 		callbacks.onDefenseOverviewUpdate();

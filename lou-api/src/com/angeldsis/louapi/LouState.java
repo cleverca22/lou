@@ -63,7 +63,7 @@ public class LouState {
 	}
 	public void processPlayerInfo(JSONObject obj) throws JSONException {
 		// FIXME, shouldnt rebuild the entire array on each pass
-		Log.v(TAG,obj.toString(1));
+		//Log.v(TAG,obj.toString(1));
 		JSONArray cities = obj.getJSONArray("Cities");
 		int x;
 		TreeMap<Integer,City> old = this.cities;
@@ -366,16 +366,11 @@ public class LouState {
 		}
 	}
 	private ArrayList<Trade> parseTrades(JSONArray list, World world, int direction) {
+		// FIXME, reuse Trade objects, update them instead
 		ArrayList<Trade> out = new ArrayList<Trade>();
 		int j;
 		for (j = 0; j < list.length(); j++) {
 			JSONObject t = list.optJSONObject(j);
-			JSONArray contents = t.optJSONArray("r"); // contains c/t pairs
-			String cityName = t.optString("cn");
-			int city = t.optInt("c");
-			int start = t.optInt("ss");
-			int end = t.optInt("es");
-			//Log.v(TAG,"r:"+contents+" cn:"+cityName+" ss:"+start+" es:"+end);
 			Trade trade = new Trade(t,world,direction);
 			out.add(trade);
 		}
@@ -395,12 +390,13 @@ public class LouState {
 		int transport;
 		static final int Land = 1;
 		static final int Ship = 2;
-		int state; // some states omitted
-		static final int Working = 1;
-		static final int Return = 2;
-		static final int ReturnFromCancel = 6;
-		static final int WorkingPalaceSupport = 7;
-		public int direction,id;
+		public int state; // some states omitted
+		public static final int Working = 1;
+		public static final int Return = 2;
+		public static final int ReturnFromCancel = 6;
+		public static final int WorkingPalaceSupport = 7;
+		public int direction,id,end;
+		public String DEBUG,cityName;
 		public Trade(JSONObject t, World world, int direction) {
 			player = Player.get(t.optInt("p"),t.optString("pn"));
 			alliance = world.getAlliance(t.optInt("a"),t.optString("an"));
@@ -409,6 +405,19 @@ public class LouState {
 			state = t.optInt("s");
 			this.direction = direction;
 			id = t.optInt("i");
+			DEBUG = t.toString();
+
+			int city = t.optInt("c");
+			cityName = t.optString("cn");
+
+			Log.v(TAG,t.toString());
+			JSONArray contents = t.optJSONArray("r"); // contains c/t pairs
+			int start = t.optInt("ss");
+			end = t.optInt("es");
+			Log.v(TAG,"ss:"+start+" es:"+end);
+		}
+		public String toString() {
+			return DEBUG;
 		}
 	}
 	public void parseAllianceUpdate(JSONObject d) throws JSONException {
@@ -498,8 +507,9 @@ public class LouState {
 				c.get(Calendar.SECOND));
 	}
 	public void parseServerInfo(JSONObject reply) throws JSONException {
-		Log.v(TAG+".GetServerInfo",reply.toString(1));
 		tradeSpeedShip = reply.getInt("tss");
 		tradeSpeedland = reply.getInt("tsl");
+		String td = reply.getString("td");
+		Log.v(TAG,"td: "+td);
 	}
 }

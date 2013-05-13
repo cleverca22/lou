@@ -440,8 +440,10 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 		String postdata = request.toString();
 		final int requestsize = postdata.getBytes().length;
 		HttpRequest req2 = new HttpRequest();
+		final long netstart = System.currentTimeMillis();
 		HttpRequest.Callback cb = new HttpRequest.Callback() {
 			public void done(HttpReply reply) {
+				long netstop = System.currentTimeMillis();
 				rpcreply reply2 = new rpcreply();
 				if (reply.e != null) {
 					if (reply.e instanceof UnknownHostException) {
@@ -464,16 +466,14 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 					return;
 				}
 				reply2.http_code = reply.code;
-
-				logRequest(requestsize,reply.size,function);
+				int networktime = (int) (netstop - netstart);
+				long start = System.currentTimeMillis();
 				if (reply.size == 0) {
 					reply2.raw_reply = null;
 				} else {
 					try {
-						long start = System.currentTimeMillis();
 						// averaging 100-200ms per call
 						reply2.reply = new JSONTokener(new InputStreamReader(reply.stream)).nextValue();
-						long end = System.currentTimeMillis();
 						//Log.v(TAG, String.format("parsing took %dms",end-start));
 					} catch (JSONException e) {
 						// TODO Auto-generated catch block
@@ -481,6 +481,8 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 						reply2.raw_reply = reply.stream;
 					}
 				}
+				long end = System.currentTimeMillis();
+				logRequest(requestsize,reply.size,function,networktime,(int)(end-start));
 				try {
 					rpcCallback.requestDone(reply2);
 				} catch (JSONException e) {
@@ -495,7 +497,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 		req2.PostURL(urlbase + function, postdata, cb);
 		return;
 	}
-	public void logRequest(int req,int reply,String func) {
+	public void logRequest(int req,int reply,String func, int networktime, int parse1) {
 		//Log.v(TAG,String.format("SIZE %s(%d) == %d",func,req,reply));
 	}
 	/** creates an instance of a class implementing HttpRequest */
@@ -517,7 +519,6 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 				@Override
 				void requestDone(rpcreply r) throws JSONException, Exception {
 					state.processPlayerInfo((JSONObject) r.reply);
-					//Log.v(TAG+".GetPlayerInfo",r.reply.toString(1));
 					rpcDone.requestDone((JSONObject) r.reply);
 					runOnUiThread(new Runnable() {
 						public void run() {

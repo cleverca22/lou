@@ -6,7 +6,7 @@
     android:orientation="horizontal" >
 
     <ImageView
-        android:id="@+id/imageView1"
+        android:id="@+id/state"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingLeft="10dp"
@@ -14,11 +14,10 @@
         android:src="@drawable/icon_trade_info_mnstr_return" />
 
     <ImageView
-        android:id="@+id/imageView2"
+        android:id="@+id/icon2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingTop="5dp"
-        android:src="@drawable/icon_ship_city_info" />
+        android:paddingTop="5dp" />
 
     <TextView
         android:id="@+id/textView1"
@@ -28,14 +27,14 @@
         android:textAppearance="?android:attr/textAppearanceSmall" />
 
     <TextView
-        android:id="@+id/textView2"
+        android:id="@+id/infoText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="target:"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
     <TextView
-        android:id="@+id/textView3"
+        android:id="@+id/target"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="C15_hub1"

@@ -340,7 +340,6 @@ public class SessionKeeper extends Service {
 		public void onEjected() {
 			alive = false;
 			if (cb != null) cb.onEjected();
-			SessionKeeper.this.stopForeground(true);
 			sessions.remove(this);
 			rpc.stopLooping();
 			//doing_network.release();
@@ -356,6 +355,9 @@ public class SessionKeeper extends Service {
 			PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
 			b.setContentIntent(resultPendingIntent);
 			mNotificationManager.notify(SessionKeeper.EJECTED | sessionid, b.build());
+			Log.v(TAG,"showing disconnect notification");
+
+			SessionKeeper.this.checkState("onEjected");
 		}
 		public void onCityChanged() {
 			if (cb != null) cb.onCityChanged();
@@ -455,8 +457,8 @@ public class SessionKeeper extends Service {
 		public boolean uiActive() {
 			return cb != null;
 		}
-		public void logRequest(int req, int reply, String func) {
-			rpclogs.logRequest(req,reply,func);
+		public void logRequest(int req, int reply, String func, int nettime, int parse1) {
+			rpclogs.logRequest(req,reply,func,nettime,parse1);
 		}
 		public void cellUpdated(Cell c) {
 			if (cb != null) cb.cellUpdated(c);
