@@ -1,5 +1,8 @@
 package com.angeldsis.lou.city;
 
+import java.util.Collection;
+import java.util.Iterator;
+
 import junit.framework.Assert;
 import android.app.Activity;
 import android.content.Context;
@@ -21,21 +24,14 @@ import com.angeldsis.louapi.data.Coord;
 public class SelectCity extends LinearLayout implements OnItemSelectedListener {
 	CitySelected callback;
 	int palaceLocation = -1;
-	private static final String TAG = "SelectCity";
 	public static final int ChangeCurrentCity = 1;
 	public static final int ModeNormal = 2;
 	public class MyAdapter extends BaseAdapter {
 		@Override public int getCount() {
-			int palace = (palaceLocation == -1) ? 0 : 1;
-			return palace + SelectCity.this.allCities.length + SelectCity.this.allBookmarks.length;
+			return rawList.length;
 		}
 		@Override public Object getItem(int position) {
-			int size1 = (palaceLocation == -1) ? 0 : 1;
-			int size2 = SelectCity.this.allCities.length;
-			
-			if (position < size1) return palaceLocation;
-			else if (position < size2) return SelectCity.this.allCities[position - size1];
-			else return SelectCity.this.allBookmarks[position - (size2 + size1)];
+			return rawList[position];
 		}
 		@Override public long getItemId(int position) {
 			Object o = getItem(position);
@@ -59,7 +55,7 @@ public class SelectCity extends LinearLayout implements OnItemSelectedListener {
 				return row;
 			} else if (palaceLocation != -1) position = position - 1;
 			
-			if (position < SelectCity.this.allCities.length) {
+			if (o instanceof City) {
 				City c = (City) o;
 				v.setText(String.format("%3s %7s %s",c.location.getContinent(),c.location.format(),c.name));
 			} else {
@@ -72,12 +68,12 @@ public class SelectCity extends LinearLayout implements OnItemSelectedListener {
 			return 2;
 		}
 		public int getItemViewType(int position) {
-			if (position < SelectCity.this.allCities.length) return 0;
+			Object o = getItem(position);
+			if (o instanceof City) return 0;
 			else return 1;
 		}
 	}
-	City[] allCities;
-	int[] allBookmarks;
+	Object[] rawList;
 	MyAdapter adapter;
 	Activity mActivity;
 	Spinner spinner;
@@ -107,41 +103,45 @@ public class SelectCity extends LinearLayout implements OnItemSelectedListener {
 		callback = cb;
 	}
 	public void session_ready(LouState state,Activity a) {
+		int activeItem = -1;
 		Assert.assertFalse("setMode must be called first", -1 == mode);
 		mActivity = a;
-		allCities = new City[state.cities.size()];
-		state.cities.values().toArray(allCities);
-		mState = state;
+		
 		boolean showBookmarks = true;
 		if (mode == ChangeCurrentCity) showBookmarks = false;
-		
+
+		int count = palaceLocation!=-1?1:0 + state.cities.size();
+		String[] bookmarks = null;
 		if (showBookmarks) {
-			int i = 0;
 			SharedPreferences p = mActivity.getSharedPreferences("bookmarks", Context.MODE_PRIVATE);
 			String part = p.getString("bookmarks", "");
 			if (part.length() > 0) {
-				String[] bookmarks = part.split(",");
-				allBookmarks = new int[bookmarks.length];
-				i = 0;
+				bookmarks = part.split(",");
+			}
+			count += bookmarks.length;
+		}
+		rawList = new Object[count];
+		int position = 0;
+		
+		if (palaceLocation != -1) rawList[position++] = palaceLocation;
+		Iterator<City> it = state.cities.values().iterator();
+		while (it.hasNext()) {
+			rawList[position] = it.next();
+			if ((mode == ChangeCurrentCity) && (rawList[position] == state.currentCity)) activeItem = position;
+			position++;
+		}
+		mState = state;
+		
+		if (showBookmarks) {
+			if (bookmarks.length > 0) {
 				for (String b : bookmarks) {
-					allBookmarks[i] = Coord.fromString(b);
-					i++;
-				}
-			} else allBookmarks = new int[0];
-		} else allBookmarks = new int[0];
-		adapter = new MyAdapter();
-		spinner.setAdapter(adapter);
-		if (mode == ChangeCurrentCity) {
-			int i;
-			for (i=0; i<allCities.length; i++) {
-				City c = allCities[i];
-				if (c == state.currentCity) {
-					break;
+					rawList[position++] = Coord.fromString(b);
 				}
 			}
-			if (palaceLocation != -1) i++;
-			spinner.setSelection(i);
 		}
+		adapter = new MyAdapter();
+		spinner.setAdapter(adapter);
+		if (activeItem != -1) spinner.setSelection(activeItem);
 	}
 	@Override public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
 		//Log.v(TAG,"onItemSelected",new Exception());

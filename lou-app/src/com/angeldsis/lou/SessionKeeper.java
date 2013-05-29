@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 
 import org.json2.JSONObject;
@@ -295,15 +296,17 @@ public class SessionKeeper extends Service {
 		private void saveState() {
 			Gson gson = new Gson();
 			FileOutputStream state;
+			File source = SessionKeeper.this.getFileStreamPath("state_save.tmp");
 			try {
 				state = SessionKeeper.this.openFileOutput("state_save.tmp", MODE_PRIVATE);
 				String data1 = gson.toJson(this.state);
 				byte[] data2 = data1.getBytes();
 				state.write(data2);
 				state.close();
-				File source = SessionKeeper.this.getFileStreamPath("state_save.tmp");
 				File dest = SessionKeeper.this.getFileStreamPath("state_save");
 				source.renameTo(dest);
+			} catch (ConcurrentModificationException e) {
+				source.delete();
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

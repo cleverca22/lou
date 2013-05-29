@@ -269,7 +269,7 @@ public class ChatWindow extends SessionUser {
 						b.setSpan(new ImageSpan(crown_drawable), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 					}
 					
-					if (c.channel.equals("privateout")) b.append(session.state.self.getName()+": ");
+					if (c.channel.equals("privateout")) b.append(leakme.state.self.getName()+": ");
 					else b.append(c.sender+": ");
 					BBCode.parse(ChatWindow.this,c.message,b,spans);
 				}
