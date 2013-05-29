@@ -83,6 +83,7 @@ public class SessionKeeper extends Service {
 	static final int FOOD_WARNING = 0x400;
 	static final int EJECTED = 0x500;
 
+	NotificationCompat.Builder mBuilder,chatBuilder,incomingAttackBuilder,foodWarning,disconnectBuilder;
 	public class MyBinder extends Binder {
 		public SessionKeeper getService() {
 			Log.v(TAG,"getService");
@@ -117,6 +118,7 @@ public class SessionKeeper extends Service {
 		wl = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, "incoming attack");
 		// partial lock seems to not effect cpu freq scalling on the kindle
 		doing_network = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "lou logged in");
+		doing_network.setReferenceCounted(false);
 		self = this;
 		alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
 		Intent i = new Intent(this,SessionKeeper.class);
@@ -164,7 +166,6 @@ public class SessionKeeper extends Service {
 		}
 		return START_NOT_STICKY;
 	}
-	NotificationCompat.Builder mBuilder,chatBuilder,incomingAttackBuilder,foodWarning;
 	public class Session {
 		private static final String TAG = "Session";
 		public RPC rpc;
@@ -255,14 +256,17 @@ public class SessionKeeper extends Service {
 			if (cb != null) handled = cb.onChat(d);
 			
 			if (!handled) {
+				ChatMsg cm = d.get(d.size()-1);
 				//Log.v(TAG,"uncaught message");
 				
 				Bundle options = acct.toBundle();
 				Intent resultIntent = new Intent(SessionKeeper.this,ChatWindow.class);
 				Intent homeIntent = new Intent(SessionKeeper.this,LouSessionMain.class);
-				// FIXME, include chat details, to open tab
-				resultIntent.putExtras(options);
 				homeIntent.putExtras(options);
+
+				resultIntent.putExtras(options);
+				options.putString("currentTab", cm.tag);
+
 				TaskStackBuilder stackBuilder = TaskStackBuilder.create(SessionKeeper.this);
 				stackBuilder.addParentStack(ChatWindow.class);
 				stackBuilder.addNextIntent(homeIntent);
@@ -271,7 +275,6 @@ public class SessionKeeper extends Service {
 						.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT, options);
 				chatBuilder.setContentIntent(resultPendingIntent);
 
-				ChatMsg cm = d.get(d.size()-1);
 				chatBuilder.setContentText(cm.toString());
 				int sound = 0;
 				if (dingOnMessage) sound = Notification.DEFAULT_SOUND;
@@ -344,19 +347,7 @@ public class SessionKeeper extends Service {
 			rpc.stopLooping();
 			//doing_network.release();
 			teardown();
-			NotificationCompat.Builder b = new NotificationCompat.Builder(SessionKeeper.this)
-				.setContentText("you have been disconnected")
-				.setDefaults(Notification.DEFAULT_SOUND);
-
-			Intent resultIntent = new Intent(SessionKeeper.this,LouMain.class);
-			TaskStackBuilder stackBuilder = TaskStackBuilder.create(SessionKeeper.this);
-			stackBuilder.addParentStack(LouMain.class);
-			stackBuilder.addNextIntent(resultIntent);
-			PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-			b.setContentIntent(resultPendingIntent);
-			mNotificationManager.notify(SessionKeeper.EJECTED | sessionid, b.build());
-			Log.v(TAG,"showing disconnect notification");
-
+			mNotificationManager.notify(SessionKeeper.EJECTED | sessionid, disconnectBuilder.build());
 			SessionKeeper.this.checkState("onEjected");
 		}
 		public void onCityChanged() {
@@ -442,6 +433,7 @@ public class SessionKeeper extends Service {
 				synchronized(this) {
 					if (lockLocked == false) {
 						lockLocked = true;
+						Log.v(TAG,"locking lock");
 						doing_network.acquire();
 					}
 				}
@@ -469,15 +461,26 @@ public class SessionKeeper extends Service {
 		public void onEnlightenedCityChanged() {
 			Iterator<EnlightenedCity> i = rpc.enlightenedCities.data.values().iterator();
 			ArrayList<EnlightenedCity> list = new ArrayList<EnlightenedCity>();
+			StringBuilder bu = new StringBuilder();
 			while (i.hasNext()) {
 				EnlightenedCity c = i.next();
 				if (c.known) continue;
+				// FIXME, filter out continents im not on
 				list.add(c);
+				c.known = true;
+				bu.append(c.location.format());
+				bu.append(' ');
 			}
-			NotificationCompat.Builder b = new NotificationCompat.Builder(SessionKeeper.this);
-			b.setContentTitle("new city EL'd");
-			b.setContentText(String.format("%d cities enlightened",list.size()));
-			mNotificationManager.notify(0, b.build());
+			
+			if (list.size() > 0) {
+				NotificationCompat.Builder b = new NotificationCompat.Builder(SessionKeeper.this);
+				b.setSmallIcon(R.drawable.ic_launcher);
+				b.setAutoCancel(true);
+				b.setContentTitle("new city EL'd").setDefaults(Notification.DEFAULT_SOUND);
+				Log.v(TAG,"new city EL'd");
+				b.setContentText(String.format("%d cities enlightened %s",list.size(),bu.toString()));
+				mNotificationManager.notify(0, b.build());
+			}
 			
 			if (cb != null) cb.onEnlightenedCityChanged();
 		}
@@ -513,7 +516,11 @@ public class SessionKeeper extends Service {
 				PendingIntent resultPendingIntent = stackBuilder
 						.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT, options);
 				foodWarning.setContentIntent(resultPendingIntent);
-				foodWarning.setContentText(c.name +" runs out of food in "+((int)timeLeft/60/60)+" hours");
+
+				int hours = ((int)timeLeft/60/60);
+				if (hours > 0) foodWarning.setContentText(c.name +" runs out of food in "+hours+" hours");
+				else foodWarning.setContentText(c.name +" runs out of food in "+((timeLeft / 60)%60)+" minutes");
+
 				long x = System.currentTimeMillis() + (timeLeft*1000);
 				foodWarning.setWhen(x);
 				
@@ -525,6 +532,9 @@ public class SessionKeeper extends Service {
 				int id = (FOOD_WARNING | sessionid) + (c.cityid << 15);
 				mNotificationManager.notify(id, n);
 			}
+		}
+		public void logPollRequest(String c, int reply_size) {
+			rpclogs.logPollRequest(c,reply_size);
 		}
 	}
 	public void setTimer(long maxdelay) {
@@ -577,6 +587,18 @@ public class SessionKeeper extends Service {
 					.setContentText("FIXME")
 					.setAutoCancel(true)
 					.setVibrate(pattern).setDefaults(Notification.DEFAULT_SOUND);
+			disconnectBuilder = new NotificationCompat.Builder(SessionKeeper.this).setSmallIcon(R.drawable.ic_launcher)
+				.setContentTitle("you have been disconnected")
+				.setContentText("FIXME")
+				.setDefaults(Notification.DEFAULT_SOUND);
+			
+			Intent resultIntent = new Intent(SessionKeeper.this,LouMain.class);
+			TaskStackBuilder stackBuilder = TaskStackBuilder.create(SessionKeeper.this);
+			stackBuilder.addParentStack(LouMain.class);
+			stackBuilder.addNextIntent(resultIntent);
+			PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+			disconnectBuilder.setContentIntent(resultPendingIntent);
+			
 			mNotificationManager = (NotificationManager) getSystemService(SessionKeeper.NOTIFICATION_SERVICE);
 			Logger.init();
 		}
@@ -659,7 +681,7 @@ public class SessionKeeper extends Service {
 				}
 				//Log.v(TAG,"active:"+anyActive);
 				if ((anyActive == false) && lockLocked) {
-					//Log.v(TAG,"releasing wakelock");
+					Log.v(TAG,"releasing wakelock");
 					doing_network.release();
 					lockLocked = false;
 				} else {

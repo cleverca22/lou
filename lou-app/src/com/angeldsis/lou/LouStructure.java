@@ -99,19 +99,19 @@ public class LouStructure extends VisObject implements Hook {
 		case 50:
 			res = R.drawable.building_farm_new;
 			break;
-		case 297:
+		case 297: // 0x129
 			res = R.drawable.wall_tower_ranger_t;
 			break;
-		case 553:
+		case 553: // 0x229
 			res = R.drawable.wall_tower_ranger_b;
 			break;
 		case 550:
 			res = R.drawable.wall_tower_lookout_b;
 			break;
-		case 809:
+		case 809: // 0x329
 			res = R.drawable.wall_tower_ranger_l;
 			break;
-		case 1065:
+		case 1065: // 0x429
 			res = R.drawable.wall_tower_ranger_r;
 			break;
 		}

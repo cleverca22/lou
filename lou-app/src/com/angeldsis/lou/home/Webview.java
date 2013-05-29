@@ -13,14 +13,13 @@ import com.angeldsis.lou.LoggingIn;
 import com.angeldsis.lou.R;
 import com.angeldsis.lou.SessionKeeper;
 import com.angeldsis.lou.SessionKeeper.CookieCallback;
-import com.angeldsis.louapi.LouSession;
-
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -206,7 +205,12 @@ public class Webview extends Fragment implements CookieCallback {
 		Log.v(TAG,"done?");
 		if (r.worked) {
 			Log.v(TAG,"worked");
-			FragmentTransaction trans = getActivity().getSupportFragmentManager().beginTransaction();
+			FragmentActivity activity = getActivity();
+			if (activity == null) {
+				Log.v(TAG,"abort, abort!");
+				return;
+			}
+			FragmentTransaction trans = activity.getSupportFragmentManager().beginTransaction();
 			trans.replace(R.id.main_frame, new ServerList());
 			trans.commit();
 		} else {

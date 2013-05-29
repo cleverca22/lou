@@ -211,12 +211,12 @@ public class ChatWindow extends SessionUser {
 					b.append(" ");
 					BBCode.parse(ChatWindow.this,c.message,b,spans);
 				} else if (c.channel.equals("@A")) {
-					start = b.length();
-					String all = getString(R.string.alliance);
-					end = start + all.length();
-					b.append(all);
+					//start = b.length();
+					//String all = getString(R.string.alliance);
+					//end = start + all.length();
+					//b.append(all);
 					int green = getResources().getColor(R.color.chat_green);
-					b.setSpan(new ForegroundColorSpan(green), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+					//b.setSpan(new ForegroundColorSpan(green), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 					
 					if (c.hascrown) {
 						start = b.length();

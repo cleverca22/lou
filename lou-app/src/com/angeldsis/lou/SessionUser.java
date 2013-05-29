@@ -7,6 +7,7 @@ import com.angeldsis.lou.SessionKeeper.MyBinder;
 import com.angeldsis.lou.allianceforum.AllianceForumList;
 import com.angeldsis.lou.city.SendTrade;
 import com.angeldsis.lou.fragments.FoodWarnings;
+import com.angeldsis.lou.fragments.ShrineMonitor;
 import com.angeldsis.lou.home.DisconnectedDialog;
 import com.angeldsis.lou.world.DungeonList;
 import com.angeldsis.louapi.ChatMsg;
@@ -243,6 +244,12 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 			i = new Intent(this,SingleFragment.class);
 			i.putExtras(acct.toBundle());
 			i.putExtra("fragment", CityCore.class);
+			startActivity(i);
+			return true;
+		case R.id.shrine_monitor:
+			i = new Intent(this,SingleFragment.class);
+			i.putExtras(acct.toBundle());
+			i.putExtra("fragment", ShrineMonitor.class);
 			startActivity(i);
 			return true;
 		}

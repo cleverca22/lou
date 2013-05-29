@@ -44,7 +44,7 @@ public class EnlightenedCityList extends SessionUser {
 		public TextView wood;
 		public TextView stone;
 		public EnlightenedCity city;
-		public TextView comment;
+		public TextView comment,start;
 	}
 	@Override public void session_ready() {
 		Log.v(TAG,"session_ready()");
@@ -101,6 +101,7 @@ public class EnlightenedCityList extends SessionUser {
 				holder.wood = (TextView)row.findViewById(R.id.wood);
 				holder.stone = (TextView)row.findViewById(R.id.stone);
 				holder.comment = (TextView) row.findViewById(R.id.comment);
+				holder.start = (TextView) row.findViewById(R.id.start);
 				Button b = (Button) row.findViewById(R.id.button);
 				b.setOnClickListener(new OnClickListener() {
 					@Override public void onClick(View v) {
@@ -121,9 +122,11 @@ public class EnlightenedCityList extends SessionUser {
 			holder.coord.setText(coord.format());
 			holder.comment.setText(holder.city.comment);
 			
-			int needed = EnlightenedCity.res_needed[holder.city.palace_level];
-			int missing_wood = needed - (holder.city.wood + holder.city.getResourceCount(session.rpc.state, 0) + holder.city.incoming_wood);
-			int missing_stone = needed - (holder.city.stone + holder.city.getResourceCount(session.rpc.state, 1) + holder.city.incoming_stone);
+			holder.start.setText(session.state.stepToString(holder.city.endstep));
+			
+			long needed = EnlightenedCity.res_needed[holder.city.palace_level];
+			long missing_wood = needed - (holder.city.wood + holder.city.getResourceCount(session.rpc.state, 0) + holder.city.incoming_wood);
+			long missing_stone = needed - (holder.city.stone + holder.city.getResourceCount(session.rpc.state, 1) + holder.city.incoming_stone);
 			
 			// [1:00:08 AM] [RD] Mr. Liver: if hlp & !not full > greeen or highlighting in some way
 			TypedArray a = obtainStyledAttributes(null, R.styleable.ElCityList);

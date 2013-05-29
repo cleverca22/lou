@@ -8,9 +8,10 @@
     <item android:id="@+id/options" android:title="Options"></item>
     <item android:id="@+id/getfunds" android:title="Buy Funds"></item>
     <item android:id="@+id/el_city_list" android:title="EL city list"></item>
-    <item android:id="@+id/logout" android:title="@string/logout"></item>
     <item android:id="@+id/idleunits" android:title="Idle Units"></item>
-    <item android:id="@+id/update" android:title="Update"></item>
     <item android:id="@+id/foodWarning" android:title="Food Warnings"></item>
     <item android:id="@+id/cityCore" android:title="City Core"></item>
+    <item android:id="@+id/shrine_monitor" android:title="Shrine Monitor"></item>
+    <item android:id="@+id/update" android:title="Update"></item>
+    <item android:id="@+id/logout" android:title="@string/logout"></item>
 </menu>

@@ -12,16 +12,16 @@ public class EnlightenedCities {
 	public static class EnlightenedCity implements Comparable<Integer> {
 		public int id;
 		public Coord location;
-		public static final int[] res_needed = { 10000000, 30000000, 60000000, 100000000, 250000000,
+		public static final long[] res_needed = { 10000000, 30000000, 60000000, 100000000, 250000000,
 			350000000, 500000000, 800000000 ,1000000000, 1500000000 };
 		// dedicated wood/stone
-		public int wood,stone;
-		public int incoming_wood,incoming_stone;
+		public long wood,stone;
+		public long incoming_wood,incoming_stone;
 		public Resource[] normal;
 		public int shrine_type,palace_level;
 		public String comment;
 		String name;
-		int endstep;
+		public int endstep;
 		Player player;
 		public boolean known = false;
 		public EnlightenedCity(int id2, JSONObject y, RPC rpc) throws JSONException {
@@ -34,8 +34,8 @@ public class EnlightenedCities {
 			update(y);
 		}
 		public void update(JSONObject y) throws JSONException {
-			wood = y.getInt("w");
-			stone = y.getInt("s");
+			wood = y.getLong("w");
+			stone = y.getLong("s");
 			comment = y.getString("c");
 			name = y.getString("n");
 			endstep = y.getInt("et");
@@ -50,8 +50,8 @@ public class EnlightenedCities {
 				r.max = in.getInt("m");
 				r.base = in.getDouble("b");
 				r.step = in.getLong("s");
-				if (type == 1) incoming_wood = in.getInt("p");
-				else incoming_stone = in.getInt("s");
+				if (type == 1) incoming_wood = in.getLong("p");
+				else incoming_stone = in.getLong("s");
 			}
 		}
 		@Override public int compareTo(Integer arg0) {
@@ -83,6 +83,8 @@ public class EnlightenedCities {
 		JSONObject D = p.getJSONObject("D");
 		//Log.v(TAG,D.toString());
 		if (!D.isNull("f")) {
+			Log.v(TAG,"Flush!!!");
+			initial = true;
 			int flush = D.optInt("f");
 			if (flush == 1) this.data = new TreeMap<Integer,EnlightenedCity>();
 		}
@@ -90,7 +92,6 @@ public class EnlightenedCities {
 		int x;
 		for (x=0; x<c.length(); x++) {
 			JSONObject y = c.getJSONObject(x);
-			//Log.v(TAG,y.toString());
 			int id = y.getInt("i");
 			EnlightenedCity result = data.get(id);
 			if (y.has("n") == false) {
@@ -100,6 +101,7 @@ public class EnlightenedCities {
 				continue;
 			}
 			if (result == null) {
+				//Log.v(TAG,"making new obj "+y.toString());
 				result = new EnlightenedCity(id,y,rpc);
 				if (initial) result.known = true;
 				data.put(id,result);

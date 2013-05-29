@@ -27,8 +27,8 @@ public class LouMain extends FragmentActivity {
 		getSupportFragmentManager().beginTransaction().replace(R.id.main_frame, new Loading()).commit();
 	}
 	protected void onStart() {
-		super.onStart();
 		Log.v(TAG, "onStart");
+		super.onStart();
 	}
 		// AudioTrack click = new
 		// AudioTrack(AudioManager.STREAM_MUSIC,44100,AudioTrack.CHANNEL_OUT_MONO,ENCODING_PCM_16BIT,20096,MODE_STATIC);

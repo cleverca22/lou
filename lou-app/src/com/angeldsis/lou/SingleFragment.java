@@ -14,6 +14,7 @@ public class SingleFragment extends FragmentUser {
 		Intent msg = getIntent();
 		Bundle args = msg.getExtras();
 		Class<? extends Fragment> fragmentClass = (Class<? extends Fragment>) args.get("fragment");
+		Log.v(TAG,args.toString());
 		Log.v(TAG,fragmentClass.toString());
 		setContentView(R.layout.main);
 		try {

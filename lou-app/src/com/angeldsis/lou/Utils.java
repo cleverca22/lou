@@ -1,7 +1,7 @@
 package com.angeldsis.lou;
 
 public class Utils {
-	public static String NumberFormat(int input) {
+	public static String NumberFormat(long input) {
 		return coolFormat(input,0);
 	}
 	// http://stackoverflow.com/questions/4753251/how-to-go-about-formatting-1200-to-1-2k-in-java

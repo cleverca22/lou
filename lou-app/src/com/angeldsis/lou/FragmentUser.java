@@ -22,13 +22,14 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 
+// FIXME, add action bar stuff
 public class FragmentUser extends FragmentActivity implements Callbacks {
 	private static final String TAG = "FragmentUser";
 	SessionKeeper mService;
 	boolean mBound;
 	public SessionKeeper.Session session;
 	boolean allow_login;
-	protected AccountWrap acct;
+	public AccountWrap acct;
 	private ArrayList<FragmentBase> hooks = new ArrayList<FragmentBase>();
 	private ServiceConnection mConnection = new ServiceConnection() {
 		public void onServiceConnected(ComponentName className, IBinder service) {

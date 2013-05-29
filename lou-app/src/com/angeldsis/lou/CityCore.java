@@ -89,7 +89,13 @@ public class CityCore extends FragmentBase {
 				holder.state.setImageResource(R.drawable.icon_trade_info_mnstr_return);
 				break;
 			case Trade.Working:
-				holder.state.setImageResource(R.drawable.icon_trade_info_minister);
+				switch (t.type) {
+				case Trade.TradeMinisterRequested:
+					holder.state.setImageResource(R.drawable.icon_trade_info_minister);
+					break;
+				default:
+					holder.state.setImageResource(R.drawable.building_casern);
+				}
 				break;
 			case Trade.ReturnFromCancel:
 			case Trade.WorkingPalaceSupport:

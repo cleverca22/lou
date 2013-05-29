@@ -111,6 +111,10 @@ public class RPCWrap extends RPC {
 		super.logRequest(req, reply, func,nettime,parse1);
 		callbacks.logRequest(req,reply,func,nettime,parse1);
 	}
+	@Override public void logPollRequest(String c, int reply_size) {
+		super.logPollRequest(c, reply_size);
+		callbacks.logPollRequest(c,reply_size);
+	}
 	@Override public void onDefenseOverviewUpdate() {
 		callbacks.onDefenseOverviewUpdate();
 	}

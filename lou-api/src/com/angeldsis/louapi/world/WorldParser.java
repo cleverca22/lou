@@ -129,11 +129,12 @@ public class WorldParser {
 		int finerow = ((packed >> 5) & 0x1f);
 		int f = (packed >> 10);
 		int fineid = (finerow << 5) | finecol;
+		int col,row;
 		
 		switch (f) {
 		case 1: // city
-			int col = cell.getFineCol() + finecol;
-			int row = cell.getFineRow() + finerow;
+			col = cell.getFineCol() + finecol;
+			row = cell.getFineRow() + finerow;
 			CityMapping city = new CityMapping((finerow << 0x10) | finecol,y,col,row,cell);
 			changes.add(city);
 			//log(String.format("%d %d",d,e));
@@ -169,7 +170,9 @@ public class WorldParser {
 			//log(String.format("%d %d %d",d,e,f));
 			break;
 		case 5: // shrine
-			//Log.v(TAG,String.format("cell:%d packed:%s d:%2d e:%2d f:%d x:%s",cell.id,packed,d2,e,f,x));
+			col = cell.getFineCol() + finecol;
+			row = cell.getFineRow() + finerow;
+			Log.v(TAG,String.format("cell:%d f:%d fineid:%d, row/col %d:%d",cell.id,f,fineid,col,row));
 			//log(y.readRest());
 			break;
 		case 6: // lawless

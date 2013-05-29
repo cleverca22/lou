@@ -379,11 +379,11 @@ public class LouState {
 	public class Trade {
 		Alliance alliance;
 		Player player;
-		int type;
+		public int type;
 		static final int None = 0;
 		static final int AuctionHouse = 1;
-		static final int Direct = 2;
-		static final int TradeMinisterRequested = 3;
+		public static final int Direct = 2;
+		public static final int TradeMinisterRequested = 3;
 		static final int TradeMinisterSurplus = 4;
 		static final int IN = 0;
 		static final int OUT = 1;
@@ -497,10 +497,19 @@ public class LouState {
 			}
 		});
 	}
-	public String stepToString(int end) {
-		Date d = new Date(stepToMilis(end));
+	public String stepToString(int target) {
+		Date d = new Date(stepToMilis(target));
 		Calendar c = Calendar.getInstance(tz);
 		c.setTime(d);
+		int nowstep = getServerStep();
+		int stepdiff = target - nowstep;
+		// if its less then 24h away, just show the time
+		// needs more work
+		if (stepdiff < (60 * 60 * 24)) {
+			return String.format("%02d:%02d:%02d",
+					c.get(Calendar.HOUR_OF_DAY),c.get(Calendar.MINUTE),
+					c.get(Calendar.SECOND));
+		}
 		return String.format("%02d.%02d %02d:%02d:%02d",c.get(Calendar.MONTH)+1,
 				c.get(Calendar.DAY_OF_MONTH),
 				c.get(Calendar.HOUR_OF_DAY),c.get(Calendar.MINUTE),
