@@ -9,7 +9,7 @@ import org.json2.JSONObject;
 import com.angeldsis.louapi.data.Coord;
 import com.angeldsis.louapi.data.World;
 
-public class IncomingAttack extends Observable {
+public class IncomingAttack {
 	enum DataSource { alliance, player, city };
 	DataSource lastDataSource;
 	private static final String TAG = "IncomingAttack";
@@ -51,8 +51,6 @@ public class IncomingAttack extends Observable {
 		Log.v(TAG,"attack incoming to current city, from "+playerName);
 		printTimes();
 		// FIXME, actually use these fields
-		setChanged();
-		notifyObservers(this);
 	}
 	public void updatePlayerType(JSONObject X) throws JSONException {
 		targetIsMe = true;
@@ -77,8 +75,6 @@ public class IncomingAttack extends Observable {
 		targetCityName = X.getString("tcn");
 		Log.v(TAG,"attack incoming to "+this.targetCityName+" from player "+this.sourcePlayerName);
 		printTimes();
-		setChanged();
-		notifyObservers(this);
 	}
 	public void updateAllianceType(JSONObject a, World world) {
 		lastDataSource = DataSource.alliance;
@@ -110,8 +106,6 @@ public class IncomingAttack extends Observable {
 		int s = a.optInt("s");
 		int p = a.optInt("p");
 		printTimes();
-		setChanged();
-		notifyObservers(this);
 	}
 	void printTimes() {
 		if (state == null) return;
