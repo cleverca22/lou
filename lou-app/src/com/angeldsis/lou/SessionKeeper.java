@@ -620,7 +620,7 @@ public class SessionKeeper extends Service {
 	}
 	public static void checkCookie(final CookieCallback cb) {
 		Log.v(TAG,"checkCookie");
-		if (session2 == null) session2 = new LouSession();
+		if (session2 == null) session2 = new LouSession(HttpUtilImpl.getInstance());
 		AsyncTask<Object,Integer,result> task = new AsyncTask<Object,Integer,result>() {
 			@Override
 			protected result doInBackground(Object... arg0) {
@@ -640,7 +640,7 @@ public class SessionKeeper extends Service {
 	public static void restore_cookie(String cookie) {
 		Logger.init();
 		Log.v(TAG,"restore_cookie("+cookie+")");
-		if (session2 == null) session2 = new LouSession();
+		if (session2 == null) session2 = new LouSession(HttpUtilImpl.getInstance());
 		session2.restore_cookie(cookie);
 	}
 	@Override public void onTrimMemory(int level) {
