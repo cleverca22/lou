@@ -264,7 +264,7 @@ public class LouSession {
 			if (reply.code == 200) {
 			} else if (reply.code == 302) {
 				String secondurl = reply.location;
-				if (secondurl.startsWith("http://www.lordofultima.com/login/auth")) {
+				if (secondurl.startsWith("https://www.lordofultima.com/login/auth")) {
 					result obj = new result();
 					Log.e(TAG,String.format("fail 1 %d %s",reply.code,secondurl));
 					obj.worked = false;
