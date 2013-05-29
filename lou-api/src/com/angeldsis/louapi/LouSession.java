@@ -5,16 +5,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.net.ssl.HttpsURLConnection;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
@@ -24,6 +19,8 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
 
+import com.angeldsis.louapi.HttpUtil.HttpReply;
+
 public class LouSession {
 	public static class NewServer {
 		protected String server;
@@ -32,7 +29,6 @@ public class LouSession {
 		protected String name;
 	}
 	static final String TAG = "LouSession";
-	static URL base;
 	public ArrayList<ServerInfo> servers;
 	public long dataage;
 	private HttpUtil httpUtil;
@@ -45,40 +41,21 @@ public class LouSession {
 	}
 	public LouSession(HttpUtil httpUtil) {
 		this.httpUtil = httpUtil;
-		try {
-			base = new URL("http://lordofultima.com");
-		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 	public result startLogin(String username,String password) {
 		try {
-			URL login = new URL("https://www.lordofultima.com/j_security_check");
-			// initial login page
-			HttpsURLConnection conn = (HttpsURLConnection) login.openConnection();
-			conn.setReadTimeout(40000);
-			conn.setConnectTimeout(15000);
-			conn.setRequestMethod("POST");
-			HttpsURLConnection.setFollowRedirects(false);
-			HttpURLConnection.setFollowRedirects(false);
 			String data = "j_username="+URLEncoder.encode(username,"UTF-8")+
-				"&j_password="+URLEncoder.encode(password,"UTF-8");
-			conn.setFixedLengthStreamingMode(data.getBytes().length);
-			conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-			conn.setDoOutput(true);
-			PrintWriter out = new PrintWriter(conn.getOutputStream());
-			out.print(data);
-			out.close();
-			conn.connect();
-			int response = conn.getResponseCode();
+					"&j_password="+URLEncoder.encode(password,"UTF-8");
+			HttpReply reply = httpUtil.postUrl("https://www.lordofultima.com/j_security_check",data);
+
+			int response = reply.code;
 			Log.v(TAG,"response code "+response);
 			if (response != 302) {
 				// FIXME error;
 				char[] buffer = new char[1024];
 				int size;
 				StringBuilder buf = new StringBuilder();
-				InputStreamReader reply1 = new InputStreamReader(conn.getInputStream());
+				InputStreamReader reply1 = new InputStreamReader(reply.stream);
 				while ((size = reply1.read(buffer, 0, 1024)) != -1) {
 					buf.append(buffer,0,size);
 				}
@@ -87,20 +64,20 @@ public class LouSession {
 			}
 			httpUtil.dumpCookies();
 			
-			String url2 = conn.getHeaderField("Location");
+			String url2 = reply.location;
 			Log.v(TAG,"url2:"+url2);
 			boolean repeat = true;
-			HttpURLConnection conn2;
-			do  {
+			HttpReply reply2;
+			do {
 				Log.v(TAG,"following redir "+url2);
 				if (url2.equals("/en/game?")) url2 = "http://www.lordofultima.com/en/game?";
-				conn2 = this.doRequest(url2);
-				response = conn2.getResponseCode();
+				reply2 = httpUtil.getUrl(url2);
+				response = reply2.code;
 				Log.v(TAG,"response code "+response);
 				if (response == 200) {
 					repeat = false;
 				} else if (response == 301) {
-					url2 = conn2.getHeaderField("Location");
+					url2 = reply2.location;
 					Log.v(TAG,"302'd to "+url2);
 				}
 			} while (repeat);
@@ -109,7 +86,7 @@ public class LouSession {
 			char[] buffer = new char[1024];
 			int size;
 			StringBuilder buf = new StringBuilder();
-			InputStreamReader reply1 = new InputStreamReader(conn2.getInputStream());
+			InputStreamReader reply1 = new InputStreamReader(reply2.stream);
 			while ((size = reply1.read(buffer, 0, 1024)) != -1) {
 				buf.append(buffer,0,size);
 			}
@@ -125,18 +102,18 @@ public class LouSession {
 			String sessionId = m.group(0);
 			Log.v(TAG,"sessionid "+sessionId);
 
-			conn2 = this.doRequest("http://prodcdngame.lordofultima.com/Farm/service.svc/ajaxEndpoint/1/session/"+
+			reply2 = httpUtil.getUrl("http://prodcdngame.lordofultima.com/Farm/service.svc/ajaxEndpoint/1/session/"+
 						sessionId+"/worlds");
-			if (conn2.getResponseCode() == 200) {
+			if (reply2.code == 200) {
 			} else {
-				Log.e(TAG,String.format("unknown error %s",conn2.getResponseCode()));
+				Log.e(TAG,String.format("unknown error %s",reply2.code));
 				return null; // FIXME
 			}
 			
-			System.out.println("final code "+conn2.getResponseCode());
+			System.out.println("final code "+reply2.code);
 			final result output = new result();
 			output.worked = false;
-			parse_result(output, conn2.getInputStream());
+			parse_result(output, reply2.stream);
 			return output;
 		} catch (UnknownHostException e) {
 			result output = new result();
@@ -159,18 +136,6 @@ public class LouSession {
 			output.e = e;
 			return output;
 		}
-	}
-	HttpURLConnection doRequest(String url) throws IOException  {
-		Log.v(TAG,"Url3:"+url);
-		URL secondurl = new URL(base,url);
-		Log.v(TAG,"Url4: "+secondurl.toString());
-		HttpURLConnection conn2 = (HttpURLConnection)secondurl.openConnection();
-		conn2.setReadTimeout(20000);
-		conn2.setConnectTimeout(15000);
-		conn2.setRequestMethod("GET");
-		conn2.setDoOutput(false);
-		conn2.connect();
-		return conn2;
 	}
 	private void parse_result(final result output, InputStream is) throws IOException, SAXException {
 		XMLReader xmlReader = XMLReaderFactory.createXMLReader ("org.ccil.cowan.tagsoup.Parser");
@@ -301,22 +266,13 @@ public class LouSession {
 	}
 	public result check_cookie() {
 		try {
-			URL check = new URL("http://www.lordofultima.com/game/world/change");
-			HttpsURLConnection.setFollowRedirects(false);
-			HttpURLConnection.setFollowRedirects(false);
-			HttpURLConnection conn = (HttpURLConnection) check.openConnection();
-			conn.setReadTimeout(30000);
-			conn.setConnectTimeout(15000);
-			conn.setRequestMethod("GET");
-			conn.setDoOutput(false);
-			conn.setDoInput(true);
-			conn.connect();
-			if (conn.getResponseCode() == 200) {
-			} else if (conn.getResponseCode() == 302) {
-				String secondurl = conn.getHeaderField("Location");
+			HttpReply reply = httpUtil.getUrl("http://www.lordofultima.com/game/world/change");
+			if (reply.code == 200) {
+			} else if (reply.code == 302) {
+				String secondurl = reply.location;
 				if (secondurl.startsWith("http://www.lordofultima.com/login/auth")) {
 					result obj = new result();
-					Log.e(TAG,String.format("fail 1 %d %s",conn.getResponseCode(),secondurl));
+					Log.e(TAG,String.format("fail 1 %d %s",reply.code,secondurl));
 					obj.worked = false;
 					return obj;
 				} else {
@@ -324,7 +280,7 @@ public class LouSession {
 					return null; // FIXME
 				}
 			} else {
-				Log.e(TAG, "was expecting 302, got "+conn.getResponseCode());
+				Log.e(TAG, "was expecting 302, got "+reply.code);
 				return null; // FIXME
 			}
 			//String secondurl = conn.getHeaderField("Location");
@@ -336,7 +292,7 @@ public class LouSession {
 			char[] buffer = new char[1024];
 			int size;
 			StringBuilder buf = new StringBuilder();
-			InputStreamReader reply1 = new InputStreamReader(conn.getInputStream());
+			InputStreamReader reply1 = new InputStreamReader(reply.stream);
 			while ((size = reply1.read(buffer, 0, 1024)) != -1) {
 				buf.append(buffer,0,size);
 			}
@@ -352,19 +308,18 @@ public class LouSession {
 			String sessionId = m.group(0);
 			Log.v(TAG,"sessionid "+sessionId);
 
-			HttpURLConnection conn2;
-			conn2 = this.doRequest("http://prodcdngame.lordofultima.com/Farm/service.svc/ajaxEndpoint/1/session/"+
+			HttpReply reply2 = httpUtil.getUrl("http://prodcdngame.lordofultima.com/Farm/service.svc/ajaxEndpoint/1/session/"+
 						sessionId+"/worlds");
-			if (conn2.getResponseCode() == 200) {
+			if (reply2.code == 200) {
 			} else {
-				Log.e(TAG,String.format("unknown error %s",conn2.getResponseCode()));
+				Log.e(TAG,String.format("unknown error %s",reply2.code));
 				return null; // FIXME
 			}
 			
-			System.out.println("final code "+conn2.getResponseCode());
+			System.out.println("final code "+reply2.code);
 			final result output = new result();
 			output.worked = false;
-			parse_result(output, conn2.getInputStream());
+			parse_result(output, reply2.stream);
 			return output;
 		} catch (UnknownHostException e) {
 			Log.e(TAG,"dns error",e);
@@ -372,9 +327,6 @@ public class LouSession {
 			output.worked = false;
 			output.e = e;
 			return output;
-		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -1,17 +1,23 @@
 package com.angeldsis.lou;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
 import java.net.CookieStore;
 import java.net.HttpCookie;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.net.ssl.HttpsURLConnection;
 
 import com.angeldsis.louapi.HttpUtil;
 import com.angeldsis.louapi.Log;
@@ -66,10 +72,18 @@ public class HttpUtilImpl implements HttpUtil {
 			m.put(arg0, headersOut);
 		}
 	}
-	public HttpUtilImpl() {
+	private static URL base;
+
+	private HttpUtilImpl() {
 		mCookieManager = new CookieManager(null,new Policy());
 		mTest = new test(mCookieManager);
 		CookieHandler.setDefault(mTest);
+		try {
+			base = new URL("http://lordofultima.com");
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	public static HttpUtilImpl getInstance() {
 		if (self == null) self = new HttpUtilImpl();
@@ -129,5 +143,62 @@ public class HttpUtilImpl implements HttpUtil {
 	}
 	@Override public void logout() {
 		mCookieManager.getCookieStore().removeAll();
+	}
+	@Override
+	public HttpReply postUrl(String url, String data) {
+		try {
+			URL login = new URL(url);
+			// initial login page
+			HttpsURLConnection conn = (HttpsURLConnection) login.openConnection();
+			conn.setReadTimeout(40000);
+			conn.setConnectTimeout(15000);
+			conn.setRequestMethod("POST");
+			HttpsURLConnection.setFollowRedirects(false);
+			HttpURLConnection.setFollowRedirects(false);
+			conn.setFixedLengthStreamingMode(data.getBytes().length);
+			conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+			conn.setDoOutput(true);
+			PrintWriter out = new PrintWriter(conn.getOutputStream());
+			out.print(data);
+			out.close();
+			conn.connect();
+			
+			HttpReply reply = new HttpReply();
+			reply.code = conn.getResponseCode();
+			reply.stream = conn.getInputStream();
+			reply.location = conn.getHeaderField("Location");
+			return reply;
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+	@Override
+	public HttpReply getUrl(String url) {
+		try {
+			Log.v(TAG,"Url3:"+url);
+			URL secondurl = new URL(base,url);
+			Log.v(TAG,"Url4: "+secondurl.toString());
+			HttpURLConnection conn = (HttpURLConnection)secondurl.openConnection();
+			conn.setReadTimeout(20000);
+			conn.setConnectTimeout(15000);
+			conn.setRequestMethod("GET");
+			conn.setDoOutput(false);
+			conn.connect();
+			HttpReply reply = new HttpReply();
+			reply.code = conn.getResponseCode();
+			reply.stream = conn.getInputStream();
+			reply.location = conn.getHeaderField("Location");
+			return reply;
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
 	}
 }
