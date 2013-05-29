@@ -2,6 +2,7 @@ package com.angeldsis.lou;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
@@ -12,6 +13,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -200,5 +202,8 @@ public class HttpUtilImpl implements HttpUtil {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	@Override public String encode(String str) throws UnsupportedEncodingException {
+		return URLEncoder.encode(str,"UTF-8");
 	}
 }

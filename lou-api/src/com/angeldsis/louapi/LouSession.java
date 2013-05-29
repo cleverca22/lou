@@ -44,8 +44,8 @@ public class LouSession {
 	}
 	public result startLogin(String username,String password) {
 		try {
-			String data = "j_username="+URLEncoder.encode(username,"UTF-8")+
-					"&j_password="+URLEncoder.encode(password,"UTF-8");
+			String data = "j_username="+httpUtil.encode(username)+
+					"&j_password="+httpUtil.encode(password);
 			HttpReply reply = httpUtil.postUrl("https://www.lordofultima.com/j_security_check",data);
 
 			int response = reply.code;
@@ -114,12 +114,6 @@ public class LouSession {
 			final result output = new result();
 			output.worked = false;
 			parse_result(output, reply2.stream);
-			return output;
-		} catch (UnknownHostException e) {
-			result output = new result();
-			output.error = true;
-			output.errmsg = "network error";
-			output.e = e;
 			return output;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -320,12 +314,6 @@ public class LouSession {
 			final result output = new result();
 			output.worked = false;
 			parse_result(output, reply2.stream);
-			return output;
-		} catch (UnknownHostException e) {
-			Log.e(TAG,"dns error",e);
-			result output = new result();
-			output.worked = false;
-			output.e = e;
 			return output;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
