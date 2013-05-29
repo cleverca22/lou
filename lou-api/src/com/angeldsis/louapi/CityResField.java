@@ -6,7 +6,7 @@ import org.json2.JSONObject;
 import com.angeldsis.louapi.LouState.City;
 
 public class CityResField extends LouVisData {
-	String TAG = "CityResField";
+	private static final String TAG = "CityResField";
 	public int c;
 	// subid/typeid data
 	// most images are 150x128
