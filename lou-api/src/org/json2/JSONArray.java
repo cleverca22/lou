@@ -149,7 +149,7 @@ public class JSONArray {
      * Construct a JSONArray from a Collection.
      * @param collection     A Collection.
      */
-    public JSONArray(Collection collection) {
+    /*public JSONArray(Collection collection) {
         this.myArrayList = new ArrayList();
         if (collection != null) {
             Iterator iter = collection.iterator();
@@ -157,14 +157,14 @@ public class JSONArray {
                 this.myArrayList.add(JSONObject.wrap(iter.next()));
             }
         }
-    }
+    }*/
 
 
     /**
      * Construct a JSONArray from an array
      * @throws JSONException If not an array.
      */
-    public JSONArray(Object array) throws JSONException {
+    /*public JSONArray(Object array) throws JSONException {
         this();
         if (array.getClass().isArray()) {
             int length = Array.getLength(array);
@@ -175,7 +175,7 @@ public class JSONArray {
             throw new JSONException(
 "JSONArray initial value should be a string or collection or array.");
         }
-    }
+    }*/
 
 
     /**
@@ -579,10 +579,10 @@ public class JSONArray {
      * @param value A Collection value.
      * @return      this.
      */
-    public JSONArray put(Collection value) {
+    /*public JSONArray put(Collection value) {
         this.put(new JSONArray(value));
         return this;
-    }
+    }*/
 
 
     /**
@@ -630,10 +630,10 @@ public class JSONArray {
      * @param value A Map value.
      * @return      this.
      */
-    public JSONArray put(Map value) {
+    /*public JSONArray put(Map value) {
         this.put(new JSONObject(value));
         return this;
-    }
+    }*/
 
 
     /**
@@ -673,10 +673,10 @@ public class JSONArray {
      * @throws JSONException If the index is negative or if the value is
      * not finite.
      */
-    public JSONArray put(int index, Collection value) throws JSONException {
+    /*public JSONArray put(int index, Collection value) throws JSONException {
         this.put(index, new JSONArray(value));
         return this;
-    }
+    }*/
 
 
     /**
@@ -734,10 +734,10 @@ public class JSONArray {
      * @throws JSONException If the index is negative or if the the value is
      *  an invalid number.
      */
-    public JSONArray put(int index, Map value) throws JSONException {
+    /*public JSONArray put(int index, Map value) throws JSONException {
         this.put(index, new JSONObject(value));
         return this;
-    }
+    }*/
 
 
     /**

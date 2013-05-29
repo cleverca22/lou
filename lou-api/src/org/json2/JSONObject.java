@@ -28,8 +28,6 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -247,7 +245,7 @@ public class JSONObject {
      *  the JSONObject.
      * @throws JSONException
      */
-    public JSONObject(Map map) {
+    /*public JSONObject(Map map) {
         this.map = new HashMap();
         if (map != null) {
             Iterator i = map.entrySet().iterator();
@@ -259,7 +257,7 @@ public class JSONObject {
                 }
             }
         }
-    }
+    }*/
 
 
     /**
@@ -281,10 +279,10 @@ public class JSONObject {
      * @param bean An object that has getter methods that should be used
      * to make a JSONObject.
      */
-    public JSONObject(Object bean) {
+    /*public JSONObject(Object bean) {
         this();
         this.populateMap(bean);
-    }
+    }*/
 
 
     /**
@@ -975,7 +973,7 @@ public class JSONObject {
     }
 
 
-    private void populateMap(Object bean) {
+    /*private void populateMap(Object bean) {
         Class klass = bean.getClass();
 
 // If klass is a System class then set includeSuperClass to false.
@@ -1020,7 +1018,7 @@ public class JSONObject {
             } catch (Exception ignore) {
             }
         }
-    }
+    }*/
 
 
     /**
@@ -1045,10 +1043,10 @@ public class JSONObject {
      * @return      this.
      * @throws JSONException
      */
-    public JSONObject put(String key, Collection value) throws JSONException {
+    /*public JSONObject put(String key, Collection value) throws JSONException {
         this.put(key, new JSONArray(value));
         return this;
-    }
+    }*/
 
 
     /**
@@ -1101,10 +1099,10 @@ public class JSONObject {
      * @return      this.
      * @throws JSONException
      */
-    public JSONObject put(String key, Map value) throws JSONException {
+    /*public JSONObject put(String key, Map value) throws JSONException {
         this.put(key, new JSONObject(value));
         return this;
-    }
+    }*/
 
 
     /**
@@ -1448,13 +1446,16 @@ public class JSONObject {
             return value.toString();
         }
         if (value instanceof Map) {
-            return new JSONObject((Map)value).toString();
+        	throw new IllegalStateException("Map support removed");
+            //return new JSONObject((Map)value).toString();
         }
         if (value instanceof Collection) {
-            return new JSONArray((Collection)value).toString();
+            throw new IllegalStateException("Collection support removed");
+            //return new JSONArray((Collection)value).toString();
         }
         if (value.getClass().isArray()) {
-            return new JSONArray(value).toString();
+            throw new IllegalStateException("??? support removed");
+            //return new JSONArray(value).toString();
         }
         return quote(value.toString());
     }
@@ -1471,7 +1472,7 @@ public class JSONObject {
       * @param object The object to wrap
       * @return The wrapped value
       */
-     public static Object wrap(Object object) {
+     /*public static Object wrap(Object object) {
          try {
              if (object == null) {
                  return NULL;
@@ -1510,7 +1511,7 @@ public class JSONObject {
          } catch(Exception exception) {
              return null;
          }
-     }
+     }*/
 
 
      /**
@@ -1536,12 +1537,15 @@ public class JSONObject {
         } else if (value instanceof JSONArray) {
             ((JSONArray) value).write(writer, indentFactor, indent);
         } else if (value instanceof Map) {
-            new JSONObject((Map) value).write(writer, indentFactor, indent);
+            //new JSONObject((Map) value).write(writer, indentFactor, indent);
+        	throw new IllegalStateException("Map support removed");
         } else if (value instanceof Collection) {
-            new JSONArray((Collection) value).write(writer, indentFactor,
-                    indent);
+            throw new IllegalStateException("Collection support removed");
+            //new JSONArray((Collection) value).write(writer, indentFactor,
+            //        indent);
         } else if (value.getClass().isArray()) {
-            new JSONArray(value).write(writer, indentFactor, indent);
+            throw new IllegalStateException("??? support removed");
+            ///new JSONArray(value).write(writer, indentFactor, indent);
         } else if (value instanceof Number) {
             writer.write(numberToString((Number) value));
         } else if (value instanceof Boolean) {
