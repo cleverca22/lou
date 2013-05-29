@@ -1,7 +1,7 @@
 package com.angeldsis.lou;
 
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.CookieHandler;
 import java.net.CookieManager;
@@ -146,30 +146,18 @@ public class HttpUtilImpl implements HttpUtil {
 	@Override public void logout() {
 		mCookieManager.getCookieStore().removeAll();
 	}
-	@Override
-	public HttpReply postUrl(String url, String data) {
+	@Override public HttpReply postUrl(String url, String data) {
 		try {
 			URL login = new URL(url);
-			// initial login page
 			HttpsURLConnection conn = (HttpsURLConnection) login.openConnection();
+			byte[] raw_data = data.getBytes();
 			conn.setReadTimeout(40000);
 			conn.setConnectTimeout(15000);
 			conn.setRequestMethod("POST");
-			HttpsURLConnection.setFollowRedirects(false);
-			HttpURLConnection.setFollowRedirects(false);
-			conn.setFixedLengthStreamingMode(data.getBytes().length);
-			conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 			conn.setDoOutput(true);
-			PrintWriter out = new PrintWriter(conn.getOutputStream());
-			out.print(data);
-			out.close();
-			conn.connect();
-			
-			HttpReply reply = new HttpReply();
-			reply.code = conn.getResponseCode();
-			reply.stream = conn.getInputStream();
-			reply.location = conn.getHeaderField("Location");
-			return reply;
+			conn.setFixedLengthStreamingMode(raw_data.length);
+			conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+			return doPost(conn,raw_data);
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -178,8 +166,7 @@ public class HttpUtilImpl implements HttpUtil {
 		}
 		return null;
 	}
-	@Override
-	public HttpReply getUrl(String url) {
+	@Override public HttpReply getUrl(String url) {
 		try {
 			Log.v(TAG,"Url3:"+url);
 			URL secondurl = new URL(base,url);
@@ -190,11 +177,7 @@ public class HttpUtilImpl implements HttpUtil {
 			conn.setRequestMethod("GET");
 			conn.setDoOutput(false);
 			conn.connect();
-			HttpReply reply = new HttpReply();
-			reply.code = conn.getResponseCode();
-			reply.stream = conn.getInputStream();
-			reply.location = conn.getHeaderField("Location");
-			return reply;
+			return makeReply(conn);
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -203,7 +186,45 @@ public class HttpUtilImpl implements HttpUtil {
 		}
 		return null;
 	}
+	private HttpReply doPost(HttpURLConnection conn, byte[] raw_data) throws IOException {
+		HttpsURLConnection.setFollowRedirects(false);
+		HttpURLConnection.setFollowRedirects(false);
+		OutputStream os = conn.getOutputStream();
+		os.write(raw_data);
+		os.close();
+		conn.connect();
+		return makeReply(conn);
+	}
+	private HttpReply makeReply(HttpURLConnection conn) throws IOException {
+		HttpReply reply = new HttpReply();
+		reply.code = conn.getResponseCode();
+		reply.stream = conn.getInputStream();
+		reply.location = conn.getHeaderField("Location");
+		reply.contentLength = conn.getContentLength();
+		return reply;
+	}
 	@Override public String encode(String str) throws UnsupportedEncodingException {
 		return URLEncoder.encode(str,"UTF-8");
+	}
+	@Override
+	public HttpReply postUrl(String url, byte[] raw_data) {
+		try {
+			URL login = new URL(url);
+			HttpURLConnection conn = (HttpURLConnection) login.openConnection();
+			conn.setReadTimeout(60000);
+			conn.setConnectTimeout(60000);
+			conn.setRequestMethod("POST");
+			conn.setDoOutput(true);
+			conn.setFixedLengthStreamingMode(raw_data.length);
+			conn.setRequestProperty("Content-Type", "application/json");
+			conn.connect();
+			return doPost(conn,raw_data);
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
 	}
 }

@@ -12,8 +12,10 @@ public interface HttpUtil {
 		public int code;
 		public InputStream stream;
 		public String location;
+		public int contentLength;
 	}
 	HttpReply postUrl(String url, String data);
 	HttpReply getUrl(String url);
 	String encode(String str) throws UnsupportedEncodingException;
+	HttpReply postUrl(String url, byte[] raw_data);
 }

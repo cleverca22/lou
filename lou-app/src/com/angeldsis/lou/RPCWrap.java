@@ -18,7 +18,7 @@ public class RPCWrap extends RPC {
 	Handler handler = new Handler();
 	SessionKeeper.Session callbacks;
 	public RPCWrap(Account acct, LouState state,SessionKeeper.Session activity) {
-		super(acct, state);
+		super(acct, state,HttpUtilImpl.getInstance());
 		Log.v("RPCWrap","handler is "+handler);
 		this.callbacks = activity;
 	}

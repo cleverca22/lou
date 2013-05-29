@@ -21,6 +21,7 @@ import org.json2.JSONException;
 import org.json2.JSONObject;
 import org.json2.JSONTokener;
 
+import com.angeldsis.louapi.HttpUtil.HttpReply;
 import com.angeldsis.louapi.LouState.City;
 import com.angeldsis.louapi.data.AllianceForum;
 import com.angeldsis.louapi.data.Coord;
@@ -51,9 +52,10 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 	DefenseOverviewParser defenseOverviewParser;
 	public EnlightenedCities enlightenedCities;
 	public FoodWarningParser foodWarnings;
-	HashMap<String,URL> urlcache = new HashMap<String,URL>();
+	private HttpUtil httpUtil;
 
-	public RPC(Account acct, LouState state) {
+	public RPC(Account acct, LouState state,HttpUtil httpUtil) {
+		this.httpUtil = httpUtil;
 		this.account = acct;
 		this.state = state;
 		aam = new AllianceAttackMonitor(this);
@@ -437,7 +439,6 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 		}
 	}
 	private void doRPC(final String function,final JSONObject request, final RPCCallback rpcCallback, final int retry) throws JSONException {
-		URL url;
 		if (retry == 0) {
 			System.out.println("too many treies");
 			return;
@@ -450,48 +451,27 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 		final int requestsize = raw_data.length;
 
 		final long netstart = System.currentTimeMillis();
-		HttpURLConnection conn = null;
-		try {
-			if (urlcache.containsKey(function)) url = urlcache.get(function);
-			else {
-				url = new URL(urlbase + function);
-				urlcache.put(function, url);
-			}
-			conn = (HttpURLConnection) url.openConnection();
-			conn.setReadTimeout(60000);
-			conn.setConnectTimeout(60000);
-			conn.setRequestMethod("POST");
-			conn.setDoOutput(true);
-			HttpURLConnection.setFollowRedirects(false);
-			conn.setFixedLengthStreamingMode(raw_data.length);
-			conn.setRequestProperty("Content-Type", "application/json");
-			
-			OutputStream os = conn.getOutputStream();
-			os.write(raw_data,0,raw_data.length);
-			os.close();
-			
-			conn.connect();
-		
+			HttpReply reply1 = httpUtil.postUrl(urlbase + function,raw_data);
 			long netstop = System.currentTimeMillis();
 			rpcreply reply2 = new rpcreply();
-			reply2.http_code = conn.getResponseCode();
+			reply2.http_code = reply1.code;
 			int networktime = (int) (netstop - netstart);
 			long start = System.currentTimeMillis();
-			if (conn.getContentLength() == 0) {
+			if (reply1.contentLength == 0) {
 				reply2.raw_reply = null;
 			} else {
 				try {
 					// averaging 100-200ms per call
-					reply2.reply = new JSONTokener(new InputStreamReader(conn.getInputStream())).nextValue();
+					reply2.reply = new JSONTokener(new InputStreamReader(reply1.stream)).nextValue();
 					//Log.v(TAG, String.format("parsing took %dms",end-start));
 				} catch (JSONException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-					reply2.raw_reply = conn.getInputStream();
+					reply2.raw_reply = reply1.stream;
 				}
 			}
 			long end = System.currentTimeMillis();
-			logRequest(requestsize,conn.getContentLength(),function,networktime,(int)(end-start));
+			logRequest(requestsize,reply1.contentLength,function,networktime,(int)(end-start));
 			try {
 				rpcCallback.requestDone(reply2);
 			} catch (JSONException e) {
@@ -501,7 +481,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		} catch (MalformedURLException e2) {
+		/*} catch (MalformedURLException e2) {
 			// TODO Auto-generated catch block
 			e2.printStackTrace();
 		} catch (UnknownHostException e) {
@@ -519,14 +499,14 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			stopLooping();
 			return;
 		} catch (IOException e) {
-			Log.e(TAG, function + " exception from http req, retrying "+retry+" more times " + conn,e);
+			Log.e(TAG, function + " exception from http req, retrying "+retry+" more times",e);
 			try {
 				doRPC(function,request,rpcCallback,retry - 1);
 			} catch (JSONException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
-		}
+		}*/
 	}
 	public void logRequest(int req,int reply,String func, int networktime, int parse1) {
 		//Log.v(TAG,String.format("SIZE %s(%d) == %d",func,req,reply));
