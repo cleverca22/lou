@@ -1,10 +1,16 @@
 package com.angeldsis.louapi;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
@@ -15,7 +21,6 @@ import org.json2.JSONException;
 import org.json2.JSONObject;
 import org.json2.JSONTokener;
 
-import com.angeldsis.louapi.HttpRequest.HttpReply;
 import com.angeldsis.louapi.LouState.City;
 import com.angeldsis.louapi.data.AllianceForum;
 import com.angeldsis.louapi.data.Coord;
@@ -46,6 +51,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 	DefenseOverviewParser defenseOverviewParser;
 	public EnlightenedCities enlightenedCities;
 	public FoodWarningParser foodWarnings;
+	HashMap<String,URL> urlcache = new HashMap<String,URL>();
 
 	public RPC(Account acct, LouState state) {
 		this.account = acct;
@@ -81,7 +87,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 					JSONObject obj = new JSONObject();
 					obj.put("cityid",v.getCity().cityid);
 					obj.put("buildingid", v.visId);
-					doRPC("GetBuildingInfo",obj,RPC.this,new RPCCallback() {
+					doRPC("GetBuildingInfo",obj,new RPCCallback() {
 						@Override
 						void requestDone(rpcreply r) throws JSONException,
 								Exception {
@@ -100,7 +106,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			public void run() {
 				try {
 					JSONObject obj = new JSONObject();
-					doRPC("GetLockboxURL",obj,RPC.this,new RPCCallback() {
+					doRPC("GetLockboxURL",obj,new RPCCallback() {
 						@Override void requestDone(final rpcreply r) {
 							runOnUiThread(new Runnable() {
 								public void run() {
@@ -123,7 +129,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 					JSONObject obj = new JSONObject();
 					obj.put("cityid",v.getCity().cityid);
 					obj.put("buildingid", v.visId);
-					doRPC("DemolishBuilding",obj,RPC.this,new RPCCallback() {
+					doRPC("DemolishBuilding",obj,new RPCCallback() {
 						@Override
 						void requestDone(rpcreply r) throws JSONException,
 								Exception {
@@ -150,7 +156,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 					obj.put("sort",sort);
 					obj.put("ascending",ascending);
 					obj.put("mask",mask);
-					doRPC("ReportGetHeader",obj,RPC.this,new RPCCallback() {
+					doRPC("ReportGetHeader",obj,new RPCCallback() {
 						@Override
 						void requestDone(rpcreply r) throws JSONException,
 								Exception {
@@ -181,7 +187,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 					JSONObject obj = new JSONObject();
 					obj.put("id", subid);
 					obj.put("pid", playerid);
-					doRPC("SubstitutionAcceptReq",obj,RPC.this,new RPCCallback() {
+					doRPC("SubstitutionAcceptReq",obj,new RPCCallback() {
 						public void requestDone(rpcreply r) {
 							Log.v(TAG,r.reply.toString());
 						}
@@ -202,7 +208,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 					JSONObject obj = new JSONObject();
 					obj.put("id", s.id);
 					obj.put("pid", s.giver.getId());
-					doRPC("SubstitutionCancleReq",obj,RPC.this,new RPCCallback() {
+					doRPC("SubstitutionCancleReq",obj,new RPCCallback() {
 						public void requestDone(rpcreply r) {
 							Log.v(TAG,r.reply.toString());
 						}
@@ -219,7 +225,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 				try {
 					JSONObject obj = new JSONObject();
 					obj.put("name", name);
-					doRPC("SubstitutionCreateReq",obj,RPC.this,new RPCCallback() {
+					doRPC("SubstitutionCreateReq",obj,new RPCCallback() {
 						public void requestDone(rpcreply r) {
 							Log.v(TAG,r.reply.toString());
 						}
@@ -237,7 +243,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 					JSONObject obj = new JSONObject();
 					obj.put("id", s.id);
 					obj.put("pid", s.giver.getId());
-					doRPC("CreateSubstitutionSession",obj,RPC.this,new RPCCallback() {
+					doRPC("CreateSubstitutionSession",obj,new RPCCallback() {
 						public void requestDone(final rpcreply r) {
 							Log.v(TAG,r.reply.toString());
 							runOnUiThread(new Runnable() {
@@ -261,7 +267,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 				try {
 					JSONObject obj = new JSONObject();
 					obj.put("id", reportid);
-					doRPC("GetReport",obj,RPC.this,new RPCCallback() {
+					doRPC("GetReport",obj,new RPCCallback() {
 						@Override
 						void requestDone(rpcreply r) throws JSONException,
 								Exception {
@@ -292,7 +298,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 				try {
 					JSONObject obj = new JSONObject();
 					obj.put("id",sharestring);
-					doRPC("GetSharedReport",obj,RPC.this,new RPCCallback() {
+					doRPC("GetSharedReport",obj,new RPCCallback() {
 						@Override
 						void requestDone(rpcreply r) throws JSONException,
 								Exception {
@@ -322,7 +328,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 					obj.put("buildingid", coord);
 					obj.put("buildingType", structureid);
 					obj.put("isPaid", true);
-					doRPC("UpgradeBuilding",obj,RPC.this,new RPCCallback() {
+					doRPC("UpgradeBuilding",obj,new RPCCallback() {
 						@Override void requestDone(rpcreply r) throws JSONException {
 							pollSoon();
 							//Log.v(TAG,r.reply.toString(1));
@@ -351,7 +357,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 					JSONObject obj = new JSONObject();
 					obj.put("buildingPlace",coord);
 					obj.put("cityid", c.cityid);
-					doRPC("GetBuildingUpgradeInfo",obj,RPC.this,new RPCCallback() {
+					doRPC("GetBuildingUpgradeInfo",obj,new RPCCallback() {
 						@Override
 						void requestDone(rpcreply r) throws JSONException,
 								Exception {
@@ -391,7 +397,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 		JSONObject obj = new JSONObject();
 		try {
 			obj.put("reset", reset);
-			doRPC("OpenSession",obj,this,new RPCCallback() {
+			doRPC("OpenSession",obj,new RPCCallback() {
 				@Override
 				void requestDone(rpcreply reply) throws JSONException,Exception {
 					Log.v(TAG,account.sessionid+" http code:"+reply.http_code);
@@ -420,7 +426,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 		JSONObject obj = new JSONObject();
 		try {
 			obj.put("time", System.currentTimeMillis());
-			doRPC("GetServerInfo",obj,this,new RPCCallback() {
+			doRPC("GetServerInfo",obj,new RPCCallback() {
 				void requestDone(rpcreply reply) throws JSONException {
 					state.parseServerInfo((JSONObject)reply.reply);
 					rpcDone.requestDone((JSONObject) reply.reply);
@@ -430,72 +436,97 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			e.printStackTrace();
 		}
 	}
-	private void doRPC(final String function,final JSONObject request, final RPC parent, final RPCCallback rpcCallback, final int retry) throws JSONException {
+	private void doRPC(final String function,final JSONObject request, final RPCCallback rpcCallback, final int retry) throws JSONException {
+		URL url;
 		if (retry == 0) {
 			System.out.println("too many treies");
 			return;
 		}
-		if (function == "OpenSession") request.put("session", parent.account.sessionid);
-		else request.put("session", parent.instanceid);
-		String postdata = request.toString();
-		final int requestsize = postdata.getBytes().length;
-		HttpRequest req2 = new HttpRequest();
+		setThreadActive(true);
+
+		if (function == "OpenSession") request.put("session", account.sessionid);
+		else request.put("session", instanceid);
+		byte[] raw_data = request.toString().getBytes();
+		final int requestsize = raw_data.length;
+
 		final long netstart = System.currentTimeMillis();
-		HttpRequest.Callback cb = new HttpRequest.Callback() {
-			public void done(HttpReply reply) {
-				long netstop = System.currentTimeMillis();
-				rpcreply reply2 = new rpcreply();
-				if (reply.e != null) {
-					if (reply.e instanceof UnknownHostException) {
-						Log.w(TAG,"dns error, retrying "+urlbase);
-					} else if (reply.e instanceof FileNotFoundException) {
-						Log.e(TAG, "wtf, file not found?? " + urlbase + function);
-						stopPolling();
-						onEjected();
-						stopLooping();
-						return;
-					} else {
-						Log.e(TAG, "exception from http req, retrying "+retry+" more times",reply.e);
-					}
-					try {
-						doRPC(function,request,parent,rpcCallback,retry - 1);
-					} catch (JSONException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-					return;
-				}
-				reply2.http_code = reply.code;
-				int networktime = (int) (netstop - netstart);
-				long start = System.currentTimeMillis();
-				if (reply.size == 0) {
-					reply2.raw_reply = null;
-				} else {
-					try {
-						// averaging 100-200ms per call
-						reply2.reply = new JSONTokener(new InputStreamReader(reply.stream)).nextValue();
-						//Log.v(TAG, String.format("parsing took %dms",end-start));
-					} catch (JSONException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-						reply2.raw_reply = reply.stream;
-					}
-				}
-				long end = System.currentTimeMillis();
-				logRequest(requestsize,reply.size,function,networktime,(int)(end-start));
+		HttpURLConnection conn = null;
+		try {
+			if (urlcache.containsKey(function)) url = urlcache.get(function);
+			else {
+				url = new URL(urlbase + function);
+				urlcache.put(function, url);
+			}
+			conn = (HttpURLConnection) url.openConnection();
+			conn.setReadTimeout(60000);
+			conn.setConnectTimeout(60000);
+			conn.setRequestMethod("POST");
+			conn.setDoOutput(true);
+			HttpURLConnection.setFollowRedirects(false);
+			conn.setFixedLengthStreamingMode(raw_data.length);
+			conn.setRequestProperty("Content-Type", "application/json");
+			
+			OutputStream os = conn.getOutputStream();
+			os.write(raw_data,0,raw_data.length);
+			os.close();
+			
+			conn.connect();
+		
+			long netstop = System.currentTimeMillis();
+			rpcreply reply2 = new rpcreply();
+			reply2.http_code = conn.getResponseCode();
+			int networktime = (int) (netstop - netstart);
+			long start = System.currentTimeMillis();
+			if (conn.getContentLength() == 0) {
+				reply2.raw_reply = null;
+			} else {
 				try {
-					rpcCallback.requestDone(reply2);
+					// averaging 100-200ms per call
+					reply2.reply = new JSONTokener(new InputStreamReader(conn.getInputStream())).nextValue();
+					//Log.v(TAG, String.format("parsing took %dms",end-start));
 				} catch (JSONException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					reply2.raw_reply = conn.getInputStream();
 				}
 			}
-		};
-		req2.PostURL(urlbase + function, postdata, cb);
-		return;
+			long end = System.currentTimeMillis();
+			logRequest(requestsize,conn.getContentLength(),function,networktime,(int)(end-start));
+			try {
+				rpcCallback.requestDone(reply2);
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} catch (MalformedURLException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		} catch (UnknownHostException e) {
+			Log.w(TAG,"dns error, retrying "+urlbase);
+			try {
+				doRPC(function,request,rpcCallback,retry - 1);
+			} catch (JSONException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "wtf, file not found?? " + urlbase + function);
+			stopPolling();
+			onEjected();
+			stopLooping();
+			return;
+		} catch (IOException e) {
+			Log.e(TAG, function + " exception from http req, retrying "+retry+" more times " + conn,e);
+			try {
+				doRPC(function,request,rpcCallback,retry - 1);
+			} catch (JSONException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
 	}
 	public void logRequest(int req,int reply,String func, int networktime, int parse1) {
 		//Log.v(TAG,String.format("SIZE %s(%d) == %d",func,req,reply));
@@ -515,11 +546,17 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 	public void GetPlayerInfo(final RPCDone rpcDone) {
 		JSONObject obj = new JSONObject();
 		try {
-			doRPC("GetPlayerInfo",obj,this,new RPCCallback () {
+			doRPC("GetPlayerInfo",obj,new RPCCallback () {
 				@Override
 				void requestDone(rpcreply r) throws JSONException, Exception {
+					try {
 					state.processPlayerInfo((JSONObject) r.reply);
 					rpcDone.requestDone((JSONObject) r.reply);
+					} catch (NullPointerException e) {
+						Log.e(TAG,r.reply.toString());
+						Log.e(TAG, "internal error",e);
+						RPC.this.onEjected();
+					}
 					runOnUiThread(new Runnable() {
 						public void run() {
 							cityListChanged();
@@ -539,7 +576,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			public void run() {
 				JSONObject obj = new JSONObject();
 				try {
-					doRPC("GetAllianceForums",obj,RPC.this,new RPCCallback() {
+					doRPC("GetAllianceForums",obj,new RPCCallback() {
 						@Override void requestDone(rpcreply r) throws JSONException, Exception {
 							JSONArray forums = (JSONArray) r.reply;
 							int i;
@@ -629,14 +666,18 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 				b.append(s);
 			}
 			obj.put("requests",b.toString());
-			doRPC("Poll",obj,this,new RPCCallback() {
+			doRPC("Poll",obj,new RPCCallback() {
 				void requestDone(rpcreply r) throws JSONException {
 					int x;
 					if (r.reply == null) return;
 					JSONArray reply = (JSONArray) r.reply;
 					for (x = 0; x < reply.length(); x++) {
 						JSONObject obj = (JSONObject) reply.get(x);
-						handlePollPacket(obj);
+						// FIXME, disable for production
+						int reply_size = obj.toString().length();
+						String C = obj.getString("C");
+						RPC.this.logPollRequest(C,reply_size);
+						handlePollPacket(C,obj);
 					}
 				}
 			},10);
@@ -645,15 +686,16 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			e.printStackTrace();
 		}
 	}
+	public void logPollRequest(String c, int reply_size) {
+	}
 	private boolean checkAlliance() {
 		if (state.checkOnline) return state.checkOnline;
 		if (aam.alwaysMonitor) return aam.alwaysMonitor;
 		return uiActive();
 	}
 	public abstract boolean uiActive();
-	void handlePollPacket(JSONObject p) throws JSONException {
+	void handlePollPacket(String C, JSONObject p) throws JSONException {
 		boolean showName = true;
-		String C = p.getString("C");
 		if (C.equals("TIME")) {
 			JSONObject D = p.optJSONObject("D");
 			long refTime = D.optLong("Ref");
@@ -1007,7 +1049,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 				JSONObject obj = new JSONObject();
 				try {
 					obj.put("forumID", forumID);
-					doRPC("GetAllianceForumThreads", obj, RPC.this, new RPCCallback(){
+					doRPC("GetAllianceForumThreads", obj,  new RPCCallback(){
 						@Override void requestDone(rpcreply r) throws JSONException {
 							JSONArray a = (JSONArray) r.reply;
 							int i;
@@ -1040,7 +1082,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 				try {
 					obj.put("forumID", forumID);
 					obj.put("threadID", threadID);
-					doRPC("GetAllianceForumPosts",obj,RPC.this,new RPCCallback() {
+					doRPC("GetAllianceForumPosts",obj,new RPCCallback() {
 						@Override void requestDone(rpcreply r) throws JSONException {
 							JSONArray a = (JSONArray) r.reply;
 							int i;
@@ -1074,7 +1116,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 					obj.put("forumID", forumID);
 					obj.put("threadTitle", title);
 					obj.put("firstPostMessage", message);
-					doRPC("CreateAllianceForumThread",obj,RPC.this,new RPCCallback(){
+					doRPC("CreateAllianceForumThread",obj,new RPCCallback(){
 						@Override
 						void requestDone(rpcreply r) {
 							boolean reply = (Boolean) r.reply;
@@ -1098,7 +1140,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 					obj.put("threadID", threadID);
 					obj.put("postMessage", message);
 					Log.v(TAG,"CreateAllianceForumPost:"+obj.toString());
-					doRPC("CreateAllianceForumPost",obj,RPC.this,new RPCCallback(){
+					doRPC("CreateAllianceForumPost",obj,new RPCCallback(){
 						@Override
 						void requestDone(rpcreply r) {
 							boolean reply = (Boolean) r.reply;
@@ -1118,7 +1160,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 				JSONObject obj = new JSONObject();
 				try {
 					obj.put("id", cityid);
-					doRPC("GetPublicCityInfo",obj,RPC.this,new RPCCallback() {
+					doRPC("GetPublicCityInfo",obj,new RPCCallback() {
 						void requestDone(rpcreply r) {
 							Log.v(TAG,r.reply.toString());
 							final PublicCityInfo p = new PublicCityInfo(world,(JSONObject) r.reply);
@@ -1147,7 +1189,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 					obj.put("cityid", currentCity.cityid);
 					obj.put("x", x);
 					obj.put("y", y);
-					doRPC("GetOrderTargetInfo",obj,RPC.this,new RPCCallback() {
+					doRPC("GetOrderTargetInfo",obj,new RPCCallback() {
 						void requestDone(rpcreply r) throws JSONException {
 							Log.v(TAG,r.reply.toString());
 							final OrderTargetInfo p = new OrderTargetInfo(world,(JSONObject) r.reply);
@@ -1187,7 +1229,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 					obj.put("targetPlayer", targetPlayer);
 					obj.put("targetCity", coord.format());
 					obj.put("palaceSupport", palaceSupport);
-					doRPC("TradeDirect",obj,RPC.this,new RPCCallback() {
+					doRPC("TradeDirect",obj,new RPCCallback() {
 						void requestDone(rpcreply r) throws JSONException {
 							final int reply = (Integer) r.reply;
 							runOnUiThread(new Runnable() {
@@ -1234,7 +1276,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 				JSONObject obj = new JSONObject();
 				try {
 					obj.put("cityid", id);
-					doRPC(method,obj,RPC.this,new RPCCallback() {
+					doRPC(method,obj,new RPCCallback() {
 						void requestDone(rpcreply r) throws JSONException {
 							Log.v(TAG,r.reply.toString());
 							pollSoon();
@@ -1248,7 +1290,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 		});
 	}
 	public void setWorldEnabled(boolean b) {
-		if (b) {
+		if (b && (worldParser == null)) {
 			worldParser = new WorldParser();
 			pollSoon();
 		}
@@ -1273,7 +1315,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 					obj.put("iUnitOrderOptions", 0);
 					obj.put("iOrderCountRaid", 1);
 					Log.v(TAG,"OrderUnits:"+obj.toString());
-					doRPC("OrderUnits",obj,RPC.this,new RPCCallback() {
+					doRPC("OrderUnits",obj,new RPCCallback() {
 						void requestDone(rpcreply r) throws JSONException {
 							Log.v(TAG,r.reply.toString());
 							pollSoon();
