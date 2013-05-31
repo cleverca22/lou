@@ -220,11 +220,9 @@ public class HttpUtilImpl implements HttpUtil {
 			conn.connect();
 			return doPost(conn,raw_data);
 		} catch (MalformedURLException e) {
-			e.printStackTrace();
+			return new HttpReply(e);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			return new HttpReply(e);
 		}
-		return null;
 	}
 }

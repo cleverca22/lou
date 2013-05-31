@@ -1,6 +1,5 @@
 package com.angeldsis.lou.city;
 
-import java.util.Collection;
 import java.util.Iterator;
 
 import junit.framework.Assert;
@@ -49,11 +48,11 @@ public class SelectCity extends LinearLayout implements OnItemSelectedListener {
 				row = v;
 			} else v = (TextView) row;
 
-			if ((palaceLocation != -1) && (position == 0)) {
+			if ((palaceLocation != -1) && (position == 0) && !(o instanceof City)) {
 				Coord c = Coord.fromCityId((Integer)o);
 				v.setText("Palace "+c.getContinent()+" "+c.format());
 				return row;
-			} else if (palaceLocation != -1) position = position - 1;
+			}
 			
 			if (o instanceof City) {
 				City c = (City) o;
@@ -110,7 +109,7 @@ public class SelectCity extends LinearLayout implements OnItemSelectedListener {
 		boolean showBookmarks = true;
 		if (mode == ChangeCurrentCity) showBookmarks = false;
 
-		int count = palaceLocation!=-1?1:0 + state.cities.size();
+		int count = (palaceLocation!=-1?1:0) + state.cities.size();
 		String[] bookmarks = null;
 		if (showBookmarks) {
 			SharedPreferences p = mActivity.getSharedPreferences("bookmarks", Context.MODE_PRIVATE);

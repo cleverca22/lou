@@ -62,7 +62,7 @@ public class DefaultExceptionHandler implements UncaughtExceptionHandler {
 	    try {
 	    	// Random number to avoid duplicate files
 	    	Random generator = new Random();
-	    	int random = generator.nextInt(99999);    	
+	    	int random = generator.nextInt(99999);
 	    	// Embed version in stacktrace filename
 	    	String filename = G.APP_VERSION+"-"+Integer.toString(random);
 	    	Log.d(TAG, "Writing unhandled exception to: " + G.FILES_PATH+"/"+filename+".stacktrace");

@@ -13,6 +13,12 @@ public interface HttpUtil {
 		public InputStream stream;
 		public String location;
 		public int contentLength;
+		Exception e;
+		public HttpReply(Exception e) {
+			this.e = e;
+		}
+		public HttpReply() {
+		}
 	}
 	HttpReply postUrl(String url, String data);
 	HttpReply getUrl(String url);

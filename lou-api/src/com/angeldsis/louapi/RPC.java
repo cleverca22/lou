@@ -452,6 +452,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 
 		final long netstart = System.currentTimeMillis();
 			HttpReply reply1 = httpUtil.postUrl(urlbase + function,raw_data);
+			if (reply1.e != null) throw new IllegalStateException("unexpected error",reply1.e);
 			long netstop = System.currentTimeMillis();
 			rpcreply reply2 = new rpcreply();
 			reply2.http_code = reply1.code;

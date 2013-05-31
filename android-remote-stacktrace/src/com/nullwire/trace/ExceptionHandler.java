@@ -49,6 +49,8 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.util.Log;
 
 public class ExceptionHandler {
@@ -61,7 +63,7 @@ public class ExceptionHandler {
 	 * Register handler for unhandled exceptions.
 	 * @param context
 	 */
-	public static boolean register(Context context) {
+	public static boolean register(final Context context) {
 		//Log.i(TAG, "Registering default exceptions handler");
 		// Get information about the Package
 		PackageManager pm = context.getPackageManager();
@@ -98,7 +100,7 @@ public class ExceptionHandler {
 			@Override
 			public void run() {
 				// First of all transmit any stack traces that may be lying around
-				submitStackTraces();
+				submitStackTraces(context);
 				UncaughtExceptionHandler currentHandler = Thread.getDefaultUncaughtExceptionHandler();
 				if (currentHandler != null) {
 					//Log.d(TAG, "current handler class="+currentHandler.getClass().getName());
@@ -153,8 +155,14 @@ public class ExceptionHandler {
 	 * Look into the files folder to see if there are any "*.stacktrace" files.
 	 * If any are present, submit them to the trace server.
 	 */
-	public static void submitStackTraces() {
+	public static void submitStackTraces(Context context) {
 		try {
+			ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+			NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+			if (activeNetworkInfo == null || !activeNetworkInfo.isConnected()) {
+				Log.v(TAG,"network down, cant submit stack traces");
+			}
+
 			//Log.d(TAG, "Looking for exceptions in: " + G.FILES_PATH);
 			String[] list = searchForStackTraces();
 			if ( list != null && list.length > 0 ) {
@@ -197,7 +205,7 @@ public class ExceptionHandler {
                     nvps.add(new BasicNameValuePair("stacktrace", stacktrace));
 					httpPost.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8)); 
 					// We don't care about the response, so we just hope it went well and on with it
-					httpClient.execute(httpPost);					
+					httpClient.execute(httpPost);
 				}
 			}
 		} catch( Exception e ) {

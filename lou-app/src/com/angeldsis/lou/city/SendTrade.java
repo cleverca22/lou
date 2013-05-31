@@ -68,8 +68,8 @@ public class SendTrade extends SessionUser implements CitySelected, GotOrderTarg
 			SelectCity s = (SelectCity) findViewById(R.id.selectCity);
 			s.setHook(this);
 			s.setMode(SelectCity.ModeNormal);
-			s.session_ready(session.rpc.state,this);
 			if (targetCity != -1) s.setPalace(targetCity);
+			s.session_ready(session.rpc.state,this);
 			loaded = true;
 			updateMaxRes();
 			changeCity.session_ready(session.state, this);
