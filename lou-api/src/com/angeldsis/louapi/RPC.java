@@ -451,6 +451,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 		final int requestsize = raw_data.length;
 
 		final long netstart = System.currentTimeMillis();
+		try {
 			HttpReply reply1 = httpUtil.postUrl(urlbase + function,raw_data);
 			if (reply1.e != null) throw new IllegalStateException("unexpected error",reply1.e);
 			long netstop = System.currentTimeMillis();
@@ -498,8 +499,8 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			stopPolling();
 			onEjected();
 			stopLooping();
-			return;
-		} catch (IOException e) {
+			return;*/
+		} catch (TimeoutError e) {
 			Log.e(TAG, function + " exception from http req, retrying "+retry+" more times",e);
 			try {
 				doRPC(function,request,rpcCallback,retry - 1);
@@ -507,7 +508,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
-		}*/
+		}
 	}
 	public void logRequest(int req,int reply,String func, int networktime, int parse1) {
 		//Log.v(TAG,String.format("SIZE %s(%d) == %d",func,req,reply));
