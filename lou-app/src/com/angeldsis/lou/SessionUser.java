@@ -6,6 +6,7 @@ import com.angeldsis.lou.SessionKeeper.Callbacks;
 import com.angeldsis.lou.SessionKeeper.MyBinder;
 import com.angeldsis.lou.allianceforum.AllianceForumList;
 import com.angeldsis.lou.city.SendTrade;
+import com.angeldsis.lou.fragments.ChatWindow;
 import com.angeldsis.lou.fragments.FoodWarnings;
 import com.angeldsis.lou.fragments.ShrineMonitor;
 import com.angeldsis.lou.home.DisconnectedDialog;
@@ -17,6 +18,7 @@ import com.angeldsis.louapi.RPC.GetLockboxURLDone;
 import com.angeldsis.louapi.world.WorldParser.Cell;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
@@ -36,7 +38,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
-public class SessionUser extends FragmentActivity implements Callbacks {
+public class SessionUser extends FragmentActivity implements Callbacks, SessionUser2 {
 	private static final String TAG = "SessionUser";
 	SessionKeeper mService;
 	boolean mBound;
@@ -154,105 +156,7 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 		return super.onCreateOptionsMenu(menu);
 	}
 	public boolean onOptionsItemSelected(MenuItem item) {
-		Intent i;
-		switch (item.getItemId()) {
-		case R.id.open_chat:
-			Intent intent = new Intent(this,ChatWindow.class);
-			intent.putExtras(acct.toBundle());
-			startActivity(intent);
-			return true;
-		case R.id.city:
-			Log.v(TAG,"opening city view");
-			long heapSize = Runtime.getRuntime().maxMemory() / 1024 / 1024;
-			if (heapSize > 15) {
-				i = new Intent(this,CityView.class);
-				i.putExtras(acct.toBundle());
-				startActivity(i);
-			} else {
-				AlertDialog.Builder b = new AlertDialog.Builder(this);
-				b.setMessage(R.string.low_ram);
-				b.setPositiveButton(R.string.ok, null);
-				AlertDialog d = b.create();
-				d.show();
-			}
-			return true;
-		case R.id.subs:
-			i = new Intent(this,Options.class);
-			i.putExtras(acct.toBundle());
-			startActivity(i);
-			return true;
-		case R.id.options:
-			i = new Intent(this,Settings.class);
-			Log.v(TAG,"opening settings "+i);
-			startActivity(i);
-			return true;
-		case R.id.logout:
-			session.logout();
-			finish();
-			return true;
-		case R.id.getfunds:
-			session.rpc.GetLockboxURL(new GetLockboxURLDone() {
-				@Override public void done(String reply) {
-					Log.v(TAG,"got url:"+reply);
-					Uri location = Uri.parse(reply);
-					Intent buyFunds = new Intent(Intent.ACTION_VIEW,location);
-					startActivity(buyFunds);
-				}});
-			return true;
-		case R.id.allianceForum:
-			i = new Intent(this,AllianceForumList.class);
-			i.putExtras(acct.toBundle());
-			startActivity(i);
-			return true;
-		case R.id.sendTrade:
-			i = new Intent(this,SendTrade.class);
-			i.putExtras(acct.toBundle());
-			startActivity(i);
-			return true;
-		case R.id.bqo:
-			i = new Intent(this,BuildQueueOverview.class);
-			i.putExtras(acct.toBundle());
-			startActivity(i);
-			return true;
-		case R.id.dungeonlist:
-			i = new Intent(this,DungeonList.class);
-			i.putExtras(acct.toBundle());
-			startActivity(i);
-			return true;
-		case R.id.idleunits:
-			i = new Intent(this,IdleUnits.class);
-			i.putExtras(acct.toBundle());
-			startActivity(i);
-			return true;
-		case R.id.update:
-			Uri location = Uri.parse("http://andoria.angeldsis.com/apks/LouMain.apk");
-			i = new Intent(Intent.ACTION_VIEW,location);
-			startActivity(i);
-			return true;
-		case R.id.el_city_list:
-			i = new Intent(this,EnlightenedCityList.class);
-			i.putExtras(acct.toBundle());
-			startActivity(i);
-			return true;
-		case R.id.foodWarning:
-			i = new Intent(this,SingleFragment.class);
-			i.putExtras(acct.toBundle());
-			i.putExtra("fragment", FoodWarnings.class);
-			startActivity(i);
-			return true;
-		case R.id.cityCore:
-			i = new Intent(this,SingleFragment.class);
-			i.putExtras(acct.toBundle());
-			i.putExtra("fragment", CityCore.class);
-			startActivity(i);
-			return true;
-		case R.id.shrine_monitor:
-			i = new Intent(this,SingleFragment.class);
-			i.putExtras(acct.toBundle());
-			i.putExtra("fragment", ShrineMonitor.class);
-			startActivity(i);
-			return true;
-		}
+		if (ActionbarHandler.handleMenu(item,this,acct,session)) return true;
 		return super.onOptionsItemSelected(item);
 	}
 	protected void onDestroy() {
@@ -272,4 +176,10 @@ public class SessionUser extends FragmentActivity implements Callbacks {
 	@Override public void onDefenseOverviewUpdate() {}
 	@Override public void onEnlightenedCityChanged() {}
 	@Override public void onFoodWarning() {}
+	@Override public AccountWrap getAcct() {
+		return acct;
+	}
+	@Override public Activity getActivity() {
+		return this;
+	}
 }

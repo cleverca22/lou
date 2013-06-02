@@ -10,23 +10,24 @@ public class SingleFragment extends FragmentUser {
 	private static final String TAG = "SingleFragment";
 	@Override public void onCreate(Bundle sis) {
 		super.onCreate(sis);
-		
-		Intent msg = getIntent();
-		Bundle args = msg.getExtras();
-		Class<? extends Fragment> fragmentClass = (Class<? extends Fragment>) args.get("fragment");
-		Log.v(TAG,args.toString());
-		Log.v(TAG,fragmentClass.toString());
 		setContentView(R.layout.main);
-		try {
-			FragmentTransaction trans = getSupportFragmentManager().beginTransaction();
-			trans.replace(R.id.main_frame, fragmentClass.newInstance());
-			trans.commit();
-		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		if (sis == null) {
+			Intent msg = getIntent();
+			Bundle args = msg.getExtras();
+			Class<? extends Fragment> fragmentClass = (Class<? extends Fragment>) args.get("fragment");
+			Log.v(TAG,args.toString());
+			Log.v(TAG,"class:"+fragmentClass);
+			try {
+				FragmentTransaction trans = getSupportFragmentManager().beginTransaction();
+				trans.replace(R.id.main_frame, fragmentClass.newInstance());
+				trans.commit();
+			} catch (InstantiationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 }

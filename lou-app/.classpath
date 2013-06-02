@@ -6,5 +6,6 @@
 	<classpathentry kind="src" path="gen"/>
 	<classpathentry exported="true" kind="lib" path="/lou-api/libs/gson-2.2.2.jar"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/lou-api"/>
+	<classpathentry exported="true" kind="src" path="/lou-utils"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

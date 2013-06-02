@@ -1,5 +1,9 @@
 package com.angeldsis.lou;
 
+import java.util.ArrayList;
+
+import com.angeldsis.louapi.ChatMsg;
+
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -26,4 +30,7 @@ public abstract class FragmentBase extends Fragment {
 	abstract public void session_ready();
 	public abstract View onCreateView (LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState);
 	public void gotCityData() {}
+	public boolean onChat(ArrayList<ChatMsg> d) {
+		return false;
+	}
 }

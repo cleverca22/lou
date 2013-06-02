@@ -13,6 +13,7 @@ import java.util.Iterator;
 import org.json2.JSONObject;
 
 import com.angeldsis.lou.chat.ChatHistory;
+import com.angeldsis.lou.fragments.ChatWindow;
 import com.angeldsis.lou.fragments.FoodWarnings;
 import com.angeldsis.louapi.ChatMsg;
 import com.angeldsis.louapi.EnlightenedCities.EnlightenedCity;
@@ -26,6 +27,7 @@ import com.angeldsis.louapi.RPC;
 import com.angeldsis.louapi.RPC.RPCDone;
 import com.angeldsis.louapi.Timeout;
 import com.angeldsis.louapi.world.WorldParser.Cell;
+import com.angeldsis.louutil.HttpUtilImpl;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.nullwire.trace.ExceptionHandler;
@@ -261,15 +263,19 @@ public class SessionKeeper extends Service {
 				//Log.v(TAG,"uncaught message");
 				
 				Bundle options = acct.toBundle();
-				Intent resultIntent = new Intent(SessionKeeper.this,ChatWindow.class);
+				options.putString("one", "one");
+				options.putSerializable("fragment",ChatWindow.class);
+				options.putString("currentTab", cm.tag);
+				Intent resultIntent = new Intent(SessionKeeper.this,SingleFragment.class);
 				Intent homeIntent = new Intent(SessionKeeper.this,LouSessionMain.class);
 				homeIntent.putExtras(options);
 
+				options.putString("two", "two");
 				resultIntent.putExtras(options);
-				options.putString("currentTab", cm.tag);
+				resultIntent.putExtra("three","three");
 
 				TaskStackBuilder stackBuilder = TaskStackBuilder.create(SessionKeeper.this);
-				stackBuilder.addParentStack(ChatWindow.class);
+				stackBuilder.addParentStack(SingleFragment.class);
 				stackBuilder.addNextIntent(homeIntent);
 				stackBuilder.addNextIntent(resultIntent);
 				PendingIntent resultPendingIntent = stackBuilder
@@ -473,6 +479,8 @@ public class SessionKeeper extends Service {
 				c.known = true;
 				bu.append(c.location.format());
 				bu.append(' ');
+				bu.append(c.comment);
+				bu.append(' ');
 			}
 			
 			if (list.size() > 0) {
@@ -505,14 +513,14 @@ public class SessionKeeper extends Service {
 				Bundle options = acct.toBundle();
 				
 				Intent resultIntent = new Intent(SessionKeeper.this,SingleFragment.class);
-				resultIntent.putExtra("fragment", FoodWarnings.class);
 				resultIntent.putExtras(options);
+				resultIntent.putExtra("fragment", FoodWarnings.class);
 				
 				Intent homeIntent = new Intent(SessionKeeper.this,LouSessionMain.class);
 				homeIntent.putExtras(options);
 				
 				TaskStackBuilder stackBuilder = TaskStackBuilder.create(SessionKeeper.this);
-				stackBuilder.addParentStack(SingleFragment.class);
+				//stackBuilder.addParentStack(SingleFragment.class);
 				stackBuilder.addNextIntent(homeIntent);
 				stackBuilder.addNextIntent(resultIntent);
 				

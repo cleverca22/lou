@@ -20,21 +20,21 @@ import com.angeldsis.lou.reports.ShowReport;
 public class BBCode {
 	static class CityCordSpan extends ClickableSpan {
 		int x,y;
-		SessionUser c;
-		public CityCordSpan(SessionUser c,int x, int y) {
+		SessionUser2 c;
+		public CityCordSpan(SessionUser2 context,int x, int y) {
 			this.x = x;
 			this.y = y;
-			this.c = c;
+			this.c = context;
 		}
 		@Override
 		public void onClick(View widget) {
 			Log.v(TAG,"link clicked");
-			Bundle args = c.acct.toBundle();
+			Bundle args = c.getAcct().toBundle();
 			args.putInt("x",x);
 			args.putInt("y",y);
-			Intent i = new Intent(c,ShowCoord.class);
+			Intent i = new Intent(c.getActivity(),ShowCoord.class);
 			i.putExtras(args);
-			c.startActivity(i);
+			c.getActivity().startActivity(i);
 		}
 	}
 	static private final String TAG = "BBCode";
@@ -42,7 +42,7 @@ public class BBCode {
 	static Pattern preport = Pattern.compile("^(.*)([A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4})(.*)$",Pattern.DOTALL);
 	static Pattern pbold = Pattern.compile("^(.*?)\\[b\\](.+?)\\[/b\\](.*)$", Pattern.DOTALL);
 	static Pattern pcity = Pattern.compile("^(.*)\\[(city|coords)\\](\\d+):(\\d+)\\[/(city|coords)\\](.*)$",Pattern.DOTALL);
-	public static void parse(SessionUser context,String bbcode,SpannableStringBuilder builder,ArrayList<Span> spans) {
+	public static void parse(SessionUser2 context,String bbcode,SpannableStringBuilder builder,ArrayList<Span> spans) {
 		Matcher m = purl.matcher(bbcode);
 		if (m.find()) {
 			String a = m.group(1);
@@ -107,31 +107,31 @@ public class BBCode {
 	}
 	static class LinkClicked extends ClickableSpan {
 		String url;
-		SessionUser context;
-		public LinkClicked(SessionUser context, String b) {
+		SessionUser2 context;
+		public LinkClicked(SessionUser2 context2, String b) {
 			url = b;
-			this.context = context;
+			this.context = context2;
 		}
 		@Override
 		public void onClick(View widget) {
 			Intent openLink = new Intent(Intent.ACTION_VIEW,Uri.parse(url));
-			context.startActivity(openLink);
+			context.getActivity().startActivity(openLink);
 		}
 	}
 	static class ReportClicked extends ClickableSpan {
 		String shareid;
-		private SessionUser context;
-		ReportClicked(SessionUser context, String r) {
+		private SessionUser2 context;
+		ReportClicked(SessionUser2 context2, String r) {
 			shareid = r;
-			this.context = context;
+			this.context = context2;
 		}
 		@Override public void onClick(View v) {
 			Log.v(TAG,"report clicked "+shareid);
-			Bundle args = context.acct.toBundle();
+			Bundle args = context.getAcct().toBundle();
 			args.putString("shareid",shareid);
-			Intent i = new Intent(context,ShowReport.class);
+			Intent i = new Intent(context.getActivity(),ShowReport.class);
 			i.putExtras(args);
-			context.startActivity(i);
+			context.getActivity().startActivity(i);
 		}
 	}
 	public static class Span {

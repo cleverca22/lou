@@ -11,6 +11,7 @@ import com.angeldsis.louapi.IncomingAttack;
 import com.angeldsis.louapi.LouVisData;
 import com.angeldsis.louapi.world.WorldParser.Cell;
 
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
@@ -21,9 +22,12 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 
 // FIXME, add action bar stuff
-public class FragmentUser extends FragmentActivity implements Callbacks {
+public class FragmentUser extends FragmentActivity implements Callbacks, SessionUser2 {
 	private static final String TAG = "FragmentUser";
 	SessionKeeper mService;
 	boolean mBound;
@@ -141,7 +145,12 @@ public class FragmentUser extends FragmentActivity implements Callbacks {
 	@Override
 	public void onPlayerData() {
 	}
-	@Override public boolean onChat(ArrayList<ChatMsg> d) { return false; }
+	@Override public boolean onChat(ArrayList<ChatMsg> d) {
+		Iterator<FragmentBase> i = hooks.iterator();
+		boolean handled = false;
+		while (i.hasNext()) if (i.next().onChat(d)) handled = true;
+		return handled;
+	}
 	@Override public void gotCityData() {
 		Iterator<FragmentBase> i = hooks.iterator();
 		while (i.hasNext()) i.next().gotCityData();
@@ -154,5 +163,20 @@ public class FragmentUser extends FragmentActivity implements Callbacks {
 	}
 	public void removeHook(FragmentBase fragmentBase) {
 		hooks.remove(fragmentBase);
+	}
+	@Override public AccountWrap getAcct() {
+		return acct;
+	}
+	@Override public Activity getActivity() {
+		return this;
+	}
+	public boolean onCreateOptionsMenu(Menu menu) {
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.main_menu, menu);
+		return super.onCreateOptionsMenu(menu);
+	}
+	public boolean onOptionsItemSelected(MenuItem item) {
+		if (ActionbarHandler.handleMenu(item,this,acct,session)) return true;
+		return super.onOptionsItemSelected(item);
 	}
 }

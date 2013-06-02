@@ -13,6 +13,7 @@ import com.angeldsis.louapi.LouVisData;
 import com.angeldsis.louapi.RPC;
 import com.angeldsis.louapi.Timeout;
 import com.angeldsis.louapi.world.WorldParser.Cell;
+import com.angeldsis.louutil.HttpUtilImpl;
 
 public class RPCWrap extends RPC {
 	Handler handler = new Handler();

@@ -1,4 +1,4 @@
-package com.angeldsis.lou;
+package com.angeldsis.lou.fragments;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -6,9 +6,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+
+import android.app.Activity;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Bundle;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
@@ -19,8 +20,10 @@ import android.text.style.ImageSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
@@ -31,12 +34,18 @@ import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
+import com.angeldsis.lou.BBCode;
+import com.angeldsis.lou.FragmentBase;
+import com.angeldsis.lou.LouSessionMain;
+import com.angeldsis.lou.R;
+import com.angeldsis.lou.SessionKeeper;
 import com.angeldsis.lou.BBCode.Span;
 import com.angeldsis.lou.chat.ChatHistory;
 import com.angeldsis.louapi.ChatMsg;
 
-public class ChatWindow extends SessionUser {
-	static final String TAG = "ChatWindow";
+public class ChatWindow extends FragmentBase {
+	//static final String TAG = "ChatWindow";
+	private String TAG = "ChatWindow."+this.hashCode();
 	private TabHost mTabHost;
 	enum Type { pm,channel };
 	class Channel {
@@ -51,16 +60,28 @@ public class ChatWindow extends SessionUser {
 	Map<String,Channel> channels;
 	//Handler h = new Handler();
 	//boolean posted = false;
+	private ViewGroup topView;
 	
 	public void onCreate(Bundle b) {
 		super.onCreate(b);
-		if (Build.VERSION.SDK_INT > 13) initApi14();
-		setContentView(R.layout.chat_window);
+		Log.v(TAG,"onCreate");
+		setHasOptionsMenu(true);
 		//private_messages = new HashMap<String,PM>();
-		channels = new HashMap<String,Channel>();
-		
-		mTabHost = (TabHost)findViewById(R.id.tabhost);
+	}
+	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+		topView = (ViewGroup) inflater.inflate(R.layout.chat_window, container, false);
+		topView.findViewById(R.id.sendMsg).setOnClickListener(new OnClickListener() {
+			@Override public void onClick(View v) {
+				ChatWindow.this.sendMsg(v);
+			}});
+		topView.findViewById(R.id.dingOnMsg).setOnClickListener(new OnClickListener() {
+			@Override public void onClick(View v) {
+				ChatWindow.this.dingClick(v);
+			}
+		});
+		mTabHost = (TabHost)(topView.findViewById(R.id.tabhost));
 		mTabHost.setup();
+		channels = new HashMap<String,Channel>();
 		
 		TabHost.TabSpec t1 = mTabHost.newTabSpec("general");
 		Channel temp = new Channel();
@@ -86,21 +107,33 @@ public class ChatWindow extends SessionUser {
 		temp.type = Type.channel;
 		temp.tag = "officer";
 		temp.key = "@O";
-		TabHost.TabSpec t3 = mTabHost.newTabSpec("officer");
+		TabHost.TabSpec t3 = mTabHost.newTabSpec("@O");
 		t3.setContent(new TabMaker(temp));
 		t3.setIndicator("officer");
 		mTabHost.addTab(t3);
 		channels.put("officer", temp);
+
+		if (savedInstanceState != null) {
+			Log.v(TAG,"b: "+savedInstanceState);
+			final String tab = savedInstanceState.getString("currentTab");
+			if (tab != null) {
+				Log.v(TAG,"restoring tab '"+tab+"'");
+				mTabHost.setCurrentTabByTag(tab);
+				Log.v(TAG,mTabHost.getCurrentTabTag());
+			}
+		}
+		Bundle b2 = parent.getIntent().getExtras();
+		String tab2 = b2.getString("currentTab");
+		if (tab2 != null) {
+			Log.v(TAG,"restoring tab2 '"+tab2+"'");
+			mTabHost.setCurrentTabByTag(tab2);
+			Log.v(TAG,mTabHost.getCurrentTabTag());
+		}
+		return topView;
 	}
-	@Override protected void onSaveInstanceState(Bundle out) {
+	@Override public void onSaveInstanceState(Bundle out) {
 		out.putString("currentTab", mTabHost.getCurrentTabTag());
 		super.onSaveInstanceState(out);
-	}
-	@Override protected void onRestoreInstanceState (Bundle savedInstanceState) {
-		String tab = savedInstanceState.getString("currentTab");
-		if (tab != null) mTabHost.setCurrentTabByTag(tab);
-		Log.v(TAG,savedInstanceState.toString());
-		super.onRestoreInstanceState(savedInstanceState);
 	}
 	class TabMaker implements TabHost.TabContentFactory {
 		Channel c;
@@ -110,7 +143,7 @@ public class ChatWindow extends SessionUser {
 			//c.oldmessagelist = new LinearLayout(ChatWindow.this);
 			//c.oldmessagelist.setOrientation(LinearLayout.VERTICAL);
 			
-			c.newmessagelist = new ListView(ChatWindow.this);
+			c.newmessagelist = new ListView(getActivity());
 			c.adapter = new ChatHistoryAdapter();
 			c.newmessagelist.setAdapter(c.adapter);
 			LinearLayout.LayoutParams l = new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.MATCH_PARENT,1);
@@ -123,7 +156,7 @@ public class ChatWindow extends SessionUser {
 			//l = new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.MATCH_PARENT,1);
 			//c.scrollView.setLayoutParams(l);
 
-			c.wrapper = new LinearLayout(ChatWindow.this);
+			c.wrapper = new LinearLayout(getActivity());
 			//c.wrapper.addView(c.scrollView);
 			c.wrapper.addView(c.newmessagelist);
 		}
@@ -198,7 +231,7 @@ public class ChatWindow extends SessionUser {
 			
 			if (c != null) {
 				ArrayList<Span> spans = new ArrayList<Span>();
-				if ((leakme == null) && (session != null)) leakme = session;
+				if ((leakme == null) && (ChatWindow.this.parent.session != null)) leakme = ChatWindow.this.parent.session;
 				if (leakme == null) throw new IllegalStateException("session was null!");
 				if (leakme.state == null) throw new IllegalStateException("session.state was null!");
 				c3.setTime(new Date(c.ts));
@@ -209,7 +242,7 @@ public class ChatWindow extends SessionUser {
 				if (c.channel == null) {
 					b.append(c.sender);
 					b.append(" ");
-					BBCode.parse(ChatWindow.this,c.message,b,spans);
+					BBCode.parse(ChatWindow.this.parent,c.message,b,spans);
 				} else if (c.channel.equals("@A")) {
 					//start = b.length();
 					//String all = getString(R.string.alliance);
@@ -230,7 +263,7 @@ public class ChatWindow extends SessionUser {
 					
 					b.append(": ");
 					
-					BBCode.parse(ChatWindow.this,c.message,b,spans);
+					BBCode.parse(ChatWindow.this.parent,c.message,b,spans);
 					end = b.length();
 					
 					b.setSpan(new ForegroundColorSpan(green), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -256,7 +289,7 @@ public class ChatWindow extends SessionUser {
 					
 					b.append(": ");
 					
-					BBCode.parse(ChatWindow.this,c.message,b,spans);
+					BBCode.parse(ChatWindow.this.parent,c.message,b,spans);
 					end = b.length();
 					
 					b.setSpan(new ForegroundColorSpan(color), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -271,7 +304,7 @@ public class ChatWindow extends SessionUser {
 					
 					if (c.channel.equals("privateout")) b.append(leakme.state.self.getName()+": ");
 					else b.append(c.sender+": ");
-					BBCode.parse(ChatWindow.this,c.message,b,spans);
+					BBCode.parse(ChatWindow.this.parent,c.message,b,spans);
 				}
 				else {
 					b.append(c.channel);
@@ -288,7 +321,7 @@ public class ChatWindow extends SessionUser {
 					if (c.sender.charAt(0) != '@') b.setSpan(new NameClicked(c.sender), start, end1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 	
 					b.append(": ");
-					BBCode.parse(ChatWindow.this,c.message,b,spans);
+					BBCode.parse(ChatWindow.this.parent,c.message,b,spans);
 				}
 				for (Span s : spans) s.apply(b);
 			} else {
@@ -297,7 +330,7 @@ public class ChatWindow extends SessionUser {
 			
 			ViewGroup row = (ViewGroup) convertView;
 			if (row == null) {
-				LayoutInflater f = ChatWindow.this.getLayoutInflater();
+				LayoutInflater f = ChatWindow.this.parent.getLayoutInflater();
 				row = (ViewGroup) f.inflate(R.layout.chat_row, parent,false);
 			}
 			TextView msg = (TextView) row.findViewById(R.id.msg);
@@ -311,7 +344,7 @@ public class ChatWindow extends SessionUser {
 			source = chat;
 			channel = c;
 			update();
-			c3 = Calendar.getInstance(session.state.tz);
+			c3 = Calendar.getInstance(ChatWindow.this.parent.session.state.tz);
 		}
 		public void update() {
 			lastCount = getRealCount();
@@ -335,13 +368,13 @@ public class ChatWindow extends SessionUser {
 		Log.v(TAG,"onStart");
 	}
 	public void session_ready() {
-		((ToggleButton)findViewById(R.id.dingOnMsg)).setChecked(session.dingOnMessage);
+		((ToggleButton)(topView.findViewById(R.id.dingOnMsg))).setChecked(parent.session.dingOnMessage);
 		for (Channel c : channels.values()) {
 			//c.oldmessagelist.removeAllViews();
-			c.adapter.setSource(session.chat,c);
+			c.adapter.setSource(parent.session.chat,c);
 		}
 		Log.v(TAG,"open tags");
-		for (String tag : session.chat.openTags) {
+		for (String tag : parent.session.chat.openTags) {
 			Log.v(TAG,"reopening tag "+tag);
 			String key;
 			if (tag.equals("@C")) key = "general";
@@ -362,7 +395,7 @@ public class ChatWindow extends SessionUser {
 					c.type = Type.pm;
 					TabHost.TabSpec s = mTabHost.newTabSpec(c.tag);
 					s.setContent(new TabMaker(c));
-					c.adapter.setSource(session.chat, c);
+					c.adapter.setSource(parent.session.chat, c);
 					Log.v(TAG,"source set");
 					s.setIndicator(c.tag);
 					mTabHost.addTab(s);
@@ -370,7 +403,7 @@ public class ChatWindow extends SessionUser {
 				}
 			}
 		}
-		session.rpc.pollSoon();
+		parent.session.rpc.pollSoon();
 	}
 	class NameClicked extends ClickableSpan {
 		String name;
@@ -390,23 +423,24 @@ public class ChatWindow extends SessionUser {
 				Log.v(TAG,"new key for pm is "+c.key);
 				TabHost.TabSpec s = mTabHost.newTabSpec(c.tag);
 				s.setContent(new TabMaker(c));
-				c.adapter.setSource(session.chat, c);
+				c.adapter.setSource(parent.session.chat, c);
 				s.setIndicator(c.tag);
 				mTabHost.addTab(s);
 				channels.put("pm_"+c.tag, c);
 			}
 		}
 	}
-	public boolean onChat(ArrayList<ChatMsg> recent) {
+	@Override public boolean onChat(ArrayList<ChatMsg> recent) {
 		long start = System.currentTimeMillis();
 		Iterator<ChatMsg> i = recent.iterator();
+		Activity a = getActivity();
 		while (i.hasNext()) {
 			// FIXME, remove most of this code
 			ChatMsg c = i.next();
-			TextView channel = new TextView(this);
-			TextView sender = new TextView(this);
-			TextView msg = new TextView(this);
-			LinearLayout l = new LinearLayout(this);
+			TextView channel = new TextView(a);
+			TextView sender = new TextView(a);
+			TextView msg = new TextView(a);
+			LinearLayout l = new LinearLayout(a);
 			sender.setText(c.sender);
 			sender.setClickable(true);
 			msg.setText(" "+c.message); // FIXME, padding
@@ -425,7 +459,7 @@ public class ChatWindow extends SessionUser {
 					currentChannel.type = Type.pm;
 					TabHost.TabSpec s = mTabHost.newTabSpec(currentChannel.tag);
 					s.setContent(new TabMaker(currentChannel));
-					currentChannel.adapter.setSource(session.chat, currentChannel);
+					currentChannel.adapter.setSource(parent.session.chat, currentChannel);
 					Log.v(TAG,"source set");
 					s.setIndicator(currentChannel.tag);
 					mTabHost.addTab(s);
@@ -437,7 +471,7 @@ public class ChatWindow extends SessionUser {
 			
 			l.addView(channel);
 			if (c.hascrown) {
-				ImageView crown = new ImageView(this);
+				ImageView crown = new ImageView(a);
 				crown.setImageDrawable(this.getResources().getDrawable(R.drawable.icon_lou_public_other_world));
 				l.addView(crown);
 			}
@@ -457,30 +491,30 @@ public class ChatWindow extends SessionUser {
 	}
 	public void sendMsg(View v) {
 		String tag = mTabHost.getCurrentTabTag();
-		EditText m = (EditText) findViewById(R.id.message);
+		EditText m = (EditText) (topView.findViewById(R.id.message));
 		String buffer = m.getText().toString();
 		if (buffer.length() == 0) return;
 		if (buffer.charAt(0) == '/') {} 
 		else if (tag.equals("alliance")) buffer = "/a "+buffer;
-		else if (tag.equals("officer")) buffer = "/o "+buffer;
+		else if (tag.equals("@O")) buffer = "/o "+buffer;
 		else if (channels.containsKey("pm_"+tag)) {
 			buffer = "/whisper "+tag+" "+buffer;
 		}
-		userActive();
-		session.rpc.QueueChat(buffer);
+		parent.userActive();
+		parent.session.rpc.QueueChat(buffer);
 		m.setText("");
 	}
-	public boolean onCreateOptionsMenu(Menu menu) {
-		super.onCreateOptionsMenu(menu);
+	@Override public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		//super.onCreateOptionsMenu(menu,inflater);
 		menu.removeItem(R.id.open_chat);
-		return true;
 	}
 	public boolean onOptionsItemSelected(MenuItem item) {
+		// FIXME, remove this?
 		Log.v(TAG,"click! "+item.getItemId());
 		switch (item.getItemId()) {
 		case android.R.id.home:
-			Intent i = new Intent(this,LouSessionMain.class);
-			i.putExtras(acct.toBundle());
+			Intent i = new Intent(getActivity(),LouSessionMain.class);
+			i.putExtras(parent.acct.toBundle());
 			i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 			startActivity(i);
 			return true;
@@ -496,6 +530,6 @@ public class ChatWindow extends SessionUser {
 		Log.v(TAG,"onStop()");
 	}
 	public void dingClick(View v) {
-		session.dingOnMessage = ((ToggleButton)v).isChecked();
+		parent.session.dingOnMessage = ((ToggleButton)v).isChecked();
 	}
 }

@@ -42,11 +42,11 @@
             android:inputType="textCapSentences|textAutoCorrect" />
 
         <Button
+            android:id="@+id/sendMsg"
             style="?android:attr/buttonStyleSmall"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:onClick="sendMsg"
             android:text="@string/send" />
 
         <ToggleButton
@@ -54,7 +54,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:onClick="dingClick"
             android:textOff="Don&apos;t Ding"
             android:textOn="Ding" />
 
