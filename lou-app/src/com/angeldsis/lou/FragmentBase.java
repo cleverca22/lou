@@ -24,8 +24,6 @@ public abstract class FragmentBase extends Fragment {
 		parent = null;
 	}
 	public void onFoodWarning() {
-		// TODO Auto-generated method stub
-		
 	}
 	abstract public void session_ready();
 	public abstract View onCreateView (LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState);

@@ -90,6 +90,7 @@ public class ChatWindow extends Shell implements SelectionListener {
 	}
 	protected void checkSubclass() {}
 	public void handle_msg(ChatMsg c) {
+		Log.v(TAG,c.toString());
 		if (c.tag.equals("@A")) alliance.handle_msg(c);
 		else if (c.tag.equals("@O")) officer.handle_msg(c);
 		else { // @C and all others

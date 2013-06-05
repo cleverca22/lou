@@ -97,7 +97,7 @@ public class ChatWindow extends FragmentBase {
 		temp.type = Type.channel;
 		temp.tag = "alliance";
 		temp.key = "@A";
-		TabHost.TabSpec t2 = mTabHost.newTabSpec("alliance");
+		TabHost.TabSpec t2 = mTabHost.newTabSpec("@A");
 		t2.setContent(new TabMaker(temp));
 		t2.setIndicator("alliance");
 		mTabHost.addTab(t2);
@@ -495,7 +495,7 @@ public class ChatWindow extends FragmentBase {
 		String buffer = m.getText().toString();
 		if (buffer.length() == 0) return;
 		if (buffer.charAt(0) == '/') {} 
-		else if (tag.equals("alliance")) buffer = "/a "+buffer;
+		else if (tag.equals("@A")) buffer = "/a "+buffer;
 		else if (tag.equals("@O")) buffer = "/o "+buffer;
 		else if (channels.containsKey("pm_"+tag)) {
 			buffer = "/whisper "+tag+" "+buffer;

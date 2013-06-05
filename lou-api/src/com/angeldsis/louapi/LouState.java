@@ -147,9 +147,42 @@ public class LouState {
 			return 0;
 		}
 		public int foodEmptyTime(LouState state) {
-			if (resources[3].delta >= 0) return 0;
-			//Log.v(TAG,String.format("delta:%f, current: %d steps: %d %d",resources[3].delta,getResourceCount(state,3),resources[3].step,state.getServerStep()));
-			return (int) (getResourceCount(state,3) / (resources[3].delta * -1));
+			double rate = getResourceRate(state,3)/3600;
+			if (rate >= 0) return 0;
+			rate = rate * -1;
+			int now = state.getServerStep();
+			int current = getResourceCount(state,3);
+			int timeLeft = (int) (current / rate);
+			int incoming;
+			if (trade_in != null) { // move this check once the other FIXME's are fixed, they will conflict
+				//boolean repeat = true; FIXME loop over to find more items that can cover it after the first
+				//while (repeat) {
+					incoming = 0;
+					Iterator<Trade> i = trade_in.iterator();
+					while (i.hasNext()) {
+						Trade t = i.next();
+						if (t.state != Trade.Working) continue;
+						if ((t.end > now) && (t.end < (timeLeft + now)) && (t.contents != null)) {
+							//Log.v(TAG,name+" trade will get back in time, "+t.toString());
+							int x;
+							for (x=0; x<t.contents.length(); x++) {
+								//Log.v(TAG,t.contents.toString());
+								JSONObject o = t.contents.optJSONObject(x);
+								int type = o.optInt("t");
+								if (type == 4) { // food
+									incoming += o.optInt("c");
+								}
+							}
+						} else if (t.end < now) {
+							Log.v(TAG,"trade already done "+name+" "+t.toString());
+							Log.v(TAG,""+now);
+						}
+					}
+					// FIXME, add incoming raids, plunders, and assaults
+					timeLeft = (int) ((current+incoming) / rate);
+				//}
+			}
+			return timeLeft;
 		}
 		public int getResourceCount(LouState state,int id) {
 			int stepsPassed = (int) (state.getServerStep() - resources[id].step);
@@ -161,6 +194,7 @@ public class LouState {
 			if (newVal > resources[id].max) return resources[id].max;
 			return (int) newVal;
 		}
+		/** returns the food rate per hour, negative is loss, positive is gain **/
 		public double getResourceRate(LouState state,int id) {
 			double delta = resources[id].delta;
 			if (id == 3) {
@@ -330,11 +364,11 @@ public class LouState {
 		if (ti != null) {
 			//Log.v(TAG,"ti:"+ti.length());
 			c.trade_in = parseTrades(ti, world,Trade.IN);
-		}
+		} else c.trade_in = null;
 		if (to != null) {
 			//Log.v(TAG,"to:"+to.length());
 			c.trade_out = parseTrades(to, world,Trade.OUT);
-		}
+		} c.trade_out = null;
 		JSONArray traders = p.optJSONArray("t");
 		//Log.v(TAG,"traders:"+traders);
 		if ((traders != null) && (traders.length()>0)) {
@@ -395,8 +429,9 @@ public class LouState {
 		public static final int Return = 2;
 		public static final int ReturnFromCancel = 6;
 		public static final int WorkingPalaceSupport = 7;
-		public int direction,id,end;
+		public int direction,id,start,end;
 		public String DEBUG,cityName;
+		@Deprecated private JSONArray contents; // FIXME, make it a proper object, contains c/t pairs
 		public Trade(JSONObject t, World world, int direction) {
 			player = Player.get(t.optInt("p"),t.optString("pn"));
 			alliance = world.getAlliance(t.optInt("a"),t.optString("an"));
@@ -411,8 +446,8 @@ public class LouState {
 			cityName = t.optString("cn");
 
 			Log.v(TAG,t.toString());
-			JSONArray contents = t.optJSONArray("r"); // contains c/t pairs
-			int start = t.optInt("ss");
+			contents = t.optJSONArray("r");
+			start = t.optInt("ss");
 			end = t.optInt("es");
 			Log.v(TAG,"ss:"+start+" es:"+end);
 		}

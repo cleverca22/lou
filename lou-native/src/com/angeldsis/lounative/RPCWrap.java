@@ -1,24 +1,26 @@
 package com.angeldsis.lounative;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import com.angeldsis.louapi.Account;
 import com.angeldsis.louapi.ChatMsg;
 import com.angeldsis.louapi.IncomingAttack;
 import com.angeldsis.louapi.Log;
 import com.angeldsis.louapi.LouState;
+import com.angeldsis.louapi.LouState.City;
 import com.angeldsis.louapi.LouVisData;
 import com.angeldsis.louapi.RPC;
 import com.angeldsis.louapi.Timeout;
-import com.angeldsis.louapi.world.Dungeon;
 import com.angeldsis.louapi.world.WorldParser.Cell;
+import com.angeldsis.louutil.HttpUtilImpl;
 
 public class RPCWrap extends RPC {
 	private static String TAG = "RPCWrap";
 	private ChatWindow chat;
 	private CoreSession core;
 	public RPCWrap(Account acct, LouState state) {
-		super(acct, state);
+		super(acct, state, HttpUtilImpl.getInstance());
 	}
 	@Override
 	public void visDataReset() {
@@ -117,9 +119,15 @@ public class RPCWrap extends RPC {
 		// TODO Auto-generated method stub
 		
 	}
-	@Override
-	public void onFoodWarning() {
-		// TODO Auto-generated method stub
-		
+	@Override public void onFoodWarning() {
+		Log.v(TAG,"onFoodWarning");
+		Iterator<City> i = foodWarnings.warnings.values().iterator();
+		while (i.hasNext()) {
+			City c = i.next();
+			if (!c.name.equals("C21_07")) continue;
+			Log.v(TAG,"name:" +c.name);
+			int timeLeft = c.foodEmptyTime(state);
+			Log.v(TAG,String.format("%,d",timeLeft));
+		}
 	}
 }

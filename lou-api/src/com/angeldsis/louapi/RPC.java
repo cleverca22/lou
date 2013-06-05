@@ -53,6 +53,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 	public EnlightenedCities enlightenedCities;
 	public FoodWarningParser foodWarnings;
 	private HttpUtil httpUtil;
+	public boolean passive;
 
 	public RPC(Account acct, LouState state,HttpUtil httpUtil) {
 		this.httpUtil = httpUtil;
@@ -74,6 +75,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 		}
 	}
 	public void OpenSession(final boolean reset,final RPCDone callback) {
+		passive = !reset;
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {
@@ -594,38 +596,39 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			requestid++;
 			City c = state.currentCity;
 			ArrayList<String> requests = new ArrayList<String>();
-			if (c != null) {
-				requests.add("CITY:"+c.cityid);
-				if (state.fetchVis) {
-					requests.add("VIS:c:"+state.currentCity.cityid+":0:-1085:-638:775:565:"+state.currentCity.visreset); // FIXME last field is reset, check webfrontend.vis.Main.js for others
+			if (!passive) {
+				if (c != null) {
+					requests.add("CITY:"+c.cityid);
+					if (state.fetchVis) {
+						requests.add("VIS:c:"+state.currentCity.cityid+":0:-1085:-638:775:565:"+state.currentCity.visreset); // FIXME last field is reset, check webfrontend.vis.Main.js for others
+					}
 				}
-			}
-			if (chat_queue.size() > 0) {
-				String msg = chat_queue.remove(0);
-				requests.add("CHAT:"+msg);
 				if (chat_queue.size() > 0) {
-					Log.v(TAG,"need to poll again");
-					queue.remove(poller);
-					poller.pollSoon();
-					queue.add(poller);
+					String msg = chat_queue.remove(0);
+					requests.add("CHAT:"+msg);
+					if (chat_queue.size() > 0) {
+						Log.v(TAG,"need to poll again");
+						queue.remove(poller);
+						poller.pollSoon();
+						queue.add(poller);
+					}
+				} else requests.add("CHAT:");
+				if (enlightenedCities != null) {
+					requests.add("ECO:"+enlightenedCities.getRequestDetails());
 				}
-			} else requests.add("CHAT:");
-			requests.add("PLAYER:"+ (state.getFullPlayerData ? "a" : ""));
+				requests.add("REPORT:");
+				requests.add("SERVER:");
+				requests.add("SUBSTITUTION:");
+				requests.add("PLAYER:"+ (state.getFullPlayerData ? "a" : ""));
+			}
 			requests.add("TIME:"+System.currentTimeMillis());
-			requests.add("REPORT:");
-			requests.add("SERVER:");
 			if (checkAlliance()) requests.add("ALLIANCE:");
-			requests.add("SUBSTITUTION:");
 			if (state.userActivity) {
 				state.userActivity = false;
 				requests.add("UA:");
 			}
 			if (worldParser != null) {
 				requests.add("WORLD:"+worldParser.getRequestDetails());
-				//Log.v(TAG,requests);
-			}
-			if (enlightenedCities != null) {
-				requests.add("ECO:"+enlightenedCities.getRequestDetails());
 			}
 			if (foodWarnings != null) {
 				requests.add("FOODO:"+foodWarnings.getRequestDetails());

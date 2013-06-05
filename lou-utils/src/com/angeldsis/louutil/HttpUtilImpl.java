@@ -10,6 +10,7 @@ import java.net.CookieStore;
 import java.net.HttpCookie;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -150,16 +151,17 @@ public class HttpUtilImpl implements HttpUtil {
 	}
 	@Override public HttpReply postUrl(String url, String data) {
 		try {
+			HttpsURLConnection.setFollowRedirects(false);
+			HttpURLConnection.setFollowRedirects(false);
 			URL login = new URL(url);
 			HttpsURLConnection conn = (HttpsURLConnection) login.openConnection();
-			HttpsURLConnection.setFollowRedirects(false);
-			byte[] raw_data = data.getBytes();
 			conn.setReadTimeout(40000);
 			conn.setConnectTimeout(15000);
 			conn.setRequestMethod("POST");
-			conn.setDoOutput(true);
+			byte[] raw_data = data.getBytes();
 			conn.setFixedLengthStreamingMode(raw_data.length);
 			conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+			conn.setDoOutput(true);
 			return doPost(conn,raw_data);
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
@@ -190,8 +192,6 @@ public class HttpUtilImpl implements HttpUtil {
 		return null;
 	}
 	private HttpReply doPost(HttpURLConnection conn, byte[] raw_data) throws IOException {
-		HttpsURLConnection.setFollowRedirects(false);
-		HttpURLConnection.setFollowRedirects(false);
 		OutputStream os = conn.getOutputStream();
 		os.write(raw_data);
 		os.close();
@@ -224,6 +224,8 @@ public class HttpUtilImpl implements HttpUtil {
 		} catch (MalformedURLException e) {
 			return new HttpReply(e);
 		} catch (SocketTimeoutException e) {
+			throw new TimeoutError("network timeout",e);
+		} catch (SocketException e) {
 			throw new TimeoutError("network timeout",e);
 		} catch (IOException e) {
 			return new HttpReply(e);

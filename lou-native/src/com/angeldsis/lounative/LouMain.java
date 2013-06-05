@@ -6,6 +6,7 @@ import org.eclipse.swt.widgets.Shell;
 import com.angeldsis.louapi.Log;
 import com.angeldsis.louapi.LouSession;
 import com.angeldsis.louapi.LouSession.result;
+import com.angeldsis.louutil.HttpUtilImpl;
 
 public class LouMain {
 	private static final String TAG = "LouMain";
@@ -31,7 +32,7 @@ public class LouMain {
 		Config.init();
 		Logger.init();
 		display = new Display();
-		session = new LouSession();
+		session = new LouSession(HttpUtilImpl.getInstance());
 		auto_world = world;
 		Config config = Config.getConfig();
 		if (config.getRememberMe() != null) {

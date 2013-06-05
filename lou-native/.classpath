@@ -6,5 +6,6 @@
 	<classpathentry exported="true" kind="lib" path="tagsoup-1.2.1.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/org.eclipse.swt"/>
 	<classpathentry kind="lib" path="swing2swt.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/lou-utils"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

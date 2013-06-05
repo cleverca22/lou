@@ -260,6 +260,7 @@ public class SessionKeeper extends Service {
 			
 			if (!handled) {
 				ChatMsg cm = d.get(d.size()-1);
+				int id = UNREAD_MESSAGE | sessionid;
 				//Log.v(TAG,"uncaught message");
 				
 				Bundle options = acct.toBundle();
@@ -279,14 +280,14 @@ public class SessionKeeper extends Service {
 				stackBuilder.addNextIntent(homeIntent);
 				stackBuilder.addNextIntent(resultIntent);
 				PendingIntent resultPendingIntent = stackBuilder
-						.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT, options);
+						.getPendingIntent(id, PendingIntent.FLAG_UPDATE_CURRENT, options);
 				chatBuilder.setContentIntent(resultPendingIntent);
 
 				chatBuilder.setContentText(cm.toString());
 				int sound = 0;
 				if (dingOnMessage) sound = Notification.DEFAULT_SOUND;
 				if (cm.isPm()) sound = Notification.DEFAULT_SOUND;
-				mNotificationManager.notify(UNREAD_MESSAGE | sessionid, chatBuilder.setDefaults(sound).build());
+				mNotificationManager.notify(id, chatBuilder.setDefaults(sound).build());
 			}
 		}
 		public void setCallback(Callbacks cb1) {
@@ -511,10 +512,9 @@ public class SessionKeeper extends Service {
 				Log.v(TAG,"food empty time: "+timeLeft+" "+c.name);
 				
 				Bundle options = acct.toBundle();
-				
+				options.putSerializable("fragment", FoodWarnings.class);
 				Intent resultIntent = new Intent(SessionKeeper.this,SingleFragment.class);
 				resultIntent.putExtras(options);
-				resultIntent.putExtra("fragment", FoodWarnings.class);
 				
 				Intent homeIntent = new Intent(SessionKeeper.this,LouSessionMain.class);
 				homeIntent.putExtras(options);
@@ -525,7 +525,7 @@ public class SessionKeeper extends Service {
 				stackBuilder.addNextIntent(resultIntent);
 				
 				PendingIntent resultPendingIntent = stackBuilder
-						.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT, options);
+						.getPendingIntent(FOOD_WARNING | sessionid, PendingIntent.FLAG_UPDATE_CURRENT, options);
 				foodWarning.setContentIntent(resultPendingIntent);
 
 				int hours = ((int)timeLeft/60/60);
@@ -596,7 +596,7 @@ public class SessionKeeper extends Service {
 			foodWarning = new NotificationCompat.Builder(SessionKeeper.this).setSmallIcon(R.drawable.ic_launcher)
 					.setContentTitle("food warning")
 					.setContentText("FIXME")
-					.setAutoCancel(true)
+					.setAutoCancel(false)
 					.setVibrate(pattern).setDefaults(Notification.DEFAULT_SOUND);
 			disconnectBuilder = new NotificationCompat.Builder(SessionKeeper.this).setSmallIcon(R.drawable.ic_launcher)
 				.setContentTitle("you have been disconnected")

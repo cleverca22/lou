@@ -179,4 +179,12 @@ public class FragmentUser extends FragmentActivity implements Callbacks, Session
 		if (ActionbarHandler.handleMenu(item,this,acct,session)) return true;
 		return super.onOptionsItemSelected(item);
 	}
+	@Override public void onPause() {
+		super.onPause();
+		Log.v(TAG,"onPause()");
+	}
+	@Override public void onResume() {
+		super.onResume();
+		Log.v(TAG,"onResume()");
+	}
 }
