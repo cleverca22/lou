@@ -133,7 +133,7 @@ public class SelectCity extends LinearLayout implements OnItemSelectedListener {
 		mState = state;
 		
 		if (showBookmarks) {
-			if (bookmarks.length > 0) {
+			if (bookmarks != null) {
 				for (String b : bookmarks) {
 					rawList[position++] = Coord.fromString(b);
 				}
