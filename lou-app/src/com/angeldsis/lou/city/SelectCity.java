@@ -56,6 +56,7 @@ public class SelectCity extends LinearLayout implements OnItemSelectedListener {
 			
 			if (o instanceof City) {
 				City c = (City) o;
+				if (c.location == null) throw new IllegalStateException("c.location shouldnt be null "+position);
 				v.setText(String.format("%3s %7s %s",c.location.getContinent(),c.location.format(),c.name));
 			} else {
 				Coord c = Coord.fromCityId((Integer)o);
@@ -116,8 +117,8 @@ public class SelectCity extends LinearLayout implements OnItemSelectedListener {
 			String part = p.getString("bookmarks", "");
 			if (part.length() > 0) {
 				bookmarks = part.split(",");
+				count += bookmarks.length;
 			}
-			count += bookmarks.length;
 		}
 		rawList = new Object[count];
 		int position = 0;
