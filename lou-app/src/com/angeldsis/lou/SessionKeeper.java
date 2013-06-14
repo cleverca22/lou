@@ -169,9 +169,52 @@ public class SessionKeeper extends Service {
 		}
 		return START_NOT_STICKY;
 	}
+	private boolean foregroundmode = false;
+	private void updateNotification() {
+		TaskStackBuilder stackBuilder = null;
+		Bundle options = null;
+		if (sessions.size() == 1) {
+			Session s = sessions.get(0);
+			options = s.acct.toBundle();
+			Intent resultIntent = new Intent(this,LouSessionMain.class);
+			resultIntent.putExtras(options);
+			stackBuilder = TaskStackBuilder.create(this);
+			stackBuilder.addParentStack(LouSessionMain.class);
+			stackBuilder.addNextIntent(resultIntent);
+			mBuilder.setContentText("LOU is still running "+s.acct.world);
+			Log.v(TAG,"one session mode");
+		} else if (sessions.size() > 0) {
+			Iterator<Session> i = sessions.iterator();
+			StringBuilder sb = new StringBuilder();
+			sb.append(i.next().acct.world);
+			while (i.hasNext()) {
+				sb.append(", ");
+				sb.append(i.next().acct.world);
+			}
+			Intent resultIntent = new Intent(this,LouMain.class);
+			stackBuilder = TaskStackBuilder.create(this);
+			stackBuilder.addParentStack(LouMain.class);
+			stackBuilder.addNextIntent(resultIntent);
+			mBuilder.setContentText("LOU is still running "+sb.toString());
+			Log.v(TAG,"multi-session mode");
+		} else if (sessions.size() == 0) {
+			stopForeground(true);
+		}
+		if (stackBuilder != null) {
+			PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT, options);
+			mBuilder.setContentIntent(resultPendingIntent);
+			if (!foregroundmode) {
+				// FIXME, this interface can only support 1 notif, replace it with one that opens an active session list
+				SessionKeeper.this.startForeground(STILL_OPEN,mBuilder.build());
+				foregroundmode = true;
+			} else {
+				mNotificationManager.notify(STILL_OPEN, mBuilder.build());
+			}
+		}
+	}
 	public class Session {
 		private static final String TAG = "Session";
-		public RPC rpc;
+		public RPCWrap rpc;
 		public LouState state;
 		public AccountWrap acct;
 		Callbacks cb;
@@ -192,18 +235,6 @@ public class SessionKeeper extends Service {
 			intent.putExtras(acct.toBundle());
 			startService(intent);
 
-			Bundle options = acct.toBundle();
-			Intent resultIntent = new Intent(SessionKeeper.this,LouSessionMain.class);
-			resultIntent.putExtras(options);
-			TaskStackBuilder stackBuilder = TaskStackBuilder.create(SessionKeeper.this);
-			stackBuilder.addParentStack(LouSessionMain.class);
-			stackBuilder.addNextIntent(resultIntent);
-			PendingIntent resultPendingIntent = stackBuilder
-					.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT, options);
-			mBuilder.setContentIntent(resultPendingIntent);
-			mBuilder.setContentText("LOU is still running "+acct.world);
-			// FIXME, this interface can only support 1 notif, replace it with one that opens an active session list
-			SessionKeeper.this.startForeground(STILL_OPEN | sessionid,mBuilder.build());
 			//doing_network.acquire();
 			
 			state = new LouState();
@@ -281,13 +312,13 @@ public class SessionKeeper extends Service {
 				stackBuilder.addNextIntent(resultIntent);
 				PendingIntent resultPendingIntent = stackBuilder
 						.getPendingIntent(id, PendingIntent.FLAG_UPDATE_CURRENT, options);
-				chatBuilder.setContentIntent(resultPendingIntent);
-
-				chatBuilder.setContentText(cm.toString());
 				int sound = 0;
 				if (dingOnMessage) sound = Notification.DEFAULT_SOUND;
 				if (cm.isPm()) sound = Notification.DEFAULT_SOUND;
-				mNotificationManager.notify(id, chatBuilder.setDefaults(sound).build());
+				chatBuilder.setContentIntent(resultPendingIntent).setContentText(cm.toString())
+					.setContentTitle("Unread Message in LOU world "+acct.worldid).setDefaults(sound);
+
+				mNotificationManager.notify(id, chatBuilder.build());
 			}
 		}
 		public void setCallback(Callbacks cb1) {
@@ -300,17 +331,20 @@ public class SessionKeeper extends Service {
 			}
 			saveState();
 		}
+		private String getStateName() {
+			return String.format("state_save_w%d",acct.worldid);
+		}
 		private void saveState() {
 			Gson gson = new Gson();
 			FileOutputStream state;
-			File source = SessionKeeper.this.getFileStreamPath("state_save.tmp");
+			File source = SessionKeeper.this.getFileStreamPath(getStateName()+".tmp");
 			try {
-				state = SessionKeeper.this.openFileOutput("state_save.tmp", MODE_PRIVATE);
+				state = SessionKeeper.this.openFileOutput(getStateName()+".tmp", MODE_PRIVATE);
 				String data1 = gson.toJson(this.state);
 				byte[] data2 = data1.getBytes();
 				state.write(data2);
 				state.close();
-				File dest = SessionKeeper.this.getFileStreamPath("state_save");
+				File dest = SessionKeeper.this.getFileStreamPath(getStateName());
 				source.renameTo(dest);
 			} catch (ConcurrentModificationException e) {
 				source.delete();
@@ -324,7 +358,7 @@ public class SessionKeeper extends Service {
 		}
 		public void restoreState() {
 			FileInputStream state;
-			File source = SessionKeeper.this.getFileStreamPath("state_save");
+			File source = SessionKeeper.this.getFileStreamPath(getStateName());
 			try {
 				state = new FileInputStream(source);
 				Gson gson = new Gson();
@@ -351,26 +385,25 @@ public class SessionKeeper extends Service {
 			if (cb != null) cb.onPlayerData();
 		}
 		public void onEjected() {
-			alive = false;
 			if (cb != null) cb.onEjected();
-			sessions.remove(this);
-			rpc.stopLooping();
-			//doing_network.release();
 			teardown();
 			mNotificationManager.notify(SessionKeeper.EJECTED | sessionid, disconnectBuilder.build());
-			SessionKeeper.this.checkState("onEjected");
-		}
-		public void onCityChanged() {
-			if (cb != null) cb.onCityChanged();
 		}
 		public void logout() {
 			rpc.stopPolling();
-			rpc.stopLooping();
-			SessionKeeper.this.stopForeground(true);
+			teardown();
+			Log.v(TAG,"done doing logout");
+		}
+		private void teardown() {
 			alive = false;
 			sessions.remove(this);
-			//doing_network.release();
-			teardown();
+			rpc.stopLooping();
+			chat.teardown();
+			SessionKeeper.this.updateNotification();
+			SessionKeeper.this.checkState("teardown");
+		}
+		public void onCityChanged() {
+			if (cb != null) cb.onCityChanged();
 		}
 		public void cityListChanged() {
 			if (cb != null) cb.cityListChanged();
@@ -428,9 +461,6 @@ public class SessionKeeper extends Service {
 			Session s2 = new Session(acct2,acct2.id);
 			sessions.add(s2);
 		}
-		private void teardown() {
-			chat.teardown();
-		}
 		public Timeout getMaxPoll() {
 			if (cb == null) return slow;
 			else return fast;
@@ -443,7 +473,7 @@ public class SessionKeeper extends Service {
 				synchronized(this) {
 					if (lockLocked == false) {
 						lockLocked = true;
-						Log.v(TAG,"locking lock");
+						//Log.v(TAG,"locking lock");
 						doing_network.acquire();
 					}
 				}
@@ -544,8 +574,15 @@ public class SessionKeeper extends Service {
 				mNotificationManager.notify(id, n);
 			}
 		}
-		public void logPollRequest(String c, int reply_size) {
-			rpclogs.logPollRequest(c,reply_size);
+		public void logPollRequest(final String c, final int reply_size) {
+			rpc.handler.post(new Runnable() {
+				public void run() {
+					// FIXME, does sqlite inserts on MAIN thread!
+					// this is a hack to avoid concurrent inserts from multiple threads, throwing exceptions
+					// another solution, one db per server, but that wont help subs
+					rpclogs.logPollRequest(c,reply_size);
+				}
+			});
 		}
 	}
 	public void setTimer(long maxdelay) {
@@ -584,8 +621,6 @@ public class SessionKeeper extends Service {
 					.setContentTitle("Lord of Ultima")
 					.setOngoing(true);
 			chatBuilder = new NotificationCompat.Builder(SessionKeeper.this).setSmallIcon(R.drawable.ic_launcher)
-					.setContentTitle("Unread Message in LOU")
-					.setContentText("FIXME")
 					.setAutoCancel(true);
 			long[] pattern = { 100, 1000, 100, 1000 };
 			incomingAttackBuilder = new NotificationCompat.Builder(SessionKeeper.this).setSmallIcon(R.drawable.ic_launcher)
@@ -625,6 +660,7 @@ public class SessionKeeper extends Service {
 		if (allow_login) {
 			Session s2 = new Session(acct,lastSessionid++);
 			sessions.add(s2);
+			updateNotification();
 			refreshConfig();
 			return s2;
 		} else return null; // not a login page, fail out
@@ -692,7 +728,7 @@ public class SessionKeeper extends Service {
 				}
 				//Log.v(TAG,"active:"+anyActive);
 				if ((anyActive == false) && lockLocked) {
-					Log.v(TAG,"releasing wakelock");
+					//Log.v(TAG,"releasing wakelock");
 					doing_network.release();
 					lockLocked = false;
 				} else {

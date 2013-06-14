@@ -3,15 +3,19 @@ package com.angeldsis.lou;
 import java.util.Iterator;
 
 import com.angeldsis.lou.city.SelectCity;
+import com.angeldsis.lou.fragments.PurifyResources;
 import com.angeldsis.louapi.LouState.City;
 import com.angeldsis.louapi.LouState.Trade;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -28,6 +32,15 @@ public class CityCore extends FragmentBase {
 		ViewGroup vg = (ViewGroup) v;
 		ListView lv = (ListView) vg.findViewById(R.id.trades);
 		lv.setAdapter(tradeAdapter);
+		
+		Button b = (Button) vg.findViewById(R.id.purify);
+		b.setOnClickListener(new OnClickListener() {
+			@Override public void onClick(View v) {
+				Intent i = new Intent(getActivity(),SingleFragment.class);
+				i.putExtras(parent.acct.toBundle());
+				i.putExtra("fragment", PurifyResources.class);
+				getActivity().startActivity(i);
+			}});
 		return v;
 	}
 	@Override public void session_ready() {

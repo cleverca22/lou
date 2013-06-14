@@ -16,6 +16,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,6 +24,7 @@ import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import com.angeldsis.louapi.DnsError;
 import com.angeldsis.louapi.HttpUtil;
 import com.angeldsis.louapi.Log;
 import com.angeldsis.louapi.TimeoutError;
@@ -209,8 +211,9 @@ public class HttpUtilImpl implements HttpUtil {
 	@Override public String encode(String str) throws UnsupportedEncodingException {
 		return URLEncoder.encode(str,"UTF-8");
 	}
-	@Override public HttpReply postUrl(String url, byte[] raw_data) throws TimeoutError {
+	@Override public HttpReply postUrl(String url, byte[] raw_data) throws TimeoutError, DnsError {
 		try {
+			Log.v(TAG,"postUrl("+url+")");
 			URL login = new URL(url);
 			HttpURLConnection conn = (HttpURLConnection) login.openConnection();
 			conn.setReadTimeout(60000);
@@ -221,6 +224,8 @@ public class HttpUtilImpl implements HttpUtil {
 			conn.setRequestProperty("Content-Type", "application/json");
 			conn.connect();
 			return doPost(conn,raw_data);
+		}	catch (UnknownHostException e) {
+			throw new DnsError(e);
 		} catch (MalformedURLException e) {
 			return new HttpReply(e);
 		} catch (SocketTimeoutException e) {

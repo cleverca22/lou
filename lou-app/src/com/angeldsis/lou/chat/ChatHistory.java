@@ -88,25 +88,38 @@ public class ChatHistory extends SQLiteOpenHelper {
 		db.close();
 	}
 	private class ChatCache extends LruCache<Integer,ChatMsg> {
+		private static final String TAG = "ChatCache";
 		String tag;
 		public ChatCache(String tag) {
-			super(200);
+			super(2000);
 			this.tag = tag;
 		}
 		protected ChatMsg create(Integer position) {
-			ChatMsg m;
+			// FIXME, this always grabs a block of 20, even if 90% of them are already in the cache
+			// FIXME, pre-fill the cache as events roll in, dont save to disk, then read back
+			int origpos = position;
+			//Log.v(TAG,"having to fetch chat item "+position);
+			position -= position % 50;
+			int start = position;
+			//Log.v(TAG,"changed it to "+position);
+			ChatMsg m = null,wanted = null;
 			String[] args = {tag,""+position};
 			Cursor c = getReadableDatabase().rawQuery(
-					"SELECT time,channel,sender,crown,message,tag FROM ChatLogs WHERE tag = ? LIMIT ?,1",args);
-			if (!c.moveToNext()) return null;
-			m = new ChatMsg();
-			m.ts = c.getLong(0);
-			m.channel = c.getString(1);
-			m.sender = c.getString(2);
-			m.hascrown = c.getInt(3) == 1 ? true : false;
-			m.message = c.getString(4);
-			m.tag = c.getString(5);
-			return m;
+					"SELECT time,channel,sender,crown,message,tag FROM ChatLogs WHERE tag = ? LIMIT ?,50",args);
+			while (c.moveToNext()) {
+				m = new ChatMsg();
+				m.ts = c.getLong(0);
+				m.channel = c.getString(1);
+				m.sender = c.getString(2);
+				m.hascrown = c.getInt(3) == 1 ? true : false;
+				m.message = c.getString(4);
+				m.tag = c.getString(5);
+				if (position != origpos) this.put(position, m);
+				else wanted = m;
+				position++;
+			}
+			//Log.v(TAG,"pre-fetched "+(position - start)+" extra?");
+			return wanted;
 		}
 	}
 }

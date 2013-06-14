@@ -21,7 +21,7 @@ import com.angeldsis.louapi.data.World;
 import com.google.gson.annotations.SerializedName;
 
 public class LouState {
-	private static final String TAG = "LouState";
+	String TAG = "LouState";
 	transient int AllianceId;
 	transient String AllianceName;
 	transient public Player self;
@@ -42,6 +42,7 @@ public class LouState {
 	transient boolean getFullPlayerData = true,checkOnline = false;
 	transient public int tradeSpeedShip, tradeSpeedland;
 	transient AllianceMembers alliancemembers;
+	public int[] voidResources = new int[4];
 
 	public LouState() {
 		init();
@@ -57,6 +58,7 @@ public class LouState {
 		gold = new Counter(this);
 		mana = new ManaCounter(this);
 		subs = new ArrayList<SubRequest>();
+		if (voidResources == null) voidResources = new int[4];
 	}
 	public City findCityById(int cityid) {
 		return cities.get(cityid);
@@ -105,7 +107,9 @@ public class LouState {
 		transient public boolean autoBuildDefense, autoBuildEconomy;
 		transient public int autoBuildTypeFlags;
 		@SerializedName("units") public UnitCount[] units;
-		public double foodConsumption, foodConsumptionSupporter, foodConsumptionQueue;
+		@SerializedName("fc") public double foodConsumption;
+		@SerializedName("fcs") public double foodConsumptionSupporter;
+		@SerializedName("fcq") public double foodConsumptionQueue;
 		public ArrayList<Trade> trade_in;
 		public ArrayList<Trade> trade_out;
 		City() {
@@ -162,15 +166,14 @@ public class LouState {
 					while (i.hasNext()) {
 						Trade t = i.next();
 						if (t.state != Trade.Working) continue;
-						if ((t.end > now) && (t.end < (timeLeft + now)) && (t.contents != null)) {
-							//Log.v(TAG,name+" trade will get back in time, "+t.toString());
+						if ((t.end > now) && (t.end < (timeLeft + now)) && (t.content != null)) {
+							Log.v(TAG,name+" trade will get back in time, "+t.toString());
+							Log.v(TAG,"contents "+t.content.toString());
 							int x;
-							for (x=0; x<t.contents.length(); x++) {
-								//Log.v(TAG,t.contents.toString());
-								JSONObject o = t.contents.optJSONObject(x);
-								int type = o.optInt("t");
-								if (type == 4) { // food
-									incoming += o.optInt("c");
+							for (x=0; x<t.content.size(); x++) {
+								TradeResource o = t.content.get(x);
+								if (o.type == 3) { // food
+									incoming += o.count;
 								}
 							}
 						} else if (t.end < now) {
@@ -204,6 +207,7 @@ public class LouState {
 		}
 	}
 	public void parsePlayerUpdate(JSONObject d) throws JSONException {
+		int x;
 		getFullPlayerData = false;
 		JSONArray cg = d.optJSONArray("cg");
 		boolean female = d.getBoolean("f");
@@ -231,7 +235,6 @@ public class LouState {
 			if (iuo2 != JSONObject.NULL) {
 				JSONArray iuo = (JSONArray) iuo2;
 				//Log.v(TAG, iuo.toString(1));
-				int x;
 				for (x = 0; x < iuo.length(); x++) {
 					// incoming attacks on current city
 					JSONObject X = iuo.getJSONObject(x);
@@ -258,6 +261,16 @@ public class LouState {
 			} else Log.v(TAG,"no attacks 2!");
 		}
 		//else Log.v(TAG,"no attacks?");
+		JSONArray vr = d.optJSONArray("vr");
+		if (vr != null) {
+			Log.v(TAG,"vr:"+vr);
+			for (x = 0; x < vr.length(); x++) {
+				JSONArray r = vr.getJSONArray(x);
+				int type = r.getInt(0);
+				int count = r.getInt(1);
+				voidResources[type-5] = count;
+			}
+		}
 	}
 	public void setTime(long refTime2, int stepTime, int diff, int serverOffset) {
 		refTime = refTime2;
@@ -321,7 +334,7 @@ public class LouState {
 					// incoming attacks on current city
 					JSONObject X = iuo.getJSONObject(x);
 					int id = X.getInt("i");
-					Log.v(TAG,X.toString(1));
+					Log.v(TAG,"X=="+X.toString(1));
 					IncomingAttack a = null;
 					Iterator<IncomingAttack> i = this.incoming_attacks.iterator();
 					while (i.hasNext()) {
@@ -382,7 +395,7 @@ public class LouState {
 		c.autoBuildDefense = p.getBoolean("ad");
 		c.autoBuildEconomy = p.getBoolean("ae");
 		c.autoBuildTypeFlags = p.getInt("at");
-		Log.v(TAG,String.format("%s %b %b %d", c.name,c.autoBuildDefense,c.autoBuildEconomy,c.autoBuildTypeFlags));
+		Log.v(TAG,String.format("name=%s def=%b eco=%b flags=%d", c.name,c.autoBuildDefense,c.autoBuildEconomy,c.autoBuildTypeFlags));
 		
 		c.foodConsumption = p.getDouble("fc");
 		c.foodConsumptionSupporter = p.getDouble("fcs");
@@ -399,7 +412,7 @@ public class LouState {
 			rpc.onNewAttack(a);
 		}
 	}
-	private ArrayList<Trade> parseTrades(JSONArray list, World world, int direction) {
+	private ArrayList<Trade> parseTrades(JSONArray list, World world, int direction) throws JSONException {
 		// FIXME, reuse Trade objects, update them instead
 		ArrayList<Trade> out = new ArrayList<Trade>();
 		int j;
@@ -409,6 +422,10 @@ public class LouState {
 			out.add(trade);
 		}
 		return out;
+	}
+	public class TradeResource {
+		int count;
+		int type;
 	}
 	public class Trade {
 		Alliance alliance;
@@ -429,10 +446,12 @@ public class LouState {
 		public static final int Return = 2;
 		public static final int ReturnFromCancel = 6;
 		public static final int WorkingPalaceSupport = 7;
-		public int direction,id,start,end;
-		public String DEBUG,cityName;
-		@Deprecated private JSONArray contents; // FIXME, make it a proper object, contains c/t pairs
-		public Trade(JSONObject t, World world, int direction) {
+		@SerializedName("d") public int direction;
+		public int id,start,end;
+		transient public String DEBUG = "deserialized";
+		public String cityName;
+		private ArrayList<TradeResource> content;
+		public Trade(JSONObject t, World world, int direction) throws JSONException {
 			player = Player.get(t.optInt("p"),t.optString("pn"));
 			alliance = world.getAlliance(t.optInt("a"),t.optString("an"));
 			transport = t.optInt("tt");
@@ -446,7 +465,16 @@ public class LouState {
 			cityName = t.optString("cn");
 
 			Log.v(TAG,t.toString());
-			contents = t.optJSONArray("r");
+			JSONArray r = t.optJSONArray("r");
+			int i;
+			content = new ArrayList<TradeResource>();
+			for (i=0; i<r.length(); i++) {
+				JSONObject o = r.getJSONObject(i);
+				TradeResource tr = new TradeResource();
+				tr.count = o.getInt("c");
+				tr.type = o.getInt("t") - 1;
+				content.add(tr);
+			}
 			start = t.optInt("ss");
 			end = t.optInt("es");
 			Log.v(TAG,"ss:"+start+" es:"+end);
@@ -460,36 +488,38 @@ public class LouState {
 		int oa = d.optInt("oa");
 		if (oa > 0) Log.v(TAG,String.format("outgoing:%d",oa));
 		rpc.aam.countsUpdated(ia,oa);
-		JSONArray members = d.getJSONArray("m");
-		if (alliancemembers == null) alliancemembers = new AllianceMembers();
-		int i;
-		int[] valid = new int[members.length()];
-		for (i=0; i<members.length(); i++) {
-			JSONObject m = members.getJSONObject(i);
-			int id = m.getInt("i");
-			String name = m.getString("n");
-			AllianceMember m2 = alliancemembers.get(id);
-			if (m2 == null) {
-				m2 = new AllianceMember(id,name);
-				alliancemembers.put(id, m2);
-			}
-			valid[i] = id;
-			m2.update(m);
-
-			//if (m2.base.getName().equals("xHavoc")) Log.v(TAG,"tag1 "+m.toString());
-		}
-		Iterator<AllianceMember> it = alliancemembers.values().iterator();
-		while (it.hasNext()) {
-			AllianceMember m = it.next();
-			boolean keep = false;
-			for (i=0; i<valid.length; i++) {
-				if (valid[i] == m.base.getId()) { // FIXME
-					keep = true;
-					break;
+		JSONArray members = d.optJSONArray("m");
+		if (members != null) {
+			if (alliancemembers == null) alliancemembers = new AllianceMembers();
+			int i;
+			int[] valid = new int[members.length()];
+			for (i=0; i<members.length(); i++) {
+				JSONObject m = members.getJSONObject(i);
+				int id = m.getInt("i");
+				String name = m.getString("n");
+				AllianceMember m2 = alliancemembers.get(id);
+				if (m2 == null) {
+					m2 = new AllianceMember(id,name);
+					alliancemembers.put(id, m2);
 				}
+				valid[i] = id;
+				m2.update(m);
+				
+				//if (m2.base.getName().equals("xHavoc")) Log.v(TAG,"tag1 "+m.toString());
 			}
-			if (keep == false) {
-				it.remove();
+			Iterator<AllianceMember> it = alliancemembers.values().iterator();
+			while (it.hasNext()) {
+				AllianceMember m = it.next();
+				boolean keep = false;
+				for (i=0; i<valid.length; i++) {
+					if (valid[i] == m.base.getId()) { // FIXME
+						keep = true;
+						break;
+					}
+				}
+				if (keep == false) {
+					it.remove();
+				}
 			}
 		}
 	}

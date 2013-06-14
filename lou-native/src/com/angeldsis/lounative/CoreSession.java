@@ -46,7 +46,7 @@ public class CoreSession {
 				});
 			}
 		});
-		rpc.setChat(new ChatWindow(display,rpc));
+		if (!rpc.passive) rpc.setChat(new ChatWindow(display,rpc));
 		rpc.setCoreSession(this);
 		mw = new MainWindow(display,this);
 	}

@@ -23,5 +23,5 @@ public interface HttpUtil {
 	HttpReply postUrl(String url, String data);
 	HttpReply getUrl(String url);
 	String encode(String str) throws UnsupportedEncodingException;
-	HttpReply postUrl(String url, byte[] raw_data) throws TimeoutError;
+	HttpReply postUrl(String url, byte[] raw_data) throws TimeoutError, DnsError;
 }

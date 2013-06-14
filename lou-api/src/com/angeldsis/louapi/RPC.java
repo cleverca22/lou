@@ -1,16 +1,8 @@
 package com.angeldsis.louapi;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
@@ -59,6 +51,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 		this.httpUtil = httpUtil;
 		this.account = acct;
 		this.state = state;
+		state.TAG = "LouState"+acct.worldid;
 		aam = new AllianceAttackMonitor(this);
 		enlightenedCities = new EnlightenedCities();
 		foodWarnings = new FoodWarningParser();
@@ -442,7 +435,8 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 	}
 	private void doRPC(final String function,final JSONObject request, final RPCCallback rpcCallback, final int retry) throws JSONException {
 		if (retry == 0) {
-			System.out.println("too many treies");
+			System.out.println("too many tryies");
+			// FIXME, disconnect the user?
 			return;
 		}
 		setThreadActive(true);
@@ -481,14 +475,22 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+				throw new IllegalStateException("unexpected exception ",e);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+				throw new IllegalStateException("unexpected exception ",e);
 			}
 		/*} catch (MalformedURLException e2) {
 			// TODO Auto-generated catch block
 			e2.printStackTrace();
-		} catch (UnknownHostException e) {
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "wtf, file not found?? " + urlbase + function);
+			stopPolling();
+			onEjected();
+			stopLooping();
+			return;*/
+		} catch (DnsError e) {
 			Log.w(TAG,"dns error, retrying "+urlbase);
 			try {
 				doRPC(function,request,rpcCallback,retry - 1);
@@ -496,14 +498,8 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
-		} catch (FileNotFoundException e) {
-			Log.e(TAG, "wtf, file not found?? " + urlbase + function);
-			stopPolling();
-			onEjected();
-			stopLooping();
-			return;*/
 		} catch (TimeoutError e) {
-			Log.e(TAG, function + " exception from http req, retrying "+retry+" more times",e);
+			Log.e(TAG, function + " exception from http req, retrying "+retry+" more times");
 			try {
 				doRPC(function,request,rpcCallback,retry - 1);
 			} catch (JSONException e1) {
@@ -792,6 +788,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 	}
 	public abstract void onChat(ArrayList<ChatMsg> recent);
 	/** called after state.gold and state.incoming_attacks is updated
+	 * also includes purified res
 	 */
 	public abstract void onPlayerData();
 	void parseVIS(JSONObject D) throws JSONException {
@@ -1336,4 +1333,25 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 	public abstract void onDefenseOverviewUpdate();
 	public abstract void onEnlightenedCityChanged();
 	public abstract void onFoodWarning();
+	public void ResourceToVoid(final City city, final JSONArray counts) {
+		post(new Runnable() {
+			public void run() {
+				JSONObject obj = new JSONObject();
+				try {
+					obj.put("cityid", city.cityid);
+					obj.put("res",counts);
+					Log.v(TAG,obj.toString());
+					doRPC("ResourceToVoid",obj,new RPCCallback() {
+						@Override void requestDone(rpcreply r) throws JSONException, Exception {
+							Log.v(TAG,r.reply.toString()); // FIXME, check value
+							pollSoon();
+						}
+					},5);
+				} catch (JSONException e) {
+					// FIXME
+					e.printStackTrace();
+				}
+			}
+		});
+	}
 }

@@ -106,7 +106,7 @@ public class ChatWindow extends Shell implements SelectionListener {
 	}
 	@Override public void widgetSelected(SelectionEvent e) {
 		TabData data = (TabData) e.item.getData();
-		data.selected();
+		if (data != null) data.selected();
 	}
 	@Override
 	public void widgetDefaultSelected(SelectionEvent e) {

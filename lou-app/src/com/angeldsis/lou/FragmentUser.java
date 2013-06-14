@@ -142,8 +142,9 @@ public class FragmentUser extends FragmentActivity implements Callbacks, Session
 		DialogFragment f = DisconnectedDialog.newInstance();
 		f.show(ft, "dialog");
 	}
-	@Override
-	public void onPlayerData() {
+	@Override public void onPlayerData() {
+		Iterator<FragmentBase> i = hooks.iterator();
+		while (i.hasNext()) i.next().onPlayerData();
 	}
 	@Override public boolean onChat(ArrayList<ChatMsg> d) {
 		Iterator<FragmentBase> i = hooks.iterator();

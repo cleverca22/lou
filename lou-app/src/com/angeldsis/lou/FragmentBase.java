@@ -31,4 +31,5 @@ public abstract class FragmentBase extends Fragment {
 	public boolean onChat(ArrayList<ChatMsg> d) {
 		return false;
 	}
+	public void onPlayerData() {}
 }

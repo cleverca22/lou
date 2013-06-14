@@ -89,24 +89,26 @@ public class EnlightenedCities {
 			if (flush == 1) this.data = new TreeMap<Integer,EnlightenedCity>();
 		}
 		JSONArray c = D.optJSONArray("c");
-		int x;
-		for (x=0; x<c.length(); x++) {
-			JSONObject y = c.getJSONObject(x);
-			int id = y.getInt("i");
-			EnlightenedCity result = data.get(id);
-			if (y.has("n") == false) {
-				if (result != null) {
-					data.remove(result);
+		if (c != null) {
+			int x;
+			for (x=0; x<c.length(); x++) {
+				JSONObject y = c.getJSONObject(x);
+				int id = y.getInt("i");
+				EnlightenedCity result = data.get(id);
+				if (y.has("n") == false) {
+					if (result != null) {
+						data.remove(result);
+					}
+					continue;
 				}
-				continue;
-			}
-			if (result == null) {
-				//Log.v(TAG,"making new obj "+y.toString());
-				result = new EnlightenedCity(id,y,rpc);
-				if (initial) result.known = true;
-				data.put(id,result);
-			} else {
-				result.update(y);
+				if (result == null) {
+					//Log.v(TAG,"making new obj "+y.toString());
+					result = new EnlightenedCity(id,y,rpc);
+					if (initial) result.known = true;
+					data.put(id,result);
+				} else {
+					result.update(y);
+				}
 			}
 		}
 		initial = false;

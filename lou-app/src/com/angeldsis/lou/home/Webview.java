@@ -13,6 +13,8 @@ import com.angeldsis.lou.LoggingIn;
 import com.angeldsis.lou.R;
 import com.angeldsis.lou.SessionKeeper;
 import com.angeldsis.lou.SessionKeeper.CookieCallback;
+import com.angeldsis.louutil.HttpUtilImpl;
+
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -59,12 +61,18 @@ public class Webview extends Fragment implements CookieCallback {
 		Log.v(TAG,"new webview",e);
 		return l;
 	}
+	private static final String[] links = { "http://www.lordofultima.com/mobile/play/change",
+		"https://www.lordofultima.com/home",
+		"https://www.lordofultima.com/game/launch" };
 	public class client extends WebViewClient {
 		public boolean shouldOverrideUrlLoading (WebView view, String url) {
 			lastUrl.setText(url);
 			//try {
 				Log.v(TAG,"shouldOverrideUrlLoading "+url);
-				if (url.equals("http://www.lordofultima.com/mobile/play/change")) {
+				int x;
+				boolean match = false;
+				for (x=0; x<links.length; x++) if (links[x].equals(url)) { match=true; break; }
+				if (match) {
 					Log.v(TAG,"overriding");
 					android.webkit.CookieManager cookies = android.webkit.CookieManager.getInstance();
 					//File path = getActivity().getDatabasePath("webviewCookiesChromium.db");
@@ -75,10 +83,9 @@ public class Webview extends Fragment implements CookieCallback {
 					//CookieManager mCookieManager = (CookieManager) CookieHandler.getDefault();
 					//CookieStore store = mCookieManager.getCookieStore(); // FIXME NullPointerException
 					//URI uri = new URI("http://www.lordofultima.com/");
-					String c = cookies.getCookie("http://www.lordofultima.com/");
+					String c = cookies.getCookie("https://www.lordofultima.com/");
 					Log.v(TAG,"c:"+c);
 					String c2[] = c.split(";");
-					int x;
 					String JSESSIONID=null,AWSELB=null;
 					for (x=0; x < c2.length; x++) {
 						String c3[] = c2[x].split("=");
@@ -89,8 +96,10 @@ public class Webview extends Fragment implements CookieCallback {
 						else if ("AWSELB".equals(name)) AWSELB = value;
 					}
 					SessionKeeper.restore_cookie(JSESSIONID+";"+AWSELB);
+					Log.v(TAG,"cookies:"+HttpUtilImpl.getInstance().getCookieData());
 					SharedPreferences.Editor trans = getActivity().getSharedPreferences("main", Context.MODE_PRIVATE).edit();
 					trans.putString("cookie", JSESSIONID+";"+AWSELB);
+					
 					trans.commit();
 					//db.close();
 					//loadpage = new LoadPage();
