@@ -4,9 +4,6 @@ import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.URLEncoder;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -33,6 +30,7 @@ public class LouSession {
 	public long dataage;
 	private HttpUtil httpUtil;
 	@Deprecated  private String cookiedata;
+	public String currentEmail;
 	@Deprecated public void restore_cookie(String cookie) {
 		httpUtil.restore_cookie(cookie);
 	}
@@ -113,7 +111,7 @@ public class LouSession {
 			System.out.println("final code "+reply2.code);
 			final result output = new result();
 			output.worked = false;
-			parse_result(output, reply2.stream);
+			parse_result(output, reply2.stream, username);
 			return output;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -131,7 +129,7 @@ public class LouSession {
 			return output;
 		}
 	}
-	private void parse_result(final result output, InputStream is) throws IOException, SAXException {
+	private void parse_result(final result output, InputStream is, String email) throws IOException, SAXException {
 		XMLReader xmlReader = XMLReaderFactory.createXMLReader ("org.ccil.cowan.tagsoup.Parser");
 		final ArrayList<ServerInfo> servers = new ArrayList<ServerInfo>();
 		final ArrayList<NewServer> newServers = new ArrayList<NewServer>();
@@ -227,6 +225,7 @@ public class LouSession {
 			//for (NewServer s : newServers) {
 			//	Log.v(TAG,String.format("%s %s %s", s.server,s.id,s.name));
 			//}
+			currentEmail = email;
 			return;
 		}
 		output.error = true;
@@ -258,7 +257,7 @@ public class LouSession {
 		}
 		System.out.println(buf.toString());
 	}
-	public result check_cookie() {
+	public result check_cookie(String username) {
 		try {
 			HttpReply reply = httpUtil.getUrl("http://www.lordofultima.com/game/world/change");
 			if (reply.code == 200) {
@@ -268,6 +267,7 @@ public class LouSession {
 					result obj = new result();
 					Log.e(TAG,String.format("fail 1 %d %s",reply.code,secondurl));
 					obj.worked = false;
+					currentEmail = null;
 					return obj;
 				} else {
 					Log.e(TAG,"unknown error: "+secondurl);
@@ -313,7 +313,7 @@ public class LouSession {
 			System.out.println("final code "+reply2.code);
 			final result output = new result();
 			output.worked = false;
-			parse_result(output, reply2.stream);
+			parse_result(output, reply2.stream, username);
 			return output;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -326,6 +326,7 @@ public class LouSession {
 	}
 	public void logout() {
 		httpUtil.logout();
+		currentEmail = null;
 		servers = null;
 	}
 }

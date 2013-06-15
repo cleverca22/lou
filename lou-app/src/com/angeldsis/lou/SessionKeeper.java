@@ -25,6 +25,7 @@ import com.angeldsis.louapi.LouState.City;
 import com.angeldsis.louapi.LouVisData;
 import com.angeldsis.louapi.RPC;
 import com.angeldsis.louapi.RPC.RPCDone;
+import com.angeldsis.louapi.RPC.SubRequestDone;
 import com.angeldsis.louapi.Timeout;
 import com.angeldsis.louapi.world.WorldParser.Cell;
 import com.angeldsis.louutil.HttpUtilImpl;
@@ -40,6 +41,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Bundle;
@@ -87,6 +89,7 @@ public class SessionKeeper extends Service {
 	static final int EJECTED = 0x500;
 
 	NotificationCompat.Builder mBuilder,chatBuilder,incomingAttackBuilder,foodWarning,disconnectBuilder;
+	private SharedPreferences config;
 	public class MyBinder extends Binder {
 		public SessionKeeper getService() {
 			Log.v(TAG,"getService");
@@ -128,12 +131,14 @@ public class SessionKeeper extends Service {
 		i.putExtra("wakingSelf", true);
 		wakeSelf = PendingIntent.getService(this,0,i,0);
 		rpclogs = new RpcLogs(this);
+		config = this.getSharedPreferences("accounts", MODE_PRIVATE);
 	}
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
 		Log.v(TAG,this+" onDestroyed");
 		self = null;
+		config = null;
 	}
 	public static SessionKeeper getInstance() {
 		return self;
@@ -219,17 +224,23 @@ public class SessionKeeper extends Service {
 		public AccountWrap acct;
 		Callbacks cb;
 		boolean alive = false,loggingIn;
-		int sessionid;
+		public int sessionid;
 		public ChatHistory chat;
 		boolean threadActive;
 		public boolean dingOnMessage;
-		Session(AccountWrap acct2, int sessionid) {
+		/** 
+		 * @param acct2
+		 * @param sessionid
+		 * @param playerid
+		 * the expected id of this account for state restore, -1 for unknown
+		 * @param primary
+		 * the main account, false for subs
+		 */
+		Session(AccountWrap acct2, int sessionid,int playerid, final boolean primary) {
 			Log.v(TAG,"new Session");
 			loggingIn = true;
 			acct = acct2;
-			// FIXME give the playerid#
-			chat = new ChatHistory(SessionKeeper.this,acct2.worldid,0);
-			this.sessionid = sessionid;
+			acct.id = this.sessionid = sessionid;
 
 			Intent intent = new Intent(SessionKeeper.this,SessionKeeper.class);
 			intent.putExtras(acct.toBundle());
@@ -238,7 +249,7 @@ public class SessionKeeper extends Service {
 			//doing_network.acquire();
 			
 			state = new LouState();
-			restoreState(); // FIXME, maybe do this better?
+			if (playerid != -1) restoreState(playerid); // FIXME, maybe do this better?
 
 			rpc = new RPCWrap(acct,state,this);
 			state.setRPC(rpc);
@@ -248,11 +259,18 @@ public class SessionKeeper extends Service {
 					rpc.GetServerInfo(new RPCDone() {
 						public void requestDone(JSONObject reply) {
 							rpc.GetPlayerInfo(new RPCDone() {
-								@Override
-								public void requestDone(JSONObject reply) {
+								@Override public void requestDone(JSONObject reply) {
 									// state variable now has some data populated
+									ChatHistory.checkRename(SessionKeeper.this,acct.worldid,state.self.getId());
+									chat = new ChatHistory(SessionKeeper.this,acct.worldid,state.self.getId());
+									if (primary) {
+										Editor trans = config.edit();
+										trans.putInt(session2.currentEmail+"_w"+acct.worldid, state.self.getId());
+										trans.apply();
+									}
 									rpc.startPolling();
 									loggingIn = false;
+									// FIXME, wait for the first poll
 									loginDone();
 								}
 							});
@@ -331,20 +349,20 @@ public class SessionKeeper extends Service {
 			}
 			saveState();
 		}
-		private String getStateName() {
-			return String.format("state_save_w%d",acct.worldid);
+		private String getStateName(int playerid) {
+			return String.format("state_save_w%d_p%d",acct.worldid,playerid);
 		}
 		private void saveState() {
 			Gson gson = new Gson();
-			FileOutputStream state;
-			File source = SessionKeeper.this.getFileStreamPath(getStateName()+".tmp");
+			FileOutputStream stateout;
+			File source = SessionKeeper.this.getFileStreamPath(getStateName(state.self.getId())+".tmp");
 			try {
-				state = SessionKeeper.this.openFileOutput(getStateName()+".tmp", MODE_PRIVATE);
+				stateout = SessionKeeper.this.openFileOutput(getStateName(state.self.getId())+".tmp", MODE_PRIVATE);
 				String data1 = gson.toJson(this.state);
 				byte[] data2 = data1.getBytes();
-				state.write(data2);
-				state.close();
-				File dest = SessionKeeper.this.getFileStreamPath(getStateName());
+				stateout.write(data2);
+				stateout.close();
+				File dest = SessionKeeper.this.getFileStreamPath(getStateName(state.self.getId()));
 				source.renameTo(dest);
 			} catch (ConcurrentModificationException e) {
 				source.delete();
@@ -356,9 +374,9 @@ public class SessionKeeper extends Service {
 				e.printStackTrace();
 			}
 		}
-		public void restoreState() {
+		public void restoreState(int playerid) {
 			FileInputStream state;
-			File source = SessionKeeper.this.getFileStreamPath(getStateName());
+			File source = SessionKeeper.this.getFileStreamPath(getStateName(playerid));
 			try {
 				state = new FileInputStream(source);
 				Gson gson = new Gson();
@@ -454,12 +472,14 @@ public class SessionKeeper extends Service {
 		public void onSubListChanged() {
 			if (cb != null) cb.onSubListChanged();
 		}
-		public void startSubstituteSession(String sessionid) {
+		public void startSubstituteSession(String sessionid,int playerid, SubRequestDone cb2) {
 			AccountWrap acct2 = new AccountWrap(acct);
 			acct2.sessionid = sessionid;
 			acct2.id = lastSessionid++;
-			Session s2 = new Session(acct2,acct2.id);
+			Session s2 = new Session(acct2,acct2.id,playerid,false);
 			sessions.add(s2);
+			cb2.allDone(acct2);
+			// FIXME, open loading window
 		}
 		public Timeout getMaxPoll() {
 			if (cb == null) return slow;
@@ -489,8 +509,12 @@ public class SessionKeeper extends Service {
 		public boolean uiActive() {
 			return cb != null;
 		}
-		public void logRequest(int req, int reply, String func, int nettime, int parse1) {
-			rpclogs.logRequest(req,reply,func,nettime,parse1);
+		public void logRequest(final int req, final int reply, final String func, final int nettime, final int parse1) {
+			rpc.handler.post(new Runnable() {
+				public void run() {
+					rpclogs.logRequest(req,reply,func,nettime,parse1);
+				}
+			});
 		}
 		public void cellUpdated(Cell c) {
 			if (cb != null) cb.cellUpdated(c);
@@ -648,30 +672,31 @@ public class SessionKeeper extends Service {
 			mNotificationManager = (NotificationManager) getSystemService(SessionKeeper.NOTIFICATION_SERVICE);
 			Logger.init();
 		}
-		Log.v(TAG,"looking for existing session");
+		Log.v(TAG,"looking for existing session "+acct.id);
 		Iterator<Session> i = sessions.iterator();
 		while (i.hasNext()) {
 			Session s = i.next();
-			if (s.acct.world.equals(acct.world)) {
+			if (s.sessionid == acct.id) {
 				Log.v(TAG,"found it");
 				return s;
 			}
 		}
 		if (allow_login) {
-			Session s2 = new Session(acct,lastSessionid++);
+			int playerid = config.getInt(session2.currentEmail+"_w"+acct.worldid, -1);
+			Session s2 = new Session(acct,lastSessionid++,playerid,true);
 			sessions.add(s2);
 			updateNotification();
 			refreshConfig();
 			return s2;
 		} else return null; // not a login page, fail out
 	}
-	public static void checkCookie(final CookieCallback cb) {
+	public static void checkCookie(final CookieCallback cb, final String username) {
 		Log.v(TAG,"checkCookie");
 		if (session2 == null) session2 = new LouSession(HttpUtilImpl.getInstance());
 		AsyncTask<Object,Integer,result> task = new AsyncTask<Object,Integer,result>() {
 			@Override
 			protected result doInBackground(Object... arg0) {
-				result r = session2.check_cookie();
+				result r = session2.check_cookie(username);
 				Log.v(TAG,"r is "+r);
 				return r;
 			}

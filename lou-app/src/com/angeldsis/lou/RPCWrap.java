@@ -80,9 +80,8 @@ public class RPCWrap extends RPC {
 	public void onSubListChanged() {
 		callbacks.onSubListChanged();
 	}
-	@Override
-	public void startSubstituteSession(String sessionid) {
-		callbacks.startSubstituteSession(sessionid);
+	@Override public void startSubstituteSession(String sessionid, int playerid, SubRequestDone cb) {
+		callbacks.startSubstituteSession(sessionid,playerid,cb);
 	}
 	@Override
 	protected Timeout getMaxPoll() {

@@ -1,8 +1,10 @@
 package com.angeldsis.lou.chat;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import com.angeldsis.lou.SessionKeeper;
 import com.angeldsis.louapi.ChatMsg;
 
 import android.content.ContentValues;
@@ -14,6 +16,7 @@ import android.support.v4.util.LruCache;
 import android.util.Log;
 
 public class ChatHistory extends SQLiteOpenHelper {
+	private static final String TAG = "ChatHistory";
 	public static final String DBName = "chat_history_w%d_p%d.db";
 	public static int VERSION = 3;
 	private static final String tblFormat = "CREATE TABLE ChatLogs (time,channel,sender,crown,message,tag)";
@@ -120,6 +123,16 @@ public class ChatHistory extends SQLiteOpenHelper {
 			}
 			//Log.v(TAG,"pre-fetched "+(position - start)+" extra?");
 			return wanted;
+		}
+	}
+	public static void checkRename(SessionKeeper context, int worldid, int playerid) {
+		File source = context.getDatabasePath(String.format("chat_history_w%d_p0.db", worldid));
+		File dest = context.getDatabasePath(String.format(DBName, worldid,playerid));
+		if (source.exists() && !dest.exists()) {
+			source.renameTo(dest);
+			source = context.getDatabasePath(String.format("chat_history_w%d_p0.db-journal", worldid));
+			dest = context.getDatabasePath(String.format(DBName+"-journal", worldid,playerid));
+			source.renameTo(dest);
 		}
 	}
 }

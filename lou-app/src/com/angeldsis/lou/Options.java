@@ -1,5 +1,7 @@
 package com.angeldsis.lou;
 
+import com.angeldsis.louapi.Account;
+import com.angeldsis.louapi.RPC.SubRequestDone;
 import com.angeldsis.louapi.data.SubRequest;
 
 import android.os.Bundle;
@@ -8,7 +10,7 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
 
-public class Options extends SessionUser {
+public class Options extends SessionUser implements SubRequestDone {
 	@Override public void onCreate(Bundle sis) {
 		super.onCreate(sis);
 		setContentView(R.layout.options);
@@ -35,7 +37,11 @@ public class Options extends SessionUser {
 		}
 		@Override
 		public void onClick(View v) {
-			session.rpc.CreateSubstitutionSession(s);
+			session.rpc.CreateSubstitutionSession(s,Options.this);
 		}
+	}
+	@Override
+	public void allDone(Account acct2) {
+		// TODO Auto-generated method stub
 	}
 }

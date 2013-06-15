@@ -37,6 +37,7 @@ public class Webview extends Fragment implements CookieCallback {
 	WebView v;
 	LoadPage loadpage;
 	private TextView lastUrl;
+	String username;
 	public View onCreateView (LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		LinearLayout l = new LinearLayout(getActivity());
 		l.setOrientation(LinearLayout.VERTICAL);
@@ -48,7 +49,7 @@ public class Webview extends Fragment implements CookieCallback {
 		Bundle b = getArguments();
 		if (b != null) {
 			Log.v(TAG,"arguments found!");
-			String username = b.getString("username");
+			username = b.getString("username");
 			String pw = b.getString("password");
 			String url = "https://www.lordofultima.com/j_security_check";
 			String payload = "j_username="+username+"&j_password="+pw;
@@ -104,7 +105,7 @@ public class Webview extends Fragment implements CookieCallback {
 					//db.close();
 					//loadpage = new LoadPage();
 					//loadpage.execute("http://www.lordofultima.com/game/world/change");
-					SessionKeeper.checkCookie(Webview.this);
+					SessionKeeper.checkCookie(Webview.this,username);
 					return true;
 				}
 			//} catch (URISyntaxException e) {

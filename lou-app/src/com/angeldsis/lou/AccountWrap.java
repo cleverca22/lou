@@ -7,7 +7,7 @@ import com.angeldsis.louapi.ServerInfo;
 
 // helper methods to send an Account thru a Bundle
 public class AccountWrap extends Account {
-	public int id;
+	public int id = -1; // the id of a SessionKeeper.Session instance
 	public AccountWrap() {
 	}
 	public AccountWrap(Account a) {
@@ -23,6 +23,7 @@ public class AccountWrap extends Account {
 		sessionid = args.getString("sessionid");
 		worldid = args.getInt("worldid");
 		world = args.getString("world");
+		id = args.getInt("id", -1);
 	}
 	public AccountWrap(ServerInfo a) {
 		serverid = a.serverid;
@@ -38,6 +39,7 @@ public class AccountWrap extends Account {
 		args.putString("sessionid", sessionid);
 		args.putInt("worldid", worldid);
 		args.putString("world", world);
+		args.putInt("id", id);
 		return args;
 	}
 }

@@ -83,7 +83,7 @@ public class Loading extends Fragment {
 						}
 					}
 				}
-			});
+			},getActivity().getSharedPreferences("main",Context.MODE_PRIVATE).getString("email", null));
 		} else openLogin();
 
 		return inflater.inflate(R.layout.loading, container,false);

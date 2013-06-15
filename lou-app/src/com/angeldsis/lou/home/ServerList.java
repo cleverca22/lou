@@ -10,6 +10,7 @@ import com.angeldsis.lou.SessionKeeper;
 import com.angeldsis.lou.SessionKeeper.Session;
 import com.angeldsis.louapi.LouSession;
 import com.angeldsis.louapi.ServerInfo;
+import com.angeldsis.louapi.data.SubRequest;
 
 import android.content.Context;
 import android.content.Intent;
@@ -32,20 +33,14 @@ import android.widget.TextView;
 
 public class ServerList extends Fragment {
 	private static final String TAG = "ServerList";
-	ViewGroup root;
-	LayoutInflater inflater; // FIXME?
 	public View onCreateView (LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		setHasOptionsMenu(true);
-		Log.v(TAG,"onCreateView");
 		if (SessionKeeper.session2 == null) {
 			getActivity().getSupportFragmentManager().beginTransaction().replace(R.id.main_frame, new Loading()).commit();
 			Log.v(TAG,"returning empty list");
 			return null;
 		}
-		ViewGroup root = (ViewGroup) inflater.inflate(R.layout.server_list, container,false);
-		this.root = root;
-		this.inflater = inflater;
-		return root;
+		return inflater.inflate(R.layout.server_list, container,false);
 	}
 	public void onResume() {
 		super.onResume();
@@ -53,6 +48,8 @@ public class ServerList extends Fragment {
 		redoList();
 	}
 	private void redoList() {
+		LayoutInflater inflater = getActivity().getLayoutInflater();
+		ViewGroup root = (ViewGroup) getView();
 		boolean active[] = new boolean[128];
 		
 		LouSession sess = SessionKeeper.session2;
@@ -61,6 +58,8 @@ public class ServerList extends Fragment {
 
 		ViewGroup list2 = (ViewGroup) root.findViewById(R.id.livelist);
 		list2.removeAllViews();
+		ViewGroup subs_list = (ViewGroup) root.findViewById(R.id.subs_list);
+		subs_list.removeAllViews();
 		SessionKeeper k = SessionKeeper.getInstance();
 		if (k != null) {
 			Log.v(TAG,"found keeper");
@@ -70,7 +69,7 @@ public class ServerList extends Fragment {
 				final Session s = i2.next();
 				ViewGroup row = (ViewGroup) inflater.inflate(R.layout.one_server, list2,false);
 				TextView t = (TextView) row.findViewWithTag("server_name");
-				t.setText(s.acct.world);
+				t.setText(s.acct.world+" "+s.state.self.getName());
 				Button b = (Button) row.findViewWithTag("button");
 				Log.v(TAG,b.toString());
 				b.setOnClickListener(new OnClickListener() {
@@ -85,6 +84,30 @@ public class ServerList extends Fragment {
 				});
 				list2.addView(row);
 				active[s.acct.worldid] = true;
+				Iterator<SubRequest> i3 = s.state.subs.iterator();
+				Log.v(TAG,"source session:"+s.acct.worldid+" "+s.state.self.getName());
+				while (i3.hasNext()) {
+					final SubRequest sr = i3.next();
+					Log.v(TAG,"sr data id:"+sr.id+" "+(sr.role == SubRequest.Role.giver ? "giver":"receiver")+" state:"+sr.state);
+					if (sr.state != 2) continue;
+					if (sr.role != SubRequest.Role.receiver) continue;
+					ViewGroup row3 = (ViewGroup) inflater.inflate(R.layout.one_server, subs_list, false);
+					t = (TextView) row3.findViewWithTag("server_name");
+					t.setText("sub for "+sr.giver.getName()+" on "+s.acct.world);
+					b = (Button) row3.findViewWithTag("button");
+					b.setOnClickListener(new OnClickListener() {
+						@Override public void onClick(View v) {
+							Bundle args = new Bundle();
+							args.putInt("id", s.sessionid);
+							args.putInt("sub_id",sr.id);
+							FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
+							SubstituteLogin fragment = new SubstituteLogin();
+							fragment.setArguments(args);
+							ft.replace(R.id.main_frame, fragment).commit();
+						}
+					});
+					subs_list.addView(row3);
+				}
 			}
 		}
 		ArrayList<ServerInfo> accounts = sess.servers;

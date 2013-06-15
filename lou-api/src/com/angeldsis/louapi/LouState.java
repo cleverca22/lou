@@ -30,8 +30,8 @@ public class LouState {
 	transient public Counter gold;
 	transient public ManaCounter mana;
 	transient public ArrayList<IncomingAttack> incoming_attacks;
-	transient private int diff, stepTime;
-	transient long refTime;
+	private int diff, stepTime;
+	long refTime;
 	transient RPC rpc;
 	transient public TimeZone tz;
 	transient boolean fetchVis = false;

@@ -233,7 +233,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			}
 		});
 	}
-	public void CreateSubstitutionSession(final SubRequest s) {
+	public void CreateSubstitutionSession(final SubRequest s, final SubRequestDone cb) {
 		post(new Runnable() {
 			public void run() {
 				try {
@@ -246,7 +246,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 							runOnUiThread(new Runnable() {
 								public void run() {
 									String sessionid = (String) r.reply;
-									startSubstituteSession(sessionid);
+									startSubstituteSession(sessionid,s.giver.getId(),cb);
 								}
 							});
 						}
@@ -257,7 +257,10 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			}
 		});
 	}
-	public abstract void startSubstituteSession(String sessionid);
+	public interface SubRequestDone {
+		void allDone(Account acct2);
+	};
+	public abstract void startSubstituteSession(String sessionid,int playerid, SubRequestDone cb);
 	public void GetReport(final int reportid,final ReportCallback cb) {
 		post(new Runnable() {
 			public void run() {
@@ -766,7 +769,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			JSONObject D = p.getJSONObject("D");
 			//Log.v(TAG,"TE: packet "+D.toString());
 		} else if (C.equals("DEFO")) {
-			defenseOverviewParser.parse(p.getJSONArray("D"),this);
+			if (defenseOverviewParser != null) defenseOverviewParser.parse(p.getJSONArray("D"),this);
 		} else {
 			Log.v(TAG,"unexpected Poll data "+C+" "+p.toString());
 		}
