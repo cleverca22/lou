@@ -23,7 +23,6 @@ import com.angeldsis.louapi.LouSession.result;
 import com.angeldsis.louapi.LouState;
 import com.angeldsis.louapi.LouState.City;
 import com.angeldsis.louapi.LouVisData;
-import com.angeldsis.louapi.RPC;
 import com.angeldsis.louapi.RPC.RPCDone;
 import com.angeldsis.louapi.RPC.SubRequestDone;
 import com.angeldsis.louapi.Timeout;
@@ -716,6 +715,8 @@ public class SessionKeeper extends Service {
 		session2.restore_cookie(cookie);
 	}
 	@Override public void onTrimMemory(int level) {
+		Iterator<Session> i = sessions.iterator();
+		while (i.hasNext()) i.next().rpc.onTrimMemory();
 		switch (level) {
 		case 0:
 			Log.v(TAG,"onTrimMemory("+level+")");

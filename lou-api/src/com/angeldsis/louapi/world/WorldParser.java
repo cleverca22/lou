@@ -7,6 +7,7 @@ import org.json2.JSONException;
 import org.json2.JSONObject;
 
 import com.angeldsis.louapi.Log;
+import com.angeldsis.louapi.RPC;
 import com.angeldsis.louapi.data.BaseLou;
 import com.angeldsis.louapi.data.Coord;
 
@@ -14,12 +15,15 @@ public class WorldParser {
 	private static final String TAG = "WorldParser";
 	public int mincol,maxcol, minrow,maxrow;
 	public Cell[] cells = new Cell[1024];
+	private boolean enabled;
+	private RPC rpc;
 	
-	public WorldParser() {
+	public WorldParser(RPC rpc) {
 		mincol = 4;
 		maxcol = 4;
 		minrow = 7;
 		maxrow = 7;
+		this.rpc = rpc;
 	}
 	public String getRequestDetails() {
 		try {
@@ -107,7 +111,7 @@ public class WorldParser {
 				int col = cell.getFineCol() + finecol;
 				int row = cell.getFineRow() + finerow;
 				int fineid = (finerow << 5) | finecol;
-				cell.dungeons[fineid] = null;
+				cell.objects[fineid] = null;
 				Log.v(TAG,String.format("%3d:%3d change type %d a/b %d/%d",col,row,type1,finerow,finecol));
 				break;
 			case 4:
@@ -144,10 +148,10 @@ public class WorldParser {
 			//Log.v(TAG,String.format("city %3d:%3d points:%5d name:%s",city.col,city.row,city.Points,city.name));
 			break;
 		case 2: // dungeon
-			Dungeon d = cell.dungeons[fineid];
+			Dungeon d = (Dungeon) cell.objects[fineid];
 			if (d == null) {
 				d = new Dungeon();
-				cell.dungeons[fineid] = d;
+				cell.objects[fineid] = d;
 			}
 			d.location = new Coord(cell.getFineCol() + finecol,cell.getFineRow() + finerow);
 
@@ -176,6 +180,18 @@ public class WorldParser {
 			//log(y.readRest());
 			break;
 		case 6: // lawless
+			LawlessCity lc = (LawlessCity) cell.objects[fineid];
+			if (lc == null) {
+				lc = new LawlessCity();
+				cell.objects[fineid] = lc;
+			}
+			lc.location = new Coord(cell.getFineCol() + finecol,cell.getFineRow() + finerow);
+			
+			col = cell.getFineCol() + finecol;
+			row = cell.getFineRow() + finerow;
+			lc.flags = y.readByte();
+			lc.points = y.readMultiBytes();
+			Log.v(TAG,String.format("lawless %d:%d flags:%d points:%d",col,row,lc.flags,lc.points));
 		case 7: // free slot
 			//Log.v(TAG,String.format("cell:%d packed:%s d:%2d e:%2d f:%d x:%s",cell.id,packed,d2,e,f,x));
 		}
@@ -191,13 +207,13 @@ public class WorldParser {
 	public static class Cell {
 		public AllianceMapping[] alliances;
 		public PlayerMapping[] players;
-		public Dungeon[] dungeons;
+		public MapItem[] objects;
 		public int version,id;
 		public Cell(int id2) {
 			id = id2;
-			dungeons = new Dungeon[1024]; // FIXME
 			players = new PlayerMapping[1024]; // FIXME
 			alliances = new AllianceMapping[1024]; // FIXME
+			objects = new MapItem[1024]; // FIXME
 		}
 		int getFineRow() {
 			// FIXME
@@ -208,7 +224,20 @@ public class WorldParser {
 			return (id & 0x1f) * 32;
 		}
 	}
+	public static class MapItem {
+		public Coord location;
+	}
 	public interface WorldCallbacks {
 		void cellUpdated(Cell c, ArrayList<Object> changes);
+	}
+	public void enable() {
+		enabled = true;
+		rpc.pollSoon();
+	}
+	public void disable() {
+		enabled = false;
+	}
+	public boolean isEnabled() {
+		return enabled;
 	}
 }

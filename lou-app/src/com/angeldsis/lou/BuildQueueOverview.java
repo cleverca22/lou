@@ -11,7 +11,6 @@ import com.angeldsis.louapi.LouState.City;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -26,7 +25,7 @@ import android.widget.TextView;
 public class BuildQueueOverview extends SessionUser {
 	BQOAdapter adapter;
 	CheckBox showFull;
-	private static final String TAG = "BuildQueueOverview";
+	//private static final String TAG = "BuildQueueOverview";
 	MyTableRow.LayoutParameters grid = new MyTableRow.LayoutParameters();
 	@Override public void onCreate(Bundle sis) {
 		super.onCreate(sis);

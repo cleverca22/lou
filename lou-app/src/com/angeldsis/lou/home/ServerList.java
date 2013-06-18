@@ -88,6 +88,7 @@ public class ServerList extends Fragment {
 				Log.v(TAG,"source session:"+s.acct.worldid+" "+s.state.self.getName());
 				while (i3.hasNext()) {
 					final SubRequest sr = i3.next();
+					// FIXME, remove duplicates
 					Log.v(TAG,"sr data id:"+sr.id+" "+(sr.role == SubRequest.Role.giver ? "giver":"receiver")+" state:"+sr.state);
 					if (sr.state != 2) continue;
 					if (sr.role != SubRequest.Role.receiver) continue;

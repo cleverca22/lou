@@ -43,6 +43,8 @@ public class LouState {
 	transient public int tradeSpeedShip, tradeSpeedland;
 	transient AllianceMembers alliancemembers;
 	public int[] voidResources = new int[4];
+	// FIXME, maybe move this elsewhere?
+	private static final int[] types = { UnitCount.ZERK, UnitCount.PALADIN };
 
 	public LouState() {
 		init();
@@ -91,6 +93,11 @@ public class LouState {
 		AllianceId = obj.getInt("AllianceId");
 		if (AllianceId > 0) AllianceName = obj.getString("AllianceName");
 		self = Player.get(obj.optInt("Id"),obj.getString("Name"));
+		Object sl = obj.opt("sl");
+		Object s = obj.opt("s"); // this account is under the control of a sub?
+		// FIXME should i lock it out like the real client?
+		// refer to webfrontend.gui.EndSubstitutionWidget.js for more info
+		Log.v(TAG,"sl:"+sl+" s:"+s);
 	}
 	public class City implements Comparable<Integer> {
 		private static final String TAG = "City";
@@ -205,15 +212,24 @@ public class LouState {
 			}
 			return delta * 3600;
 		}
+		public int getTotalArmy() {
+			if (units == null) return -1;
+			int x,total=0;
+			
+			for (x=0; x<types.length; x++) {
+				if (units[types[x]] != null) total += units[types[x]].c;
+			}
+			return total;
+		}
 	}
 	public void parsePlayerUpdate(JSONObject d) throws JSONException {
 		int x;
 		getFullPlayerData = false;
-		JSONArray cg = d.optJSONArray("cg");
-		boolean female = d.getBoolean("f");
+		//JSONArray cg = d.optJSONArray("cg");
+		//boolean female = d.getBoolean("f");
 		//Log.v(TAG,"cg:"+cg+" f:"+female);
 		// FIXME check d.c array for changes to cities array
-		JSONArray c = d.optJSONArray("c");
+		//JSONArray c = d.optJSONArray("c");
 		//Log.v(TAG,"c:"+c);
 		if (d.has("g")) {
 			JSONObject g = d.optJSONObject("g");
@@ -545,11 +561,12 @@ public class LouState {
 				if (p0 == self.getId()) {
 					s.giver = self;
 					s.receiver = Player.get(p1, n);
+					s.role = SubRequest.Role.giver;
 				} else {
 					s.giver = Player.get(p0, n);
 					s.receiver = self;
+					s.role = SubRequest.Role.receiver;
 				}
-				s.role = SubRequest.Role.receiver;
 				s.id = s2.optInt("id");
 				// when accepting a sub, (acting as receiver) call SubstitutionAcceptReq(id,p0);
 				// once you have a sub, call CreateSubstitutionSession(id,pid);

@@ -38,6 +38,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 	private DelayQueue<MyTimer> queue;
 	AllianceAttackMonitor aam;
 	Poller poller;
+	private boolean needWorldParser;
 	public WorldParser worldParser;
 	World world = new World();
 	public BuildQueueParser buildQueueParser;
@@ -46,6 +47,12 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 	public FoodWarningParser foodWarnings;
 	private HttpUtil httpUtil;
 	public boolean passive;
+	private boolean needBuildQueueParser;
+	Runnable ticker = new Runnable () {
+		public void run() {
+			tick();
+		}
+	};
 
 	public RPC(Account acct, LouState state,HttpUtil httpUtil) {
 		this.httpUtil = httpUtil;
@@ -626,7 +633,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 				state.userActivity = false;
 				requests.add("UA:");
 			}
-			if (worldParser != null) {
+			if ((worldParser != null) && worldParser.isEnabled()) {
 				requests.add("WORLD:"+worldParser.getRequestDetails());
 			}
 			if (foodWarnings != null) {
@@ -634,7 +641,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			}
 			aam.getRequestDetails(requests);
 			requests.add("TE:");
-			if (buildQueueParser != null) {
+			if (needBuildQueueParser && (buildQueueParser != null)) {
 				requests.add("BQO:"+buildQueueParser.getRequestDetails());
 			}
 			if (defenseOverviewParser != null) requests.add("DEFO:"+defenseOverviewParser.getRequestDetails());
@@ -883,11 +890,6 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			}
 		}
 	}
-	Runnable ticker = new Runnable () {
-		public void run() {
-			tick();
-		}
-	};
 	public void run() {
 		cont = true;
 		while (cont) {
@@ -1241,10 +1243,11 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 	public abstract void onBuildQueueUpdate();
 	public void setBuildQueueWatching(boolean b) {
 		if (b) {
-			buildQueueParser = new BuildQueueParser(state);
+			if (buildQueueParser == null) buildQueueParser = new BuildQueueParser(state);
+			needBuildQueueParser = true;
 			pollSoon();
 		}
-		else buildQueueParser = null;
+		else needBuildQueueParser = false;
 	}
 	public void BuildingQueuePayAll(int id) {
 		bqoMethod("BuildingQueuePayAll",id);
@@ -1275,11 +1278,26 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 		});
 	}
 	public void setWorldEnabled(boolean b) {
-		if (b && (worldParser == null)) {
-			worldParser = new WorldParser();
-			pollSoon();
+		if (b) {
+			if (worldParser == null) {
+				Log.v(TAG,"making new world parser");
+				worldParser = new WorldParser(this);
+			}
+			needWorldParser = true;
+		} else {
+			Log.v(TAG,"saving world parser for later");
+			needWorldParser = false;
 		}
-		else worldParser = null;
+	}
+	public void onTrimMemory() {
+		if (!needWorldParser && (worldParser != null)) {
+			Log.v(TAG,"releasing world parsr");
+			worldParser = null;
+		}
+		if (!needBuildQueueParser && (buildQueueParser != null)) {
+			Log.v(TAG,"releasing bqo parser");
+			buildQueueParser = null;
+		}
 	}
 	public void OrderUnits(final City city, final JSONArray units, final Coord target, final OrderUnitsCallback cb) {
 		post(new Runnable() {

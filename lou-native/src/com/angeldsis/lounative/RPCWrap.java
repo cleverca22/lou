@@ -84,10 +84,10 @@ public class RPCWrap extends RPC {
 	public void onSubListChanged() {
 		core.onSubListChanged();
 	}
-	@Override public void startSubstituteSession(String sessionid) {
+	@Override public void startSubstituteSession(String sessionid, int playerid, SubRequestDone cb) {
 		// TODO Auto-generated method stub
 		Log.e(TAG, "startSubstituteSession");
-		// this needs to create a new CoreSession object
+		// this needs to create a new CoreSession object then run the callback
 	}
 	@Override public void cellUpdated(Cell c, ArrayList<Object> changes) {
 		// TODO Auto-generated method stub

@@ -13,7 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -28,6 +28,8 @@ public class IdleUnits extends SessionUser implements OnItemClickListener {
 		setContentView(R.layout.idle_units);
 		list = (ListView) findViewById(R.id.list);
 		list.setOnItemClickListener(this);
+		mAdapter = new IdleUnitAdapter(this);
+		list.setAdapter(mAdapter);
 		cityname = (TextView) findViewById(R.id.cityname);
 		setTitle("Idle Units");
 	}
@@ -48,24 +50,25 @@ public class IdleUnits extends SessionUser implements OnItemClickListener {
 			@Override
 			public int compare(City a, City b) {
 				int ac,bc;
-				if (a.units == null) ac = -1;
-				else if (a.units[6] == null) ac = -1;
-				else ac = a.units[6].c;
 				
-				if (b.units == null) bc = -1;
-				else if (b.units[6] == null) bc = -1;
-				else bc = b.units[6].c;
+				ac = a.getTotalArmy();
+				bc = b.getTotalArmy();
 				
 				if (ac < bc) return 1;
 				if (ac > bc) return -1;
 				return 0;
 			}});
-		mAdapter = new IdleUnitAdapter(this,list2);
-		list.setAdapter(mAdapter);
+		mAdapter.update(list2);
 	}
-	private class IdleUnitAdapter extends ArrayAdapter<City> {
-		public IdleUnitAdapter(Context context, City[] list2) {
-			super(context, 0, list2);
+	private class IdleUnitAdapter extends BaseAdapter {
+		City[] list;
+		public IdleUnitAdapter(Context context) {
+			super();
+			list = new City[0];
+		}
+		public void update(City[] list2) {
+			list = list2;
+			notifyDataSetChanged();
 		}
 		@Override public View getView(int position, View oldrow, ViewGroup root) {
 			if (oldrow == null) {
@@ -74,13 +77,30 @@ public class IdleUnits extends SessionUser implements OnItemClickListener {
 			MyTableRow row = (MyTableRow) oldrow;
 			row.bind(grid);
 			TextView city = (TextView) row.findViewById(R.id.cityname);
-			TextView zerks = (TextView)row.findViewById(R.id.unitcount);
+			TextView unitcount = (TextView)row.findViewById(R.id.unitcount);
 			City c = getItem(position);
 			city.setText(c.name);
-			if ((c.units != null) && (c.units[6] != null)) {
-				zerks.setText(""+c.units[6].c);
-			} else zerks.setText("none");
+			if (c.units != null) {
+				StringBuilder b = new StringBuilder();
+				if (c.units[UnitCount.ZERK] != null) {
+					b.append("zerks:"+c.units[UnitCount.ZERK].c);
+				}
+				if (c.units[UnitCount.PALADIN] != null) {
+					b.append("paladins:"+c.units[UnitCount.PALADIN].c);
+				}
+				if (b.length() == 0) b.append("other");
+				unitcount.setText(b.toString());
+			} else unitcount.setText("none units");
 			return oldrow;
+		}
+		@Override public int getCount() {
+			return list.length;
+		}
+		@Override public City getItem(int position) {
+			return list[position];
+		}
+		@Override public long getItemId(int position) {
+			return getItem(position).cityid;
 		}
 	}
 	@Override

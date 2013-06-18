@@ -16,11 +16,16 @@ public class WorldUser extends SessionUser {
 		Coord c = session.rpc.state.currentCity.location;
 		int col = c.x/32;
 		int row = c.y/32;
-		p.mincol = p.maxcol = col;
-		p.minrow = p.maxrow = row;
+		p.mincol = col - 1;
+		p.maxcol = col + 1;
+		
+		p.minrow = row - 1;
+		p.maxrow = row + 1;
+		p.enable();
 	}
 	public void onStop() {
 		Log.v(TAG,"disabling world");
+		session.rpc.worldParser.disable();
 		if (session != null) session.rpc.setWorldEnabled(false);
 		super.onStop();
 	}

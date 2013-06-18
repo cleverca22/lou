@@ -57,4 +57,9 @@
         <string name="filter_continent">Filter By Continent</string>
         <string name="switchto">Switch To City</string>
         <string name="network_offline">Network Offline</string>
+        <string-array name="filters">
+            <item >Dungeons</item>
+            <item >Lawless</item>
+            <item >Cities</item>
+        </string-array>
 </resources>

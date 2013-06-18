@@ -12,7 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-public class ResourceBar extends ViewGroup {
+@Deprecated public class ResourceBar extends ViewGroup {
 	private static final String TAG = "ResourceBar";
 	TextView[] counts;
 	TextView[] rates;

@@ -7,6 +7,7 @@ import org.json2.JSONObject;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -21,16 +22,12 @@ import com.angeldsis.lou.Utils;
 
 public class PurifyResources extends FragmentBase {
 	// todo list
-	// fix current res display
 	// enforce a max limit, and give a max button
 	// help in purifying enough to reach a research goal
 	private static final int[] inputs = { R.id.editText1, R.id.editText2, R.id.editText3, R.id.editText4 };
 	private static final int[] needed = { R.id.needed1, R.id.needed2, R.id.needed3, R.id.needed4 };
 	private static final int[] totals = { R.id.total1, R.id.total2, R.id.total3, R.id.total4 };
 	@Override public void session_ready() {
-		ViewGroup vg = (ViewGroup) getView();
-		// FIXME, resource bar doesnt update currently
-		((ResourceBar)vg.findViewById(R.id.resourceBar)).setState(parent.session.state);
 		onPlayerData();
 	}
 	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -70,13 +67,13 @@ public class PurifyResources extends FragmentBase {
 					}
 					parent.session.rpc.ResourceToVoid(parent.session.state.currentCity,counts);
 				} catch (JSONException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}});
 		return vg;
 	}
 	public void onPlayerData() {
+		Log.v("PurifyResources","onPlayerData");
 		int x;
 		ViewGroup vg = (ViewGroup) getView();
 		for (x=0; x<4; x++) {

@@ -4,28 +4,19 @@ import java.util.ArrayList;
 
 import com.angeldsis.lou.SessionKeeper.Callbacks;
 import com.angeldsis.lou.SessionKeeper.MyBinder;
-import com.angeldsis.lou.allianceforum.AllianceForumList;
-import com.angeldsis.lou.city.SendTrade;
-import com.angeldsis.lou.fragments.ChatWindow;
-import com.angeldsis.lou.fragments.FoodWarnings;
-import com.angeldsis.lou.fragments.ShrineMonitor;
 import com.angeldsis.lou.home.DisconnectedDialog;
-import com.angeldsis.lou.world.DungeonList;
 import com.angeldsis.louapi.ChatMsg;
 import com.angeldsis.louapi.IncomingAttack;
 import com.angeldsis.louapi.LouVisData;
-import com.angeldsis.louapi.RPC.GetLockboxURLDone;
 import com.angeldsis.louapi.world.WorldParser.Cell;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;

@@ -38,7 +38,7 @@ public class LouMain {
 		if (config.getRememberMe() != null) {
 			session.restore_cookie(config.getRememberMe());
 			Log.v(TAG,"checking cookie");
-			result r = session.check_cookie();
+			result r = session.check_cookie(config.getUsername());
 			if (r.worked == false) {
 				boolean worked = DoLogin.login(display, session);
 				if (!worked) {

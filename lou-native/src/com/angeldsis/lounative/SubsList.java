@@ -10,11 +10,13 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.SWT;
 
+import com.angeldsis.louapi.Account;
 import com.angeldsis.louapi.Log;
 import com.angeldsis.louapi.RPC;
+import com.angeldsis.louapi.RPC.SubRequestDone;
 import com.angeldsis.louapi.data.SubRequest;
 
-public class SubsList extends Shell {
+public class SubsList extends Shell implements SubRequestDone {
 	ArrayList<Button> buttons;
 	RPC rpc;
 	public SubsList(RPCWrap rpc, Display display) {
@@ -24,7 +26,6 @@ public class SubsList extends Shell {
 		buttons = new ArrayList<Button>();
 		setText("subs list");
 	}
-
 	public void onSubListChanged() {
 		for (Button b : buttons) {
 			b.dispose();
@@ -51,13 +52,15 @@ public class SubsList extends Shell {
 		@Override
 		public void widgetSelected(SelectionEvent e) {
 			Log.v("SubsList",s.toString());
-			SubsList.this.rpc.CreateSubstitutionSession(s);
+			SubsList.this.rpc.CreateSubstitutionSession(s,SubsList.this);
 		}
 		@Override
 		public void widgetDefaultSelected(SelectionEvent e) {
 			// TODO Auto-generated method stub
-			
 		}
 	}
 	protected void checkSubclass() {}
+	@Override public void allDone(Account acct2) {
+		// TODO Auto-generated method stub
+	}
 }

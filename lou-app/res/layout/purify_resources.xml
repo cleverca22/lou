@@ -1,14 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical" >
-     <com.angeldsis.lou.fragments.ResourceBar
-         android:id="@+id/resourceBar"
-         android:layout_width="wrap_content"
-         android:layout_height="wrap_content" >
-     </com.angeldsis.lou.fragments.ResourceBar>
-    
+
+    <fragment
+        android:id="@+id/res"
+        android:name="com.angeldsis.lou.fragments.ResourceBar2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:layout="@layout/resource_bar" />
+
     <TableLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content" >
@@ -52,7 +55,6 @@
                 android:drawableTop="@drawable/icons_ressource_grain"
                 android:text="Food"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
-
         </TableRow>
 
         <TableRow
@@ -129,7 +131,6 @@
                 android:layout_height="wrap_content"
                 android:text="Trueseed"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
-
         </TableRow>
 
         <TableRow
@@ -177,7 +178,6 @@
                 android:ems="10"
                 android:inputType="number"
                 android:text="0" />
-
         </TableRow>
 
         <TableRow
@@ -194,7 +194,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Purify" />
-
         </TableRow>
 
         <TableRow
@@ -231,9 +230,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium" />
-
         </TableRow>
-
     </TableLayout>
 
 </LinearLayout>
