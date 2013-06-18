@@ -12,18 +12,17 @@ public class LoggingIn extends SessionUser {
 		setContentView(R.layout.loading); // FIXME
 		allow_login = true;
 	}
-	@Override
-	public void loginDone() {
+	@Override public void loginDone() {
 		Log.v(TAG,"loginDone");
-		Intent i = new Intent(this,LouSessionMain.class);
+		Intent i = new Intent(this,SingleFragment.class);
 		Log.v(TAG,"opening main "+acct.toBundle());
 		i.putExtras(acct.toBundle());
+		i.putExtra("fragment", LouSessionMain.class);
 		startActivity(i);
 		Log.v(TAG,"running intent "+i);
 		finish();
 	}
-	@Override
-	public void session_ready() {
+	@Override public void session_ready() {
 		Log.v(TAG,"session_ready "+session.loggingIn);
 		if (!session.loggingIn) loginDone();
 	}

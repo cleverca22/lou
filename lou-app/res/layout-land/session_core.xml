@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical" >
@@ -69,7 +70,6 @@
                     android:clickable="true"
                     android:minHeight="48dp"
                     android:minWidth="48dp"
-                    android:onClick="showIncoming"
                     android:text="1234"
                     android:textAppearance="?android:attr/textAppearanceSmall" />
             </LinearLayout>
@@ -78,7 +78,6 @@
                 android:id="@+id/reports"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:onClick="openReports"
                 android:text="@string/reports" />
 
             <LinearLayout
@@ -98,7 +97,6 @@
                     android:text="Dalhousie"
                     android:textAppearance="?android:attr/textAppearanceSmall" />
             </LinearLayout>
-
         </LinearLayout>
 
         <LinearLayout
@@ -112,25 +110,21 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="right"
                 android:orientation="vertical" >
-
             </LinearLayout>
-
         </LinearLayout>
-
     </LinearLayout>
 
-    <FrameLayout
-        android:id="@+id/resource_bar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" >
-        </FrameLayout>
+    <fragment
+        android:name="com.angeldsis.lou.fragments.ResourceBar2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:layout="@layout/resource_bar" />
 
     <ListView
         android:id="@+id/cities"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1" >
-
     </ListView>
 
 </LinearLayout>

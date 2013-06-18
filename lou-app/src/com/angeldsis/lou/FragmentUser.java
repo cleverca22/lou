@@ -88,10 +88,10 @@ public class FragmentUser extends FragmentActivity implements Callbacks, Session
 		}
 	}
 	public void session_ready() {
-		onCityChanged();
-		gotCityData();
 		Iterator<FragmentBase> i = hooks.iterator();
 		while (i.hasNext()) i.next().session_ready();
+		onCityChanged();
+		gotCityData();
 	}
 	public void userActive() {
 		session.state.userActivity = true;
@@ -108,8 +108,9 @@ public class FragmentUser extends FragmentActivity implements Callbacks, Session
 	@Override
 	public void onSubListChanged() {
 	}
-	@Override
-	public void onReportCountUpdate() {
+	@Override public void onReportCountUpdate() {
+		Iterator<FragmentBase> i = hooks.iterator();
+		while (i.hasNext()) i.next().onReportCountUpdate();
 	}
 	@Override
 	public boolean onNewAttack(IncomingAttack a) {
@@ -124,8 +125,9 @@ public class FragmentUser extends FragmentActivity implements Callbacks, Session
 	@Override
 	public void visDataUpdated() {
 	}
-	@Override
-	public void cityListChanged() {
+	@Override public void cityListChanged() {
+		Iterator<FragmentBase> i = hooks.iterator();
+		while (i.hasNext()) i.next().cityListChanged();
 	}
 	@Override
 	public void onCityChanged() {
@@ -161,6 +163,7 @@ public class FragmentUser extends FragmentActivity implements Callbacks, Session
 	}
 	public void addHook(FragmentBase fragmentBase) {
 		hooks.add(fragmentBase);
+		if (session != null) fragmentBase.session_ready();
 	}
 	public void removeHook(FragmentBase fragmentBase) {
 		hooks.remove(fragmentBase);

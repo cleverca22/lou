@@ -1,71 +1,90 @@
 package com.angeldsis.lou;
 
-import java.util.Iterator;
-
+import java.util.Collection;
+import com.angeldsis.lou.SessionKeeper.Session;
 import com.angeldsis.lou.fragments.ResourceBar;
 import com.angeldsis.lou.reports.Reports;
-import com.angeldsis.louapi.LouState;
 import com.angeldsis.louapi.LouState.City;
 import com.google.ads.AdRequest;
 import com.google.ads.AdSize;
 import com.google.ads.AdView;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
-public class LouSessionMain extends SessionUser implements SessionKeeper.Callbacks, OnItemClickListener, Runnable {
+public class LouSessionMain extends FragmentBase implements OnItemClickListener, Runnable {
 	static final String TAG = "LouSessionMain";
-	ResourceBar resource_bar;
 	cityList mAdapter;
 	Handler h = new Handler();
 	ListView list;
 	private AdView adView;
+	@Deprecated Session session;
+	private TextView currentCity,gold,mana,incoming;
+	private Button reports;
 
-	public void onCreate(Bundle sis) {
-		super.onCreate(sis);
+	@Override public View onCreateView(LayoutInflater inflater, ViewGroup root, Bundle sis) {
+		ViewGroup vg = (ViewGroup) inflater.inflate(R.layout.session_core, root, false);
 		Log.v(TAG,"onCreate");
-		setContentView(R.layout.session_core);
 		Log.v(TAG,"bar1");
-		resource_bar = new ResourceBar(this);
-		((FrameLayout) findViewById(R.id.resource_bar)).addView(resource_bar);
-		mAdapter = new cityList(this);
-		list = (ListView) findViewById(R.id.cities);
+		mAdapter = new cityList();
+		list = (ListView) vg.findViewById(R.id.cities);
 		list.setAdapter(mAdapter);
 		list.setOnItemClickListener(this);
-		
-		adView = new AdView(this, AdSize.BANNER, "a15115491d452e5");
-		ViewGroup ad = (ViewGroup) findViewById(R.id.ad);
+		currentCity = (TextView) vg.findViewById(R.id.current_city);
+		gold = (TextView) vg.findViewById(R.id.gold);
+		mana = (TextView) vg.findViewById(R.id.mana);
+		incoming = (TextView) vg.findViewById(R.id.incoming_attacks);
+		incoming.setOnClickListener(new OnClickListener() {
+			@Override public void onClick(View v) {
+				Intent i = new Intent(parent,IncomingAttacks.class);
+				i.putExtras(parent.acct.toBundle());
+				startActivity(i);
+			}
+		});
+		reports = (Button) vg.findViewById(R.id.reports);
+		reports.setOnClickListener(new OnClickListener() {
+			@Override public void onClick(View v) {
+				Log.v(TAG,"opening reports");
+				Bundle args = parent.acct.toBundle();
+				Intent i = new Intent(parent,Reports.class);
+				i.putExtras(args);
+				startActivity(i);
+			}
+		});
+
+		adView = new AdView(getActivity(), AdSize.BANNER, "a15115491d452e5");
+		ViewGroup ad = (ViewGroup) vg.findViewById(R.id.ad);
 		ad.addView(adView);
 		adView.loadAd(new AdRequest()
 			//.addTestDevice(AdRequest.TEST_EMULATOR)
 			//.addTestDevice("3BAAE9494C8A3A8046F0239B242006E8")
 		);
+		return vg;
 	}
-	@Override protected void onDestroy() {
+	@Override public void onDestroy() {
 		if (adView != null) {
 			adView.destroy();
 		}
 		super.onDestroy();
 		Log.v(TAG,"onDestroy");
 	}
-	protected void onStart() {
+	public void onStart() {
 		super.onStart();
 		Log.v(TAG,"onStart");
-		mAdapter.clear();
 		Configuration c = getResources().getConfiguration();
 		int size = c.screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK;
 		switch (size) {
@@ -79,17 +98,16 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 			Log.v(TAG,"screen size "+size);
 		}
 	}
-	public void session_ready() {
+	@Override public void session_ready() {
 		Log.v(TAG,"session_ready");
+		session = parent.session;
 		if (session.alive == false) {
-			onEjected();
+			Log.wtf(TAG, "session not alive in session_ready");
+			parent.onEjected();
 		} else {
-			LouState state = session.state;
-			resource_bar.setState(state);
 			if (session.state.currentCity != null) {
 				cityListChanged();
-				TextView city = (TextView) findViewById(R.id.current_city);
-				city.setText(session.state.currentCity.name);
+				currentCity.setText(session.state.currentCity.name);
 			}
 			updateTickers();
 			onReportCountUpdate();
@@ -97,22 +115,15 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 	}
 	public void onCityChanged() {
 		Log.v(TAG,"cityChanged");
-		TextView city = (TextView) findViewById(R.id.current_city);
-		city.setText(session.state.currentCity.name);
+		currentCity.setText(session.state.currentCity.name);
 	}
-	protected void onStop() {
+	public void onStop() {
 		super.onStop();
 		Log.v(TAG,"onStop");
 	}
-	public void visDataReset() {
-		super.visDataReset();
-		//if (!vis_data_loaded) gotVisDataInit();
-	}
 	public void gotCityData() {
 		Log.v(TAG,"gotCityData");
-		resource_bar.update(session.state.currentCity);
-		TextView city = (TextView) findViewById(R.id.current_city);
-		city.setText(session.state.currentCity.name);
+		currentCity.setText(session.state.currentCity.name);
 		int x;
 		for (x=list.getChildCount() - 1; x >= 0; x--) {
 			ViewHolder holder = (ViewHolder) list.getChildAt(x).getTag();
@@ -126,7 +137,7 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 				LouSessionMain.this.mainTick();
 			}
 		};
-		this.runOnUiThread(resync);
+		parent.runOnUiThread(resync);
 	}
 	/** tick ran in main thread by poller
 	**/
@@ -138,30 +149,18 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 		updateTickers();
 	}
 	public void updateTickers() {
-		TextView gold = (TextView) findViewById(R.id.gold);
 		gold.setText(""+session.state.gold.getCurrent());
-		TextView mana = (TextView) findViewById(R.id.mana);
 		mana.setText(""+session.state.mana.getCurrent());
-		TextView incoming = (TextView) findViewById(R.id.incoming_attacks);
 		incoming.setText("" + session.state.incoming_attacks.size());
-		if (session.state.currentCity != null) resource_bar.update(session.state.currentCity);
-	}
-	public void showIncoming(View v) {
-		Intent i = new Intent(this,IncomingAttacks.class);
-		i.putExtras(acct.toBundle());
-		startActivity(i);
 	}
 	@Override public void cityListChanged() {
-		// FIXME, use .toArray
 		Log.v(TAG,"cityListChanged()");
-		mAdapter.clear();
-		Iterator<City> i = session.state.cities.values().iterator();
-		while (i.hasNext()) {
-			mAdapter.add(i.next());
-		}
+		Collection<City> cities = parent.session.state.cities.values();
+		City[] list = new City[cities.size()];
+		cities.toArray(list);
+		mAdapter.update(list);
 	}
-	@Override
-	public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long id) {
+	@Override public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long id) {
 		Log.v(TAG,"id:"+id);
 		Log.v(TAG,session.state.cities.get((int)id).toString());
 		session.state.changeCity(session.state.cities.get((int)id));
@@ -170,28 +169,36 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 		public TextView name;
 		public ResourceBar bar2;
 	}
-	class cityList extends ArrayAdapter<City> {
-		cityList(Context c) {
-			super(c,0);
+	class cityList extends BaseAdapter {
+		City[] list;
+		cityList() {
+			super();
+			list = new City[0];
+		}
+		public void update(City[] list2) {
+			list = list2;
+			notifyDataSetChanged();
 		}
 		public long getItemId(int position) {
 			return getItem(position).cityid;
 		}
-		public View getView(int position, View convertView, ViewGroup parent) {
+		@Override public City getItem(int position) {
+			return list[position];
+		}
+		@Override public int getCount() {
+			return list.length;
+		}
+		public View getView(int position, View convertView, ViewGroup root) {
 			ViewHolder holder;
 			if (convertView == null) {
-				LinearLayout row = new LinearLayout(LouSessionMain.this);
-				row.setOrientation(LinearLayout.VERTICAL);
 				holder = new ViewHolder();
-				holder.name = new TextView(LouSessionMain.this);
-				row.addView(holder.name);
+				ViewGroup row = (ViewGroup) parent.getLayoutInflater().inflate(R.layout.session_core_row, root, false);
+				holder.name = (TextView) row.findViewById(R.id.name);
 
-				FrameLayout bar = new FrameLayout(LouSessionMain.this);
-				holder.bar2 = new ResourceBar(LouSessionMain.this);
-				holder.bar2.setState(session.state);
+				FrameLayout bar = (FrameLayout) row.findViewById(R.id.resource_bar);
+				holder.bar2 = new ResourceBar(parent);
+				holder.bar2.setState(parent.session.state);
 				bar.addView(holder.bar2);
-				row.addView(bar);
-
 				row.setTag(holder);
 				convertView = row;
 			} else holder = (ViewHolder) convertView.getTag();
@@ -202,36 +209,27 @@ public class LouSessionMain extends SessionUser implements SessionKeeper.Callbac
 			return convertView;
 		}
 	}
-	@Override
-	public void onReportCountUpdate() {
-		String msg = getResources().getString(R.string.reports, session.state.unviewed_reports);
-		((Button)findViewById(R.id.reports)).setText(msg);
-		Log.v(TAG,"unviewed:"+session.state.unviewed_reports);
+	@Override public void onReportCountUpdate() {
+		String msg = getResources().getString(R.string.reports, parent.session.state.unviewed_reports);
+		reports.setText(msg);
 	}
-	public void openReports(View v) {
-		Log.v(TAG,"opening reports");
-		Bundle args = acct.toBundle();
-		Intent i = new Intent(this,Reports.class);
-		i.putExtras(args);
-		startActivity(i);
-	}
-	@Override protected void onResume() {
+	@Override public void onResume() {
 		super.onResume();
 		run();
 		Log.v(TAG, "onResume");
 	}
-	@Override protected void onPause() {
+	@Override public void onPause() {
 		super.onPause();
 		h.removeCallbacks(this);
 		Log.v(TAG,"onPause");
 	}
 	@Override public void run() {
+		// FIXME, remove this once the resource bars are fragmented
 		int x;
 		for (x=list.getChildCount() - 1; x >= 0; x--) {
 			ViewHolder holder = (ViewHolder) list.getChildAt(x).getTag();
 			holder.bar2.update();
 		}
-		resource_bar.update();
 		h.removeCallbacks(this);
 		h.postDelayed(this, 5000);
 	}

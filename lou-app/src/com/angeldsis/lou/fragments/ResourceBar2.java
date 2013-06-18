@@ -2,6 +2,7 @@ package com.angeldsis.lou.fragments;
 
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +16,7 @@ import com.angeldsis.louapi.Resource;
 import com.angeldsis.louapi.LouState.City;
 
 public class ResourceBar2 extends FragmentBase {
+	private static final String TAG = "ResourceBar2";
 	TextView[] counts;
 	TextView[] rates;
 	City lastCity;
@@ -29,6 +31,7 @@ public class ResourceBar2 extends FragmentBase {
 	};
 	@Override public void onStart() {
 		super.onStart();
+		Log.v(TAG,"onStart");
 	}
 	@Override public void onStop() {
 		super.onStop();
@@ -62,6 +65,10 @@ public class ResourceBar2 extends FragmentBase {
 		if (lastCity == null) c = parent.session.state.currentCity;
 		else c = lastCity;
 		int x;
+		if (parent == null) {
+			Log.v("ResourceBar2","parent is null!");
+			return;
+		}
 		LouState state = parent.session.state;
 		for (x = 0; x < 4; x++) {
 			Resource r = c.resources[x];

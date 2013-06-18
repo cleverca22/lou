@@ -180,10 +180,11 @@ public class SessionKeeper extends Service {
 		if (sessions.size() == 1) {
 			Session s = sessions.get(0);
 			options = s.acct.toBundle();
-			Intent resultIntent = new Intent(this,LouSessionMain.class);
+			options.putSerializable("fragment", LouSessionMain.class);
+			Intent resultIntent = new Intent(this,SingleFragment.class);
 			resultIntent.putExtras(options);
 			stackBuilder = TaskStackBuilder.create(this);
-			stackBuilder.addParentStack(LouSessionMain.class);
+			stackBuilder.addParentStack(SingleFragment.class);
 			stackBuilder.addNextIntent(resultIntent);
 			mBuilder.setContentText("LOU is still running "+s.acct.world);
 			Log.v(TAG,"one session mode");

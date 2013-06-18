@@ -32,4 +32,6 @@ public abstract class FragmentBase extends Fragment {
 		return false;
 	}
 	public void onPlayerData() {}
+	public void cityListChanged() {}
+	public void onReportCountUpdate() {}
 }
