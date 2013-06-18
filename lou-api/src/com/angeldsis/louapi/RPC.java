@@ -99,7 +99,6 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 						}
 					},5);
 				} catch (JSONException e) {
-					// FIXME
 					e.printStackTrace();
 				}
 			}
@@ -141,7 +140,6 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 						}
 					},5);
 				} catch (JSONException e) {
-					// FIXME
 					e.printStackTrace();
 				}
 			}
@@ -178,7 +176,6 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 						}
 					},5);
 				} catch (JSONException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -197,7 +194,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 						}
 					},5);
 				} catch (JSONException e) {
-					e.printStackTrace(); /// FIXME
+					e.printStackTrace();
 				}
 			}
 		});
@@ -218,7 +215,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 						}
 					},5);
 				} catch (JSONException e) {
-					e.printStackTrace(); /// FIXME
+					e.printStackTrace();
 				}
 			}
 		});
@@ -235,7 +232,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 						}
 					},5);
 				} catch (JSONException e) {
-					e.printStackTrace(); /// FIXME
+					e.printStackTrace();
 				}
 			}
 		});
@@ -259,7 +256,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 						}
 					},5);
 				} catch (JSONException e) {
-					e.printStackTrace(); /// FIXME
+					e.printStackTrace();
 				}
 			}
 		});
@@ -287,7 +284,6 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 						}
 					},5);
 				} catch (JSONException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -319,7 +315,6 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 						}
 					},5);
 				} catch (JSONException e) {
-					// FIXME
 					e.printStackTrace();
 				}
 			}
@@ -425,7 +420,6 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 				}
 			},5);
 		} catch (JSONException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -483,11 +477,9 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			try {
 				rpcCallback.requestDone(reply2);
 			} catch (JSONException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 				throw new IllegalStateException("unexpected exception ",e);
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 				throw new IllegalStateException("unexpected exception ",e);
 			}
@@ -505,7 +497,6 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			try {
 				doRPC(function,request,rpcCallback,retry - 1);
 			} catch (JSONException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 		} catch (TimeoutError e) {
@@ -513,7 +504,6 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			try {
 				doRPC(function,request,rpcCallback,retry - 1);
 			} catch (JSONException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 		}
@@ -885,7 +875,6 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			try {
 				v.update(s);
 			} catch (JSONException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -1053,7 +1042,6 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 						}
 					}, 5);
 				} catch (JSONException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -1086,7 +1074,6 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 						}
 					},5);
 				} catch (JSONException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -1111,7 +1098,6 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 							callback.requestDone(null);
 						}},5);
 				} catch (JSONException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -1135,7 +1121,6 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 							callback.requestDone(null);
 						}},5);
 				} catch (JSONException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -1159,7 +1144,6 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 						}
 					},5);
 				} catch (JSONException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -1188,7 +1172,6 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 						}
 					},5);
 				} catch (JSONException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -1271,7 +1254,6 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 						}
 					},5);
 				} catch (JSONException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -1333,7 +1315,6 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 						}
 					},5);
 				} catch (JSONException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -1369,7 +1350,6 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 						}
 					},5);
 				} catch (JSONException e) {
-					// FIXME
 					e.printStackTrace();
 				}
 			}
