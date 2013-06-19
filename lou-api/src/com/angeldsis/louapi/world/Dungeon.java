@@ -1,6 +1,5 @@
 package com.angeldsis.louapi.world;
 
-import com.angeldsis.louapi.data.Coord;
 import com.angeldsis.louapi.world.WorldParser.MapItem;
 
 public class Dungeon extends MapItem implements Comparable {

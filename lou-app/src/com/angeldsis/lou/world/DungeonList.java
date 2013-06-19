@@ -171,6 +171,7 @@ public class DungeonList extends WorldUser implements OnItemClickListener, OnIte
 			i.putExtra("maxloot", d.getloot());
 			startActivity(i);
 		}
+		// FIXME, allow settling lawless, plundering cities, and assaulting castles
 	}
 	@Override public void session_ready() {
 		super.session_ready();

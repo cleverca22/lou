@@ -33,7 +33,7 @@ public class LouSessionMain extends FragmentBase implements OnItemClickListener,
 	ListView list;
 	private AdView adView;
 	@Deprecated Session session;
-	private TextView currentCity,gold,mana,incoming;
+	private TextView currentCity,mana,incoming;
 	private Button reports;
 
 	@Override public View onCreateView(LayoutInflater inflater, ViewGroup root, Bundle sis) {
@@ -45,7 +45,6 @@ public class LouSessionMain extends FragmentBase implements OnItemClickListener,
 		list.setAdapter(mAdapter);
 		list.setOnItemClickListener(this);
 		currentCity = (TextView) vg.findViewById(R.id.current_city);
-		gold = (TextView) vg.findViewById(R.id.gold);
 		mana = (TextView) vg.findViewById(R.id.mana);
 		incoming = (TextView) vg.findViewById(R.id.incoming_attacks);
 		incoming.setOnClickListener(new OnClickListener() {
@@ -149,7 +148,6 @@ public class LouSessionMain extends FragmentBase implements OnItemClickListener,
 		updateTickers();
 	}
 	public void updateTickers() {
-		gold.setText(""+session.state.gold.getCurrent());
 		mana.setText(""+session.state.mana.getCurrent());
 		incoming.setText("" + session.state.incoming_attacks.size());
 	}
