@@ -153,6 +153,18 @@
                 android:layout_height="wrap_content" >
 
                 <ImageButton
+                    android:id="@+id/temple"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/building_temple" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" >
+
+                <ImageButton
                     android:id="@+id/foundry"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

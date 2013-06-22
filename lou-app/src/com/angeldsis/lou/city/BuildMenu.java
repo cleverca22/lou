@@ -49,6 +49,7 @@ public class BuildMenu extends DialogFragment {
 		link_button(v,R.id.training_ground,16);
 		link_button(v,R.id.warehouse,20);
 		link_button(v,R.id.moonglow,36);
+		link_button(v,R.id.temple,37);
 		link_button(v,R.id.ranger,41);
 		link_button(v,R.id.woodcutter,47);
 		link_button(v,R.id.quary,48);
