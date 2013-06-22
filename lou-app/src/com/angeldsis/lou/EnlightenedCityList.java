@@ -9,6 +9,8 @@ import com.angeldsis.lou.city.SelectCity;
 import com.angeldsis.lou.city.SendTrade;
 import com.angeldsis.lou.fragments.ResourceBar;
 import com.angeldsis.louapi.EnlightenedCities.EnlightenedCity;
+import com.angeldsis.louapi.LouState;
+import com.angeldsis.louapi.LouState.City;
 import com.angeldsis.louapi.data.Coord;
 
 import android.content.Intent;
@@ -176,7 +178,10 @@ public class EnlightenedCityList extends SessionUser {
 	}
 	public void onCityChanged() {
 		if (filter) {
-			int continent = session.state.currentCity.location.getContinentInt();
+			LouState state = session.state;
+			City city = state.currentCity;
+			Coord location = city.location;
+			int continent = location.getContinentInt();
 			adapter.filterContinent(continent);
 		} else adapter.filterContinent(-1);
 	}
