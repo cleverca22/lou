@@ -9,8 +9,10 @@ import com.google.ads.AdRequest;
 import com.google.ads.AdSize;
 import com.google.ads.AdView;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -230,5 +232,15 @@ public class LouSessionMain extends FragmentBase implements OnItemClickListener,
 		}
 		h.removeCallbacks(this);
 		h.postDelayed(this, 5000);
+	}
+	private static final Uri uri = Uri.parse("loudroid://core");
+	public static Intent getIntent(AccountWrap acct, Context context) {
+		Bundle args = acct.toBundle();
+		args.putString("two", "two");
+		args.putSerializable("fragment", LouSessionMain.class);
+		Intent intent = new Intent(context,SingleFragment.class);
+		intent.putExtras(args);
+		intent.setData(uri);
+		return intent;
 	}
 }

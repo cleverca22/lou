@@ -8,8 +8,10 @@ import java.util.Iterator;
 import java.util.Map;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
@@ -34,11 +36,13 @@ import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
+import com.angeldsis.lou.AccountWrap;
 import com.angeldsis.lou.BBCode;
 import com.angeldsis.lou.FragmentBase;
 import com.angeldsis.lou.LouSessionMain;
 import com.angeldsis.lou.R;
 import com.angeldsis.lou.SessionKeeper;
+import com.angeldsis.lou.SingleFragment;
 import com.angeldsis.lou.BBCode.Span;
 import com.angeldsis.lou.chat.ChatHistory;
 import com.angeldsis.louapi.ChatMsg;
@@ -513,8 +517,7 @@ public class ChatWindow extends FragmentBase {
 		Log.v(TAG,"click! "+item.getItemId());
 		switch (item.getItemId()) {
 		case android.R.id.home:
-			Intent i = new Intent(getActivity(),LouSessionMain.class);
-			i.putExtras(parent.acct.toBundle());
+			Intent i = LouSessionMain.getIntent(parent.acct, getActivity());
 			i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 			startActivity(i);
 			return true;
@@ -531,5 +534,16 @@ public class ChatWindow extends FragmentBase {
 	}
 	public void dingClick(View v) {
 		parent.session.dingOnMessage = ((ToggleButton)v).isChecked();
+	}
+	private static final Uri uri = Uri.parse("loudroid://chat");
+	public static Intent getIntent(AccountWrap acct, String tag, Context context) {
+		Bundle args = acct.toBundle();
+		args.putSerializable("fragment",ChatWindow.class);
+		args.putString("currentTab", tag);
+		args.putString("one", "one");
+		Intent intent = new Intent(context,SingleFragment.class);
+		intent.putExtras(args);
+		//intent.setData(uri);
+		return intent;
 	}
 }

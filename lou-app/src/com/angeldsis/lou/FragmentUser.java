@@ -103,7 +103,10 @@ public class FragmentUser extends FragmentActivity implements Callbacks, Session
 	}
 	@Override public void onEnlightenedCityChanged() {}
 	@Override public void onDefenseOverviewUpdate() {}
-	@Override public void cellUpdated(Cell c) {}
+	@Override public void cellUpdated(Cell c) {
+		Iterator<FragmentBase> i = hooks.iterator();
+		while (i.hasNext()) i.next().cellUpdated(c);
+	}
 	@Override public void onBuildQueueUpdate() {}
 	@Override
 	public void onSubListChanged() {

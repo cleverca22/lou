@@ -3,6 +3,7 @@ package com.angeldsis.lou;
 import java.util.ArrayList;
 
 import com.angeldsis.louapi.ChatMsg;
+import com.angeldsis.louapi.world.WorldParser.Cell;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -34,4 +35,5 @@ public abstract class FragmentBase extends Fragment {
 	public void onPlayerData() {}
 	public void cityListChanged() {}
 	public void onReportCountUpdate() {}
+	public void cellUpdated(Cell c) {}
 }

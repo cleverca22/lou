@@ -127,8 +127,7 @@ public class CityView extends SessionUser implements Callbacks, LayoutCallbacks 
 		Log.v(TAG,"click! "+item.getItemId());
 		switch (item.getItemId()) {
 		case android.R.id.home:
-			Intent i = new Intent(this,LouSessionMain.class);
-			i.putExtras(acct.toBundle());
+			Intent i = LouSessionMain.getIntent(acct, this);
 			i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 			startActivity(i);
 			return true;

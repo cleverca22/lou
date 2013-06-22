@@ -310,26 +310,25 @@ public class SessionKeeper extends Service {
 			if (!handled) {
 				ChatMsg cm = d.get(d.size()-1);
 				int id = UNREAD_MESSAGE | sessionid;
-				//Log.v(TAG,"uncaught message");
 				
-				Bundle options = acct.toBundle();
-				options.putString("one", "one");
-				options.putSerializable("fragment",ChatWindow.class);
-				options.putString("currentTab", cm.tag);
-				Intent resultIntent = new Intent(SessionKeeper.this,SingleFragment.class);
-				Intent homeIntent = new Intent(SessionKeeper.this,LouSessionMain.class);
-				homeIntent.putExtras(options);
-
-				options.putString("two", "two");
-				resultIntent.putExtras(options);
-				resultIntent.putExtra("three","three");
-
+				Intent home = LouSessionMain.getIntent(acct, SessionKeeper.this);
+				Intent chat = ChatWindow.getIntent(acct, cm.tag, SessionKeeper.this);
+				
+				Log.v(TAG,home.getDataString());
+				//Log.v(TAG,chat.getDataString());
+				Log.v(TAG,chat.filterEquals(home) ? "match" : "not match");
+				
 				TaskStackBuilder stackBuilder = TaskStackBuilder.create(SessionKeeper.this);
 				stackBuilder.addParentStack(SingleFragment.class);
-				stackBuilder.addNextIntent(homeIntent);
-				stackBuilder.addNextIntent(resultIntent);
+				// FIXME stackBuilder.addNextIntent(home);
+				stackBuilder.addNextIntent(chat);
 				PendingIntent resultPendingIntent = stackBuilder
-						.getPendingIntent(id, PendingIntent.FLAG_UPDATE_CURRENT, options);
+						.getPendingIntent(id, PendingIntent.FLAG_UPDATE_CURRENT);
+				Intent[] test = stackBuilder.getIntents();
+				int x;
+				for (x=0; x<test.length; x++) {
+					Log.v(TAG,"extras:"+test[x].getExtras().toString());
+				}
 				int sound = 0;
 				if (dingOnMessage) sound = Notification.DEFAULT_SOUND;
 				if (cm.isPm()) sound = Notification.DEFAULT_SOUND;
@@ -447,12 +446,10 @@ public class SessionKeeper extends Service {
 				
 				Bundle options = acct.toBundle();
 				Intent resultIntent = new Intent(SessionKeeper.this,IncomingAttacks.class);
-				Intent homeIntent = new Intent(SessionKeeper.this,LouSessionMain.class);
 				resultIntent.putExtras(options);
-				homeIntent.putExtras(options);
 				TaskStackBuilder stackBuilder = TaskStackBuilder.create(SessionKeeper.this);
 				stackBuilder.addParentStack(IncomingAttacks.class);
-				stackBuilder.addNextIntent(homeIntent);
+				stackBuilder.addNextIntent(LouSessionMain.getIntent(acct, SessionKeeper.this));
 				stackBuilder.addNextIntent(resultIntent);
 				PendingIntent resultPendingIntent = stackBuilder
 						.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT, options);
@@ -565,21 +562,13 @@ public class SessionKeeper extends Service {
 				if (timeLeft > (4 * 3600)) continue;
 				Log.v(TAG,"food empty time: "+timeLeft+" "+c.name);
 				
-				Bundle options = acct.toBundle();
-				options.putSerializable("fragment", FoodWarnings.class);
-				Intent resultIntent = new Intent(SessionKeeper.this,SingleFragment.class);
-				resultIntent.putExtras(options);
-				
-				Intent homeIntent = new Intent(SessionKeeper.this,LouSessionMain.class);
-				homeIntent.putExtras(options);
-				
 				TaskStackBuilder stackBuilder = TaskStackBuilder.create(SessionKeeper.this);
 				//stackBuilder.addParentStack(SingleFragment.class);
-				stackBuilder.addNextIntent(homeIntent);
-				stackBuilder.addNextIntent(resultIntent);
+				// FIXME stackBuilder.addNextIntent(LouSessionMain.getIntent(acct, SessionKeeper.this));
+				stackBuilder.addNextIntent(FoodWarnings.getIntent(acct, SessionKeeper.this));
 				
 				PendingIntent resultPendingIntent = stackBuilder
-						.getPendingIntent(FOOD_WARNING | sessionid, PendingIntent.FLAG_UPDATE_CURRENT, options);
+						.getPendingIntent(FOOD_WARNING | sessionid, PendingIntent.FLAG_UPDATE_CURRENT);
 				foodWarning.setContentIntent(resultPendingIntent);
 
 				int hours = ((int)timeLeft/60/60);
