@@ -120,7 +120,7 @@ public class CityCore extends FragmentBase {
 			} else {
 				// FIXME, display resources
 				holder.infoText.setText("Arrives:");
-				holder.target.setText(""+t.end); // FIXME, format as 'Tomorrow 5:29:41'
+				holder.target.setText(parent.session.state.stepToString(t.end));
 			}
 			// FIXME, show the right artifact and make it work
 			return convertView;
