@@ -21,6 +21,8 @@ import com.angeldsis.louapi.LouState.City;
 import com.angeldsis.louapi.data.Coord;
 
 public class SelectCity extends LinearLayout implements OnItemSelectedListener {
+	// FIXME, if you change city thru another method, it doesn't update
+	// TODO, change into a fragment
 	CitySelected callback;
 	int palaceLocation = -1;
 	public static final int ChangeCurrentCity = 1;
@@ -151,8 +153,6 @@ public class SelectCity extends LinearLayout implements OnItemSelectedListener {
 	}
 	@Override
 	public void onNothingSelected(AdapterView<?> arg0) {
-		// TODO Auto-generated method stub
-		
 	}
 	public interface CitySelected {
 		void selected(int x, int y);
