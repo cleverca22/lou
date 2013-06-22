@@ -168,16 +168,29 @@ public class WorldParser {
 			changes.add(d);
 			break;
 		case 3: // boss
-		case 4: // moongate
 		default:
 			//Log.v(TAG,String.format("cell:%d packed:%s d:%2d e:%2d f:%d x:%s",cell.id,packed,d2,e,f,y.readRest()));
 			//log(String.format("%d %d %d",d,e,f));
 			break;
+		case 4: // moongate
+			Moongate mg = (Moongate) cell.objects[fineid];
+			if (mg == null) {
+				mg = new Moongate();
+				cell.objects[fineid] = mg;
+			}
+			mg.location = new Coord(cell.getFineCol() + finecol,cell.getFineRow() + finerow);
+			mg.state = y.readByte();
+			mg.activationStep = y.readMultiBytes();
+			break;
 		case 5: // shrine
-			col = cell.getFineCol() + finecol;
-			row = cell.getFineRow() + finerow;
-			Log.v(TAG,String.format("cell:%d f:%d fineid:%d, row/col %d:%d",cell.id,f,fineid,col,row));
-			//log(y.readRest());
+			Shrine s = (Shrine) cell.objects[fineid];
+			if (s == null) {
+				s = new Shrine();
+				cell.objects[fineid] = s;
+			}
+			s.location = new Coord(cell.getFineCol() + finecol,cell.getFineRow() + finerow);
+			s.type = y.readByte();
+			Log.v(TAG,String.format("SHRINE %s type:%d",s.location.format(),s.type));
 			break;
 		case 6: // lawless
 			LawlessCity lc = (LawlessCity) cell.objects[fineid];
@@ -187,11 +200,11 @@ public class WorldParser {
 			}
 			lc.location = new Coord(cell.getFineCol() + finecol,cell.getFineRow() + finerow);
 			
-			col = cell.getFineCol() + finecol;
-			row = cell.getFineRow() + finerow;
+			//col = cell.getFineCol() + finecol;
+			//row = cell.getFineRow() + finerow;
 			lc.flags = y.readByte();
 			lc.points = y.readMultiBytes();
-			Log.v(TAG,String.format("lawless %d:%d flags:%d points:%d",col,row,lc.flags,lc.points));
+			//Log.v(TAG,String.format("lawless %d:%d flags:%d points:%d",col,row,lc.flags,lc.points));
 		case 7: // free slot
 			//Log.v(TAG,String.format("cell:%d packed:%s d:%2d e:%2d f:%d x:%s",cell.id,packed,d2,e,f,x));
 		}
@@ -232,7 +245,7 @@ public class WorldParser {
 	}
 	public void enable() {
 		enabled = true;
-		rpc.pollSoon();
+		if (rpc != null) rpc.pollSoon();
 	}
 	public void disable() {
 		enabled = false;
