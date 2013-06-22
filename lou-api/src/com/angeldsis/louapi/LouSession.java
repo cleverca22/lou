@@ -177,7 +177,7 @@ public class LouSession {
 					String buf = new String(text,start,size);
 					switch (state) {
 					case 1:
-						currentRow.servername = buf;
+						currentRow.servername = buf.trim();
 						m = findid.matcher(buf);
 						if (!m.find()) {
 							Log.e(TAG,"cant find worldid in world");
