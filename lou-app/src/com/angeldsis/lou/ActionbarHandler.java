@@ -101,9 +101,7 @@ public class ActionbarHandler {
 			a.startActivity(i);
 			return true;
 		case R.id.foodWarning:
-			i = new Intent(a,SingleFragment.class);
-			i.putExtras(acct.toBundle());
-			i.putExtra("fragment", FoodWarnings.class);
+			i = FoodWarnings.getIntent(acct, a);
 			a.startActivity(i);
 			return true;
 		case R.id.cityCore:
