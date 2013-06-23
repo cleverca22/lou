@@ -3,8 +3,6 @@ package com.angeldsis.lou.fragments;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.TreeMap;
-
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -23,7 +21,6 @@ import com.angeldsis.lou.CityCore;
 import com.angeldsis.lou.FragmentBase;
 import com.angeldsis.lou.MyTableRow;
 import com.angeldsis.lou.R;
-import com.angeldsis.lou.SessionKeeper;
 import com.angeldsis.lou.SingleFragment;
 import com.angeldsis.louapi.LouState;
 import com.angeldsis.louapi.LouState.City;
@@ -33,6 +30,7 @@ public class FoodWarnings extends FragmentBase implements OnItemClickListener {
 	MyTableRow.LayoutParameters grid = new MyTableRow.LayoutParameters();
 	ListView list;
 	private FoodAdapter mAdapter;
+	private TextView message;
 	private class FoodAdapter extends BaseAdapter {
 		private City[] data;
 
@@ -70,6 +68,8 @@ public class FoodWarnings extends FragmentBase implements OnItemClickListener {
 
 		public void update(City[] list2) {
 			data = list2;
+			if (data.length == 0) message.setVisibility(View.VISIBLE);
+			else message.setVisibility(View.GONE);
 			notifyDataSetChanged();
 		}
 		
@@ -84,6 +84,8 @@ public class FoodWarnings extends FragmentBase implements OnItemClickListener {
 		list = (ListView) vg.findViewById(R.id.list);
 		list.setAdapter(mAdapter);
 		list.setOnItemClickListener(this);
+		message = (TextView) vg.findViewById(R.id.message);
+		message.setText(R.string.no_warnings);
 		return v;
 	}
 	@Override public void session_ready() {
