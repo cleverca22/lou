@@ -58,9 +58,13 @@ public class FoodWarnings extends FragmentBase implements OnItemClickListener {
 			City c = getItem(position);
 			name.setText(c.name);
 
-			int secondsleft = c.foodEmptyTime(parent.session.rpc.state);
-			hours.setText(String.format("%2d:%02d",secondsleft/60/60,secondsleft/60%60));
-			end_time.setText(parent.session.state.stepToString(parent.session.state.getServerStep() + secondsleft));
+			if (parent == null) {
+				hours.setText("failed");
+			} else {
+				int secondsleft = c.foodEmptyTime(parent.session.rpc.state);
+				hours.setText(String.format("%2d:%02d",secondsleft/60/60,secondsleft/60%60));
+				end_time.setText(parent.session.state.stepToString(parent.session.state.getServerStep() + secondsleft));
+			}
 			return convertView;
 		}
 
