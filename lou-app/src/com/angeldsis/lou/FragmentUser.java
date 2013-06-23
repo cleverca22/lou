@@ -16,6 +16,7 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
@@ -35,6 +36,8 @@ public class FragmentUser extends FragmentActivity implements Callbacks, Session
 	boolean allow_login;
 	public AccountWrap acct;
 	private ArrayList<FragmentBase> hooks = new ArrayList<FragmentBase>();
+	Handler handler = new Handler();
+	
 	private ServiceConnection mConnection = new ServiceConnection() {
 		public void onServiceConnected(ComponentName className, IBinder service) {
 			MyBinder binder = (MyBinder)service;
@@ -164,9 +167,13 @@ public class FragmentUser extends FragmentActivity implements Callbacks, Session
 	@Override
 	public void tick() {
 	}
-	public void addHook(FragmentBase fragmentBase) {
+	public void addHook(final FragmentBase fragmentBase) {
 		hooks.add(fragmentBase);
-		if (session != null) fragmentBase.session_ready();
+		if (session != null) handler.post(new Runnable() {
+			@Override public void run() {
+				fragmentBase.session_ready();
+			}
+		});
 	}
 	public void removeHook(FragmentBase fragmentBase) {
 		hooks.remove(fragmentBase);
