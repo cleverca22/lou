@@ -5,12 +5,12 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
-    <fragment
-        android:id="@+id/fragment1"
-        android:name="com.angeldsis.lou.fragments.ResourceBar2"
+    <FrameLayout
+        android:id="@+id/resource_bar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        tools:layout="@layout/resource_bar" />
+        android:layout_height="wrap_content" >
+
+    </FrameLayout>
 
     <com.angeldsis.lou.city.SelectCity
         android:id="@+id/selectCity"

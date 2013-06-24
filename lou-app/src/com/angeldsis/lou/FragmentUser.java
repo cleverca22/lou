@@ -86,7 +86,12 @@ public class FragmentUser extends FragmentActivity implements Callbacks, Session
 			}
 			session.setCallback(this);
 			Log.v(TAG,"calling session ready");
-			session_ready();
+			handler.post(new Runnable() {
+				@Override public void run() {
+					Log.v(TAG,"session ready time!");
+					session_ready();
+				}
+			});
 			userActive();
 		}
 	}
@@ -94,7 +99,6 @@ public class FragmentUser extends FragmentActivity implements Callbacks, Session
 		Iterator<FragmentBase> i = hooks.iterator();
 		while (i.hasNext()) i.next().session_ready();
 		onCityChanged();
-		gotCityData();
 	}
 	public void userActive() {
 		session.state.userActivity = true;
@@ -169,11 +173,10 @@ public class FragmentUser extends FragmentActivity implements Callbacks, Session
 	}
 	public void addHook(final FragmentBase fragmentBase) {
 		hooks.add(fragmentBase);
-		if (session != null) handler.post(new Runnable() {
-			@Override public void run() {
-				fragmentBase.session_ready();
-			}
-		});
+		if (session != null) {
+			Log.v(TAG,"running session ready soon");
+			fragmentBase.session_ready();
+		}
 	}
 	public void removeHook(FragmentBase fragmentBase) {
 		hooks.remove(fragmentBase);
