@@ -7,6 +7,7 @@ import com.angeldsis.lou.SessionKeeper;
 import com.angeldsis.lou.SessionKeeper.CookieCallback;
 import com.angeldsis.lou.louLogin;
 import com.angeldsis.louapi.LouSession.result;
+import com.angeldsis.louutil.HttpUtilImpl;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
@@ -52,7 +53,7 @@ public class Loading extends Fragment {
 				Context.MODE_PRIVATE).getString("cookie", null);
 		if (cookie != null) { // restore cookie, check if its valid
 			Log.v(TAG,"restoring cookie");
-			SessionKeeper.restore_cookie(cookie);
+			HttpUtilImpl.getInstance().restore_cookie(cookie);
 			SessionKeeper.checkCookie(new CookieCallback() {
 				public void done(result r) {
 					if (r.worked) {

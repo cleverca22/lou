@@ -44,7 +44,6 @@ public class ServerList extends Fragment {
 	}
 	public void onResume() {
 		super.onResume();
-		Log.v(TAG,"onResume()");
 		redoList();
 	}
 	private void redoList() {
@@ -62,16 +61,16 @@ public class ServerList extends Fragment {
 		subs_list.removeAllViews();
 		SessionKeeper k = SessionKeeper.getInstance();
 		if (k != null) {
-			Log.v(TAG,"found keeper");
+			//Log.v(TAG,"found keeper");
 			Iterator<Session> i2 = k.sessions.iterator();
-			Log.v(TAG,"list:"+k.sessions.size());
+			//Log.v(TAG,"list:"+k.sessions.size());
 			while (i2.hasNext()) {
 				final Session s = i2.next();
 				ViewGroup row = (ViewGroup) inflater.inflate(R.layout.one_server, list2,false);
 				TextView t = (TextView) row.findViewWithTag("server_name");
 				t.setText(s.acct.world+" "+s.state.self.getName());
 				Button b = (Button) row.findViewWithTag("button");
-				Log.v(TAG,b.toString());
+				//Log.v(TAG,b.toString());
 				b.setOnClickListener(new OnClickListener() {
 					@Override
 					public void onClick(View v) {
@@ -119,7 +118,6 @@ public class ServerList extends Fragment {
 		while (i.hasNext()) {
 			final ServerInfo a = i.next();
 			if (active[a.worldid]) {
-			//} else if (a.serverid == null) { FIXME
 			} else if (a.offline) {
 				ViewGroup row = (ViewGroup) inflater.inflate(R.layout.offline_server, top,false);
 				TextView t = (TextView) row.findViewById(R.id.servername);
@@ -130,10 +128,8 @@ public class ServerList extends Fragment {
 				TextView t = (TextView) row.findViewWithTag("server_name");
 				t.setText(a.servername);
 				Button b = (Button) row.findViewWithTag("button");
-				Log.v(TAG,b.toString());
 				b.setOnClickListener(new OnClickListener() {
-					@Override
-					public void onClick(View v) {
+					@Override public void onClick(View v) {
 						Log.v(TAG,"onClick("+a.servername+")");
 						Intent login = new Intent(getActivity(), LoggingIn.class);
 						AccountWrap a2 = new AccountWrap(a);
@@ -143,9 +139,6 @@ public class ServerList extends Fragment {
 					}
 				});
 				top.addView(row);
-				Log.v(TAG,"inflated row "+a.servername);
-				Log.v(TAG,"serverid:"+a.serverid);
-				Log.v(TAG,"offline: "+a.offline);
 			}
 		}
 	}

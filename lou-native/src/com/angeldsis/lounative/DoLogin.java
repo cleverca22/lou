@@ -12,6 +12,8 @@ import org.eclipse.swt.widgets.Text;
 
 import com.angeldsis.louapi.LouSession;
 import com.angeldsis.louapi.LouSession.result;
+import com.angeldsis.louutil.HttpUtilImpl;
+
 import org.eclipse.swt.layout.GridData;
 
 public class DoLogin extends Shell implements MouseListener {
@@ -83,7 +85,7 @@ public class DoLogin extends Shell implements MouseListener {
 			reply.e.printStackTrace();
 		}
 		if (reply.worked) {
-			config.setRememberMe(session.save_cookie());
+			config.setRememberMe(HttpUtilImpl.getInstance().getCookieData());
 			config.flush();
 			System.out.println("worked");
 			close();

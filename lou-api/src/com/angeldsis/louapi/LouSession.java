@@ -29,14 +29,7 @@ public class LouSession {
 	public ArrayList<ServerInfo> servers;
 	public long dataage;
 	private HttpUtil httpUtil;
-	@Deprecated  private String cookiedata;
 	public String currentEmail;
-	@Deprecated public void restore_cookie(String cookie) {
-		httpUtil.restore_cookie(cookie);
-	}
-	@Deprecated public String save_cookie() {
-		return cookiedata;
-	}
 	public LouSession(HttpUtil httpUtil) {
 		this.httpUtil = httpUtil;
 	}
@@ -219,7 +212,6 @@ public class LouSession {
 		};
 		xmlReader.parse(new InputSource(wrapper));
 		if (output.worked) {
-			cookiedata = httpUtil.getCookieData();
 			this.servers = servers;
 			dataage = System.currentTimeMillis();
 			//for (NewServer s : newServers) {

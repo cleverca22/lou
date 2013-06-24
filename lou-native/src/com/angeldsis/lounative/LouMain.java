@@ -36,7 +36,7 @@ public class LouMain {
 		auto_world = world;
 		Config config = Config.getConfig();
 		if (config.getRememberMe() != null) {
-			session.restore_cookie(config.getRememberMe());
+			HttpUtilImpl.getInstance().restore_cookie(config.getRememberMe());
 			Log.v(TAG,"checking cookie");
 			result r = session.check_cookie(config.getUsername());
 			if (r.worked == false) {

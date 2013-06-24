@@ -96,7 +96,7 @@ public class Webview extends Fragment implements CookieCallback {
 						if ("JSESSIONID".equals(name)) JSESSIONID = value;
 						else if ("AWSELB".equals(name)) AWSELB = value;
 					}
-					SessionKeeper.restore_cookie(JSESSIONID+";"+AWSELB);
+					HttpUtilImpl.getInstance().restore_cookie(JSESSIONID+";"+AWSELB);
 					Log.v(TAG,"cookies:"+HttpUtilImpl.getInstance().getCookieData());
 					SharedPreferences.Editor trans = getActivity().getSharedPreferences("main", Context.MODE_PRIVATE).edit();
 					trans.putString("cookie", JSESSIONID+";"+AWSELB);
