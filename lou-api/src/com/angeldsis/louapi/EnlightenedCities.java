@@ -9,6 +9,11 @@ import org.json2.JSONObject;
 import com.angeldsis.louapi.data.Coord;
 
 public class EnlightenedCities {
+	public static final int undefined = 0;
+	public static final int doNotBuild = 1;
+	public static final int low = 2;
+	public static final int medium = 3;
+	public static final int high = 4;
 	public static class EnlightenedCity implements Comparable<Integer> {
 		public int id;
 		public Coord location;
@@ -18,7 +23,7 @@ public class EnlightenedCities {
 		public long wood,stone;
 		public long incoming_wood,incoming_stone;
 		public Resource[] normal;
-		public int shrine_type,palace_level;
+		public int shrine_type,palace_level,priority,defaultPriority;
 		public String comment;
 		String name;
 		public int endstep;
@@ -53,6 +58,8 @@ public class EnlightenedCities {
 				if (type == 1) incoming_wood = in.getLong("p");
 				else incoming_stone = in.getLong("s");
 			}
+			priority = y.getInt("p");
+			defaultPriority = y.getInt("pd");
 		}
 		@Override public int compareTo(Integer arg0) {
 			if (this.id < arg0) return -1;
