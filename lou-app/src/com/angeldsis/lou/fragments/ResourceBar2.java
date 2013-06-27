@@ -62,6 +62,10 @@ public class ResourceBar2 extends FragmentBase {
 	}
 	public void update() {
 		City c;
+		if (parent == null) {
+			Log.v(TAG,"parent is null!");
+			return;
+		}
 		if (lastCity == null) c = parent.session.state.currentCity;
 		else c = lastCity;
 		int x;
