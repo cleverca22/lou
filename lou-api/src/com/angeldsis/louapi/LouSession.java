@@ -93,7 +93,7 @@ public class LouSession {
 			String sessionId = m.group(0);
 			Log.v(TAG,"sessionid "+sessionId);
 
-			reply2 = httpUtil.getUrl("http://prodcdngame.lordofultima.com/Farm/service.svc/ajaxEndpoint/1/session/"+
+			reply2 = httpUtil.getUrl("http://prodgame.lordofultima.com/Farm/service.svc/ajaxEndpoint/1/session/"+
 						sessionId+"/worlds");
 			if (reply2.code == 200) {
 			} else {
@@ -294,7 +294,7 @@ public class LouSession {
 			String sessionId = m.group(0);
 			Log.v(TAG,"sessionid "+sessionId);
 
-			HttpReply reply2 = httpUtil.getUrl("http://prodcdngame.lordofultima.com/Farm/service.svc/ajaxEndpoint/1/session/"+
+			HttpReply reply2 = httpUtil.getUrl("http://prodgame.lordofultima.com/Farm/service.svc/ajaxEndpoint/1/session/"+
 						sessionId+"/worlds");
 			if (reply2.code == 200) {
 			} else {
