@@ -252,6 +252,13 @@ public class LouSession {
 	public result check_cookie(String username) {
 		try {
 			HttpReply reply = httpUtil.getUrl("http://www.lordofultima.com/game/world/change");
+			if (reply.e != null) {
+				result obj = new result();
+				obj.error = true;
+				obj.worked = false;
+				obj.e = reply.e;
+				return obj;
+			}
 			if (reply.code == 200) {
 			} else if (reply.code == 302) {
 				String secondurl = reply.location;

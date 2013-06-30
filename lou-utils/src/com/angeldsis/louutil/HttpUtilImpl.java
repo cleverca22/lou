@@ -188,8 +188,7 @@ public class HttpUtilImpl implements HttpUtil {
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			return new HttpReply(e);
 		}
 		return null;
 	}

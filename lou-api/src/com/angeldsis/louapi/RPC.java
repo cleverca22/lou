@@ -163,7 +163,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 						void requestDone(rpcreply r) throws JSONException,
 								Exception {
 							JSONArray headers = (JSONArray) r.reply;
-							final ReportHeader[] list = new ReportHeader[headers.length()];
+							final ReportHeader[] list = new ReportHeader[headers.length()]; // FIXME NullPointerException
 							int i;
 							for (i = 0; i < headers.length(); i++) {
 								list[i] = new ReportHeader(headers.optJSONObject(i));
@@ -609,13 +609,13 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 						queue.add(poller);
 					}
 				} else requests.add("CHAT:");
-				if (enlightenedCities != null) {
-					requests.add("ECO:"+enlightenedCities.getRequestDetails());
-				}
 				requests.add("REPORT:");
 				requests.add("SERVER:");
 				requests.add("SUBSTITUTION:");
 				requests.add("PLAYER:"+ (state.getFullPlayerData ? "a" : ""));
+			}
+			if (enlightenedCities != null) {
+				requests.add("ECO:"+enlightenedCities.getRequestDetails());
 			}
 			requests.add("TIME:"+System.currentTimeMillis());
 			if (checkAlliance()) requests.add("ALLIANCE:");
@@ -1354,5 +1354,88 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 				}
 			}
 		});
+	}
+	public void IGMGetFolders(final MailBoxCallback mailBox) {
+		// FIXME, remember the results
+		post(new Runnable() {
+			public void run() {
+				JSONObject obj = new JSONObject();
+				try {
+					doRPC("IGMGetFolders",obj,new RPCCallback() {
+						@Override void requestDone(rpcreply r) throws JSONException, Exception {
+							JSONArray mailboxes = (JSONArray) r.reply;
+							int x;
+							MailBoxFolder[] folders = new MailBoxFolder[mailboxes.length()];
+							for (x=0; x<mailboxes.length(); x++) {
+								JSONObject boxin = mailboxes.getJSONObject(x);
+								folders[x] = new MailBoxFolder(boxin);
+							}
+							mailBox.done(folders);
+						}
+					},5);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+	public void IGMGetMsgCount(final MailBoxFolder folder,final MessageCountCallback cb) {
+		post(new Runnable() {
+			public void run() {
+				JSONObject obj = new JSONObject();
+				try {
+					obj.put("folder", folder.id);
+					doRPC("IGMGetMsgCount",obj,new RPCCallback() {
+						@Override void requestDone(rpcreply r) throws JSONException, Exception {
+							cb.gotCount((Integer)r.reply);
+						}
+					},5);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+	public void IGMGetMsgHeader(final int start, final int end, final MailBoxFolder folder, final int sort,
+			final boolean ascending, final boolean direction, final MessageHeaderCallback cb) {
+		post(new Runnable() {
+			public void run() {
+				JSONObject obj = new JSONObject();
+				try {
+					obj.put("folder", folder.id);
+					obj.put("start", start);
+					obj.put("end", end);
+					obj.put("sort",sort);
+					obj.put("ascending",ascending);
+					obj.put("direction",direction);
+					doRPC("IGMGetMsgHeader",obj,new RPCCallback() {
+						@Override void requestDone(rpcreply r) throws JSONException, Exception {
+							JSONArray headers = (JSONArray) r.reply; // FIXME, use java objects
+							int x;
+							final MailHeader[] out = new MailHeader[headers.length()];
+							for (x=0; x<headers.length(); x++) {
+								out[x] = new MailHeader(headers.getJSONObject(x));
+							}
+							runOnUiThread(new Runnable() {
+								public void run() {
+									cb.gotHeaders(out);
+								}
+							});
+						}
+					},5);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+	public interface MailBoxCallback {
+		void done(MailBoxFolder[] folders);
+	}
+	public interface MessageCountCallback {
+		void gotCount(int count);
+	}
+	public interface MessageHeaderCallback {
+		void gotHeaders(MailHeader[] out);
 	}
 }

@@ -26,6 +26,7 @@ import com.angeldsis.lou.SessionKeeper.Session;
 import com.angeldsis.lou.fragments.GoldDisplay;
 import com.angeldsis.lou.fragments.ResourceBar;
 import com.angeldsis.lou.reports.Reports;
+import com.angeldsis.louapi.LouState;
 import com.angeldsis.louapi.LouState.City;
 import com.google.ads.AdRequest;
 import com.google.ads.AdSize;
@@ -144,7 +145,9 @@ public class LouSessionMain extends FragmentBase implements OnItemClickListener,
 	}
 	public void gotCityData() {
 		Log.v(TAG,"gotCityData");
-		currentCity.setText(session.state.currentCity.name);
+		Session session = parent.session; // FIXME
+		LouState state = session.state;
+		currentCity.setText(state.currentCity.name);
 		int x;
 		for (x=list.getChildCount() - 1; x >= 0; x--) {
 			ViewHolder holder = (ViewHolder) list.getChildAt(x).getTag();
@@ -170,8 +173,11 @@ public class LouSessionMain extends FragmentBase implements OnItemClickListener,
 		updateTickers();
 	}
 	public void updateTickers() {
-		mana.setText(""+session.state.mana.getCurrent());
-		incoming.setText("" + session.state.incoming_attacks.size());
+		// FIXME, used to track down a null pointer
+		Session session = parent.session;
+		LouState state = session.state;
+		mana.setText(""+state.mana.getCurrent());
+		incoming.setText("" + state.incoming_attacks.size());
 	}
 	@Override public void cityListChanged() {
 		Log.v(TAG,"cityListChanged");

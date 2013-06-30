@@ -137,9 +137,15 @@ public class WorldParser {
 		
 		switch (f) {
 		case 1: // city
+			// FIXME, clean up this code, and set playerid right
 			col = cell.getFineCol() + finecol;
 			row = cell.getFineRow() + finerow;
-			CityMapping city = new CityMapping((finerow << 0x10) | finecol,y,col,row,cell);
+			CityMapping city = (CityMapping) cell.objects[fineid];
+			if (city == null) {
+				city = new CityMapping((finerow << 0x10) | finecol,y,col,row,cell);
+				city.location = new Coord(cell.getFineCol() + finecol,cell.getFineRow() + finerow);
+				cell.objects[fineid] = city;
+			}
 			changes.add(city);
 			//log(String.format("%d %d",d,e));
 			//if (city.Castle) System.out.println(String.format("Castle!: score: %d owner:%d",city.Points,city.shortplayer));

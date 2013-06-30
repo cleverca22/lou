@@ -23,6 +23,7 @@ import com.angeldsis.louapi.LouSession.result;
 import com.angeldsis.louapi.LouState;
 import com.angeldsis.louapi.LouState.City;
 import com.angeldsis.louapi.LouVisData;
+import com.angeldsis.louapi.Player;
 import com.angeldsis.louapi.RPC.RPCDone;
 import com.angeldsis.louapi.RPC.SubRequestDone;
 import com.angeldsis.louapi.Timeout;
@@ -361,14 +362,15 @@ public class SessionKeeper extends Service {
 		private void saveState() {
 			Gson gson = new Gson();
 			FileOutputStream stateout;
-			File source = SessionKeeper.this.getFileStreamPath(getStateName(state.self.getId())+".tmp");
+			Player self = state.self; // FIXME, to track down a null pointer
+			File source = SessionKeeper.this.getFileStreamPath(getStateName(self.getId())+".tmp");
 			try {
-				stateout = SessionKeeper.this.openFileOutput(getStateName(state.self.getId())+".tmp", MODE_PRIVATE);
+				stateout = SessionKeeper.this.openFileOutput(getStateName(self.getId())+".tmp", MODE_PRIVATE);
 				String data1 = gson.toJson(this.state);
 				byte[] data2 = data1.getBytes();
 				stateout.write(data2);
 				stateout.close();
-				File dest = SessionKeeper.this.getFileStreamPath(getStateName(state.self.getId()));
+				File dest = SessionKeeper.this.getFileStreamPath(getStateName(self.getId()));
 				source.renameTo(dest);
 			} catch (ConcurrentModificationException e) {
 				source.delete();
