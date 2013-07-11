@@ -63,4 +63,10 @@
             <item >Cities&amp;Castles</item>
         </string-array>
     <string name="no_warnings">No Food Warnings</string>
+    <string name="allow_abandon">Allow substiture to abandon your cities</string>
+    <string name="allow_funds">Allow substitute to spend your Funds</string>
+    <string name="send_request">Send request</string>
+    <string name="player_name">Player name:</string>
+    <string name="req_sub">Requesting Substitute:</string>
+    <string name="cancel">Cancel</string>
 </resources>

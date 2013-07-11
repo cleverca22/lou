@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animation-list xmlns:android="http://schemas.android.com/apk/res/android" >
+    <item android:drawable="@drawable/icon_attack_warning00" android:duration="40"/>
+    <item android:drawable="@drawable/icon_attack_warning01" android:duration="40"/>
+    <item android:drawable="@drawable/icon_attack_warning02" android:duration="40"/>
+    <item android:drawable="@drawable/icon_attack_warning03" android:duration="40"/>
+    <item android:drawable="@drawable/icon_attack_warning04" android:duration="40"/>
+    <item android:drawable="@drawable/icon_attack_warning05" android:duration="40"/>
+    <item android:drawable="@drawable/icon_attack_warning06" android:duration="40"/>
+    <item android:drawable="@drawable/icon_attack_warning07" android:duration="40"/>
+    <item android:drawable="@drawable/icon_attack_warning08" android:duration="40"/>
+    <item android:drawable="@drawable/icon_attack_warning09" android:duration="40"/>
+    <item android:drawable="@drawable/icon_attack_warning10" android:duration="40"/>
+    <item android:drawable="@drawable/icon_attack_warning11" android:duration="40"/>
+    <item android:drawable="@drawable/icon_attack_warning12" android:duration="40"/>
+    <item android:drawable="@drawable/icon_attack_warning13" android:duration="40"/>
+    <item android:drawable="@drawable/icon_attack_warning14" android:duration="40"/>
+    <item android:drawable="@drawable/icon_attack_warning15" android:duration="40"/>
+    <item android:drawable="@drawable/icon_attack_warning16" android:duration="40"/>
+    <item android:drawable="@drawable/icon_attack_warning17" android:duration="40"/>
+    <item android:drawable="@drawable/icon_attack_warning18" android:duration="40"/>
+    <item android:drawable="@drawable/icon_attack_warning19" android:duration="40"/>
+</animation-list>
