@@ -237,6 +237,25 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			}
 		});
 	}
+	public void SubstitutionCancelReq(final SubRequest s) {
+		post(new Runnable() {
+			public void run() {
+				try {
+					JSONObject obj = new JSONObject();
+					obj.put("id", s.id);
+					obj.put("pid", s.receiver.getId());
+					doRPC("SubstitutionCancelReq",obj,new RPCCallback() {
+						public void requestDone(rpcreply r) {
+							Log.v(TAG,r.reply.toString());
+						}
+					},5);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+	}
 	public void CreateSubstitutionSession(final SubRequest s, final SubRequestDone cb) {
 		post(new Runnable() {
 			public void run() {
@@ -453,7 +472,12 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 		final long netstart = System.currentTimeMillis();
 		try {
 			HttpReply reply1 = httpUtil.postUrl(urlbase + function,raw_data);
-			if (reply1.e != null) throw new IllegalStateException("unexpected error",reply1.e);
+			if (reply1.e != null) {
+				Log.e(TAG,"exception when doing rpc call, retrying",reply1.e);
+				doRPC(function,request,rpcCallback,retry - 1);
+				return;
+				//throw new IllegalStateException("unexpected error",reply1.e);
+			}
 			long netstop = System.currentTimeMillis();
 			rpcreply reply2 = new rpcreply();
 			reply2.http_code = reply1.code;
