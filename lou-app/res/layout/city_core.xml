@@ -24,6 +24,12 @@
         android:layout_height="wrap_content"
         android:text="Purify" />
 
+    <Button
+        android:id="@+id/ministers"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Ministers" />
+
     <ListView
         android:id="@+id/trades"
         android:layout_width="match_parent"
