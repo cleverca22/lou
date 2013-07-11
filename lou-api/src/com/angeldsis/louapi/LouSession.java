@@ -29,14 +29,7 @@ public class LouSession {
 	public ArrayList<ServerInfo> servers;
 	public long dataage;
 	private HttpUtil httpUtil;
-	@Deprecated  private String cookiedata;
 	public String currentEmail;
-	@Deprecated public void restore_cookie(String cookie) {
-		httpUtil.restore_cookie(cookie);
-	}
-	@Deprecated public String save_cookie() {
-		return cookiedata;
-	}
 	public LouSession(HttpUtil httpUtil) {
 		this.httpUtil = httpUtil;
 	}
@@ -100,7 +93,7 @@ public class LouSession {
 			String sessionId = m.group(0);
 			Log.v(TAG,"sessionid "+sessionId);
 
-			reply2 = httpUtil.getUrl("http://prodcdngame.lordofultima.com/Farm/service.svc/ajaxEndpoint/1/session/"+
+			reply2 = httpUtil.getUrl("http://prodgame.lordofultima.com/Farm/service.svc/ajaxEndpoint/1/session/"+
 						sessionId+"/worlds");
 			if (reply2.code == 200) {
 			} else {
@@ -219,7 +212,6 @@ public class LouSession {
 		};
 		xmlReader.parse(new InputSource(wrapper));
 		if (output.worked) {
-			cookiedata = httpUtil.getCookieData();
 			this.servers = servers;
 			dataage = System.currentTimeMillis();
 			//for (NewServer s : newServers) {
@@ -260,6 +252,13 @@ public class LouSession {
 	public result check_cookie(String username) {
 		try {
 			HttpReply reply = httpUtil.getUrl("http://www.lordofultima.com/game/world/change");
+			if (reply.e != null) {
+				result obj = new result();
+				obj.error = true;
+				obj.worked = false;
+				obj.e = reply.e;
+				return obj;
+			}
 			if (reply.code == 200) {
 			} else if (reply.code == 302) {
 				String secondurl = reply.location;
@@ -302,7 +301,7 @@ public class LouSession {
 			String sessionId = m.group(0);
 			Log.v(TAG,"sessionid "+sessionId);
 
-			HttpReply reply2 = httpUtil.getUrl("http://prodcdngame.lordofultima.com/Farm/service.svc/ajaxEndpoint/1/session/"+
+			HttpReply reply2 = httpUtil.getUrl("http://prodgame.lordofultima.com/Farm/service.svc/ajaxEndpoint/1/session/"+
 						sessionId+"/worlds");
 			if (reply2.code == 200) {
 			} else {

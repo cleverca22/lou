@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.net.Uri;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.MenuItem;
 
@@ -12,6 +13,7 @@ import com.angeldsis.lou.allianceforum.AllianceForumList;
 import com.angeldsis.lou.city.SendTrade;
 import com.angeldsis.lou.fragments.ChatWindow;
 import com.angeldsis.lou.fragments.FoodWarnings;
+import com.angeldsis.lou.fragments.MailBox;
 import com.angeldsis.lou.fragments.ShrineMonitor;
 import com.angeldsis.lou.world.DungeonList;
 import com.angeldsis.louapi.RPC.GetLockboxURLDone;
@@ -20,12 +22,34 @@ public class ActionbarHandler {
 	private static final String TAG = "ActionbarHandler";
 	public static boolean handleMenu(MenuItem item, final Activity a,AccountWrap acct, Session session) {
 		Intent i;
+		FragmentUser fu = null;
+		if (a instanceof FragmentUser) fu = (FragmentUser) a;
 		switch (item.getItemId()) {
+		case R.id.mailbox:
+			if (fu != null) {
+				FragmentTransaction ft = fu.getSupportFragmentManager().beginTransaction();
+				ft.replace(R.id.main_frame, new MailBox());
+				ft.addToBackStack(null);
+				ft.commit();
+			} else {
+				i = new Intent(a,SingleFragment.class);
+				i.putExtras(acct.toBundle());
+				i.putExtra("fragment", MailBox.class);
+				a.startActivity(i);
+			}
+			return true;
 		case R.id.open_chat:
-			i = new Intent(a,SingleFragment.class);
-			i.putExtras(acct.toBundle());
-			i.putExtra("fragment", ChatWindow.class);
-			a.startActivity(i);
+			if (fu != null) {
+				FragmentTransaction ft = fu.getSupportFragmentManager().beginTransaction();
+				ft.replace(R.id.main_frame, new ChatWindow());
+				ft.addToBackStack(null);
+				ft.commit();
+			} else {
+				i = new Intent(a,SingleFragment.class);
+				i.putExtras(acct.toBundle());
+				i.putExtra("fragment", ChatWindow.class);
+				a.startActivity(i);
+			}
 			return true;
 		case R.id.city:
 			Log.v(TAG,"opening city view");
@@ -101,8 +125,16 @@ public class ActionbarHandler {
 			a.startActivity(i);
 			return true;
 		case R.id.foodWarning:
-			i = FoodWarnings.getIntent(acct, a);
-			a.startActivity(i);
+			if (fu != null) {
+				FragmentTransaction trans = fu.getSupportFragmentManager().beginTransaction();
+				trans.replace(R.id.main_frame, new CityCore());
+				trans.replace(R.id.second_frame, new FoodWarnings());
+				trans.addToBackStack(null);
+				trans.commit();
+			} else {
+				i = FoodWarnings.getIntent(acct, a);
+				a.startActivity(i);
+			}
 			return true;
 		case R.id.cityCore:
 			i = new Intent(a,SingleFragment.class);

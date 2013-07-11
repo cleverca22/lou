@@ -1,20 +1,14 @@
 package com.angeldsis.lou;
 
 import java.util.Collection;
-import com.angeldsis.lou.SessionKeeper.Session;
-import com.angeldsis.lou.fragments.ResourceBar;
-import com.angeldsis.lou.reports.Reports;
-import com.angeldsis.louapi.LouState.City;
-import com.google.ads.AdRequest;
-import com.google.ads.AdSize;
-import com.google.ads.AdView;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,6 +22,16 @@ import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.angeldsis.lou.SessionKeeper.Session;
+import com.angeldsis.lou.fragments.GoldDisplay;
+import com.angeldsis.lou.fragments.ResourceBar;
+import com.angeldsis.lou.reports.Reports;
+import com.angeldsis.louapi.LouState;
+import com.angeldsis.louapi.LouState.City;
+import com.google.ads.AdRequest;
+import com.google.ads.AdSize;
+import com.google.ads.AdView;
+
 public class LouSessionMain extends FragmentBase implements OnItemClickListener, Runnable {
 	static final String TAG = "LouSessionMain";
 	cityList mAdapter;
@@ -37,12 +41,22 @@ public class LouSessionMain extends FragmentBase implements OnItemClickListener,
 	@Deprecated Session session;
 	private TextView currentCity,mana,incoming;
 	private Button reports;
-
+	
+	@Override public void onCreate(Bundle sis) {
+		super.onCreate(sis);
+		mAdapter = new cityList();
+	}
+	public void onAttach(Activity a) {
+		super.onAttach(a);
+		Log.v(TAG,"onAttach");
+	}
+	public void onDetach () {
+		super.onDetach();
+		Log.v(TAG,"onDetatch");
+	}
 	@Override public View onCreateView(LayoutInflater inflater, ViewGroup root, Bundle sis) {
 		ViewGroup vg = (ViewGroup) inflater.inflate(R.layout.session_core, root, false);
-		Log.v(TAG,"onCreate");
-		Log.v(TAG,"bar1");
-		mAdapter = new cityList();
+		Log.v(TAG,"onCreateView");
 		list = (ListView) vg.findViewById(R.id.cities);
 		list.setAdapter(mAdapter);
 		list.setOnItemClickListener(this);
@@ -74,6 +88,11 @@ public class LouSessionMain extends FragmentBase implements OnItemClickListener,
 			//.addTestDevice(AdRequest.TEST_EMULATOR)
 			//.addTestDevice("3BAAE9494C8A3A8046F0239B242006E8")
 		);
+		if (sis == null) {
+			FragmentTransaction ft = getChildFragmentManager().beginTransaction();
+			ft.add(R.id.gold, new GoldDisplay());
+			ft.commit();
+		}
 		return vg;
 	}
 	@Override public void onDestroy() {
@@ -86,6 +105,7 @@ public class LouSessionMain extends FragmentBase implements OnItemClickListener,
 	public void onStart() {
 		super.onStart();
 		Log.v(TAG,"onStart");
+		/*
 		Configuration c = getResources().getConfiguration();
 		int size = c.screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK;
 		switch (size) {
@@ -97,7 +117,7 @@ public class LouSessionMain extends FragmentBase implements OnItemClickListener,
 			break;
 		default:
 			Log.v(TAG,"screen size "+size);
-		}
+		}*/
 	}
 	@Override public void session_ready() {
 		Log.v(TAG,"session_ready");
@@ -112,6 +132,7 @@ public class LouSessionMain extends FragmentBase implements OnItemClickListener,
 			}
 			updateTickers();
 			onReportCountUpdate();
+			gotCityData();
 		}
 	}
 	public void onCityChanged() {
@@ -124,7 +145,9 @@ public class LouSessionMain extends FragmentBase implements OnItemClickListener,
 	}
 	public void gotCityData() {
 		Log.v(TAG,"gotCityData");
-		currentCity.setText(session.state.currentCity.name);
+		Session session = parent.session; // FIXME
+		LouState state = session.state;
+		currentCity.setText(state.currentCity.name);
 		int x;
 		for (x=list.getChildCount() - 1; x >= 0; x--) {
 			ViewHolder holder = (ViewHolder) list.getChildAt(x).getTag();
@@ -150,11 +173,14 @@ public class LouSessionMain extends FragmentBase implements OnItemClickListener,
 		updateTickers();
 	}
 	public void updateTickers() {
-		mana.setText(""+session.state.mana.getCurrent());
-		incoming.setText("" + session.state.incoming_attacks.size());
+		// FIXME, used to track down a null pointer
+		Session session = parent.session;
+		LouState state = session.state;
+		mana.setText(""+state.mana.getCurrent());
+		incoming.setText("" + state.incoming_attacks.size());
 	}
 	@Override public void cityListChanged() {
-		Log.v(TAG,"cityListChanged()");
+		Log.v(TAG,"cityListChanged");
 		Collection<City> cities = parent.session.state.cities.values();
 		City[] list = new City[cities.size()];
 		cities.toArray(list);

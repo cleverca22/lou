@@ -4,11 +4,13 @@ import java.util.Iterator;
 
 import com.angeldsis.lou.city.SelectCity;
 import com.angeldsis.lou.fragments.PurifyResources;
+import com.angeldsis.lou.fragments.ResourceBar2;
 import com.angeldsis.louapi.LouState.City;
 import com.angeldsis.louapi.LouState.Trade;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,9 +27,11 @@ public class CityCore extends FragmentBase {
 	TradeAdapter tradeAdapter;
 	@Override public void onCreate(Bundle sis) {
 		super.onCreate(sis);
+		Log.v(TAG,"onCreate");
 		tradeAdapter = new TradeAdapter();
 	}
 	public View onCreateView (LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+		Log.v(TAG,"onCreateView");
 		View v = inflater.inflate(R.layout.city_core, container,false);
 		ViewGroup vg = (ViewGroup) v;
 		ListView lv = (ListView) vg.findViewById(R.id.trades);
@@ -41,6 +45,11 @@ public class CityCore extends FragmentBase {
 				i.putExtra("fragment", PurifyResources.class);
 				getActivity().startActivity(i);
 			}});
+		if (savedInstanceState == null) {
+			FragmentTransaction ft = getChildFragmentManager().beginTransaction();
+			ft.replace(R.id.resource_bar, new ResourceBar2());
+			ft.commit();
+		}
 		return v;
 	}
 	@Override public void session_ready() {

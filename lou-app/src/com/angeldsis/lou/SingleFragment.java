@@ -13,8 +13,8 @@ public class SingleFragment extends FragmentUser {
 		super.onCreate(sis);
 		Intent msg = getIntent();
 		Bundle args = msg.getExtras();
-		int layout = R.layout.main;
-		if (args.containsKey("layout")) layout = args.getInt("layout");
+		int layout = R.layout.fragment_pair;
+		//if (args.containsKey("layout")) layout = args.getInt("layout");
 		setContentView(layout);
 		if (sis == null) {
 			FragmentTransaction trans = getSupportFragmentManager().beginTransaction();

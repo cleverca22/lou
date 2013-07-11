@@ -3,8 +3,9 @@ package com.angeldsis.louapi.world;
 import com.angeldsis.louapi.data.BaseLou;
 import com.angeldsis.louapi.data.Coord;
 import com.angeldsis.louapi.world.WorldParser.Cell;
+import com.angeldsis.louapi.world.WorldParser.MapItem;
 
-public class CityMapping {
+public class CityMapping extends MapItem {
 	public int type,f,PalaceLevel,PalaceType,shortplayer,EnlightmentStep,PlunderProtection,
 	PalaceDamage,Points;
 	public boolean Castle,Water,Enlighted,PalaceUpgradeing;

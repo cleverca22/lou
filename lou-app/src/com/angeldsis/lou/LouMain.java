@@ -1,7 +1,6 @@
 package com.angeldsis.lou;
 
 import com.angeldsis.lou.home.Loading;
-import com.nullwire.trace.ExceptionHandler;
 
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
@@ -15,7 +14,7 @@ public class LouMain extends FragmentActivity {
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-		ExceptionHandler.register(this,"http://ext.earthtools.ca/backtrace.php");
+		SessionKeeper.checkCoreSetup(this);
 		// super may re-create fragments without warning
 		super.onCreate(savedInstanceState);
 		// Debug.startMethodTracing();

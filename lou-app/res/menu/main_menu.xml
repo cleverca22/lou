@@ -12,6 +12,7 @@
     <item android:id="@+id/foodWarning" android:title="Food Warnings"></item>
     <item android:id="@+id/cityCore" android:title="City Core"></item>
     <item android:id="@+id/shrine_monitor" android:title="Shrine Monitor"></item>
+    <item android:id="@+id/mailbox" android:title="Mail"></item>
     <item android:id="@+id/update" android:title="Update"></item>
     <item android:id="@+id/logout" android:title="@string/logout"></item>
 </menu>

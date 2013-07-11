@@ -60,7 +60,7 @@
         <string-array name="filters">
             <item >Dungeons</item>
             <item >Lawless</item>
-            <item >Cities</item>
+            <item >Cities&amp;Castles</item>
         </string-array>
     <string name="no_warnings">No Food Warnings</string>
 </resources>

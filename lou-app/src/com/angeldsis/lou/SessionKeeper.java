@@ -23,6 +23,7 @@ import com.angeldsis.louapi.LouSession.result;
 import com.angeldsis.louapi.LouState;
 import com.angeldsis.louapi.LouState.City;
 import com.angeldsis.louapi.LouVisData;
+import com.angeldsis.louapi.Player;
 import com.angeldsis.louapi.RPC.RPCDone;
 import com.angeldsis.louapi.RPC.SubRequestDone;
 import com.angeldsis.louapi.Timeout;
@@ -78,6 +79,7 @@ public class SessionKeeper extends Service {
 	AlarmManager alarmManager;
 	private static SessionKeeper self;
 	PendingIntent wakeSelf = null;
+	private static boolean coreSetup = false;
 	
 	// constansts for notification id's
 	// worldid (86) will be added to these to keep them unique
@@ -93,6 +95,13 @@ public class SessionKeeper extends Service {
 		public SessionKeeper getService() {
 			Log.v(TAG,"getService");
 			return SessionKeeper.this;
+		}
+	}
+	public static void checkCoreSetup(Context context) {
+		if (!coreSetup) {
+			Logger.init(); // allows api to print to log
+			ExceptionHandler.register(context,"http://ext.earthtools.ca/backtrace.php");
+			coreSetup = true;
 		}
 	}
 	public SessionKeeper() {
@@ -115,8 +124,7 @@ public class SessionKeeper extends Service {
 	}
 	@Override
 	public void onCreate() {
-		ExceptionHandler.register(this,"http://ext.earthtools.ca/backtrace.php");
-		Logger.init(); // allows api to print to log
+		checkCoreSetup(this);
 		Log.v(TAG,"onCreate");
 		if (sessions == null) sessions = new ArrayList<Session>();
 		PowerManager pm = (PowerManager) this.getSystemService(POWER_SERVICE);
@@ -314,21 +322,12 @@ public class SessionKeeper extends Service {
 				Intent home = LouSessionMain.getIntent(acct, SessionKeeper.this);
 				Intent chat = ChatWindow.getIntent(acct, cm.tag, SessionKeeper.this);
 				
-				Log.v(TAG,home.getDataString());
-				//Log.v(TAG,chat.getDataString());
-				Log.v(TAG,chat.filterEquals(home) ? "match" : "not match");
-				
 				TaskStackBuilder stackBuilder = TaskStackBuilder.create(SessionKeeper.this);
 				stackBuilder.addParentStack(SingleFragment.class);
 				// FIXME stackBuilder.addNextIntent(home);
 				stackBuilder.addNextIntent(chat);
 				PendingIntent resultPendingIntent = stackBuilder
 						.getPendingIntent(id, PendingIntent.FLAG_UPDATE_CURRENT);
-				Intent[] test = stackBuilder.getIntents();
-				int x;
-				for (x=0; x<test.length; x++) {
-					Log.v(TAG,"extras:"+test[x].getExtras().toString());
-				}
 				int sound = 0;
 				if (dingOnMessage) sound = Notification.DEFAULT_SOUND;
 				if (cm.isPm()) sound = Notification.DEFAULT_SOUND;
@@ -354,14 +353,15 @@ public class SessionKeeper extends Service {
 		private void saveState() {
 			Gson gson = new Gson();
 			FileOutputStream stateout;
-			File source = SessionKeeper.this.getFileStreamPath(getStateName(state.self.getId())+".tmp");
+			Player self = state.self; // FIXME, to track down a null pointer
+			File source = SessionKeeper.this.getFileStreamPath(getStateName(self.getId())+".tmp");
 			try {
-				stateout = SessionKeeper.this.openFileOutput(getStateName(state.self.getId())+".tmp", MODE_PRIVATE);
+				stateout = SessionKeeper.this.openFileOutput(getStateName(self.getId())+".tmp", MODE_PRIVATE);
 				String data1 = gson.toJson(this.state);
 				byte[] data2 = data1.getBytes();
 				stateout.write(data2);
 				stateout.close();
-				File dest = SessionKeeper.this.getFileStreamPath(getStateName(state.self.getId()));
+				File dest = SessionKeeper.this.getFileStreamPath(getStateName(self.getId()));
 				source.renameTo(dest);
 			} catch (ConcurrentModificationException e) {
 				source.delete();
@@ -442,7 +442,7 @@ public class SessionKeeper extends Service {
 				incomingAttackBuilder.setContentText(msg)
 					.setDefaults(Notification.DEFAULT_SOUND)
 					.setWhen(end);
-				long start = rpc.state.stepToMilis(a.start);
+				//long start = rpc.state.stepToMilis(a.start);
 				
 				Bundle options = acct.toBundle();
 				Intent resultIntent = new Intent(SessionKeeper.this,IncomingAttacks.class);
@@ -659,7 +659,7 @@ public class SessionKeeper extends Service {
 			disconnectBuilder.setContentIntent(resultPendingIntent);
 			
 			mNotificationManager = (NotificationManager) getSystemService(SessionKeeper.NOTIFICATION_SERVICE);
-			Logger.init();
+			SessionKeeper.checkCoreSetup(this);
 		}
 		Log.v(TAG,"looking for existing session "+acct.id);
 		Iterator<Session> i = sessions.iterator();
@@ -697,12 +697,6 @@ public class SessionKeeper extends Service {
 	}
 	public interface CookieCallback {
 		void done(result r);
-	}
-	public static void restore_cookie(String cookie) {
-		Logger.init();
-		Log.v(TAG,"restore_cookie("+cookie+")");
-		if (session2 == null) session2 = new LouSession(HttpUtilImpl.getInstance());
-		session2.restore_cookie(cookie);
 	}
 	@Override public void onTrimMemory(int level) {
 		Iterator<Session> i = sessions.iterator();

@@ -15,12 +15,12 @@
             android:layout_height="wrap_content"
             android:orientation="vertical" >
 
-            <fragment
-                android:id="@+id/fragment1"
-                android:name="com.angeldsis.lou.fragments.GoldDisplay"
+            <FrameLayout
+                android:id="@+id/gold"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                tools:layout="@layout/gold" />
+                android:layout_height="wrap_content" >
+
+            </FrameLayout>
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -48,9 +48,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:clickable="true"
-                    android:onClick="showIncoming"
                     android:text="Incoming Attacks"
                     android:textAppearance="?android:attr/textAppearanceSmall" />
+
+                <ImageView
+                    android:id="@+id/imageView1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/icon_attack_warning" />
 
                 <TextView
                     android:id="@+id/incoming_attacks"

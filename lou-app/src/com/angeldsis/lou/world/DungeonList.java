@@ -8,6 +8,7 @@ import com.angeldsis.lou.MyTableRow;
 import com.angeldsis.lou.R;
 import com.angeldsis.louapi.data.Coord;
 import com.angeldsis.louapi.data.UnitCount;
+import com.angeldsis.louapi.world.CityMapping;
 import com.angeldsis.louapi.world.Dungeon;
 import com.angeldsis.louapi.world.LawlessCity;
 import com.angeldsis.louapi.world.WorldParser.Cell;
@@ -46,6 +47,13 @@ public class DungeonList extends WorldUser implements OnItemClickListener, OnIte
 			if (i instanceof LawlessCity) {
 				LawlessCity lc = (LawlessCity) i;
 				return lc.canSettle();
+			} else return false;
+		}
+	};
+	Filter cityFilter = new Filter() {
+		@Override public boolean checkItem(MapItem i) {
+			if (i instanceof CityMapping) {
+				return true;
 			} else return false;
 		}
 	};
@@ -127,6 +135,10 @@ public class DungeonList extends WorldUser implements OnItemClickListener, OnIte
 				LawlessCity obj = (LawlessCity) item;
 				holder.type.setText(""+obj.points);
 			}
+			if (item instanceof CityMapping) {
+				CityMapping cm = (CityMapping) item;
+				holder.type.setText(cm.name);
+			}
 			holder.distance.setText(String.format("%.2f",item.location.distance(currentCity)));
 			return convertView;
 		}
@@ -192,6 +204,9 @@ public class DungeonList extends WorldUser implements OnItemClickListener, OnIte
 			break;
 		case 1:
 			filter = lawlessFilter;
+			break;
+		case 2:
+			filter = cityFilter;
 			break;
 		}
 		cellUpdated(null);

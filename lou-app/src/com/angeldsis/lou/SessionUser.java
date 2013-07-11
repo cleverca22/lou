@@ -29,7 +29,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
-public class SessionUser extends FragmentActivity implements Callbacks, SessionUser2 {
+@Deprecated public class SessionUser extends FragmentActivity implements Callbacks, SessionUser2 {
 	private static final String TAG = "SessionUser";
 	SessionKeeper mService;
 	boolean mBound;
