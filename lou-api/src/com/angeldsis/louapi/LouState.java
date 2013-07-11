@@ -567,7 +567,7 @@ public class LouState {
 					s.receiver = self;
 					s.role = SubRequest.Role.receiver;
 				}
-				s.id = s2.optInt("id");
+				s.id = s2.optInt("i");
 				// when accepting a sub, (acting as receiver) call SubstitutionAcceptReq(id,p0);
 				// once you have a sub, call CreateSubstitutionSession(id,pid);
 				subs.add(s);
