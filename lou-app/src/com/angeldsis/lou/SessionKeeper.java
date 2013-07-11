@@ -322,21 +322,12 @@ public class SessionKeeper extends Service {
 				Intent home = LouSessionMain.getIntent(acct, SessionKeeper.this);
 				Intent chat = ChatWindow.getIntent(acct, cm.tag, SessionKeeper.this);
 				
-				Log.v(TAG,home.getDataString());
-				//Log.v(TAG,chat.getDataString());
-				Log.v(TAG,chat.filterEquals(home) ? "match" : "not match");
-				
 				TaskStackBuilder stackBuilder = TaskStackBuilder.create(SessionKeeper.this);
 				stackBuilder.addParentStack(SingleFragment.class);
 				// FIXME stackBuilder.addNextIntent(home);
 				stackBuilder.addNextIntent(chat);
 				PendingIntent resultPendingIntent = stackBuilder
 						.getPendingIntent(id, PendingIntent.FLAG_UPDATE_CURRENT);
-				Intent[] test = stackBuilder.getIntents();
-				int x;
-				for (x=0; x<test.length; x++) {
-					Log.v(TAG,"extras:"+test[x].getExtras().toString());
-				}
 				int sound = 0;
 				if (dingOnMessage) sound = Notification.DEFAULT_SOUND;
 				if (cm.isPm()) sound = Notification.DEFAULT_SOUND;
