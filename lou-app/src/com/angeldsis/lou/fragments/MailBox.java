@@ -1,14 +1,13 @@
 package com.angeldsis.lou.fragments;
 
-import org.json2.JSONArray;
-import org.json2.JSONException;
-import org.json2.JSONObject;
-
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -23,7 +22,7 @@ import com.angeldsis.louapi.RPC.MailBoxCallback;
 import com.angeldsis.louapi.RPC.MessageCountCallback;
 import com.angeldsis.louapi.RPC.MessageHeaderCallback;
 
-public class MailBox extends FragmentBase implements MailBoxCallback, MessageCountCallback, MessageHeaderCallback {
+public class MailBox extends FragmentBase implements MailBoxCallback, MessageCountCallback, MessageHeaderCallback, OnItemClickListener {
 	static private final String TAG = "MailBox";
 	LayoutParameters grid;
 	MailBoxFolder inbox,outbox;
@@ -38,6 +37,7 @@ public class MailBox extends FragmentBase implements MailBoxCallback, MessageCou
 		adapter = new MailListAdapter();
 		list.setAdapter(adapter);
 		grid = new LayoutParameters();
+		list.setOnItemClickListener(this);
 		return vg;
 	}
 	@Override public void done(MailBoxFolder[] folders) {
@@ -48,6 +48,7 @@ public class MailBox extends FragmentBase implements MailBoxCallback, MessageCou
 			else if (folders[x].name.equals("@Out")) outbox = folders[x];
 		}
 		Log.v(TAG,"getting inbox");
+		if (parent.session == null) return;
 		parent.session.rpc.IGMGetMsgCount(inbox,this);
 	}
 	@Override public void gotCount(int count) {
@@ -84,15 +85,22 @@ public class MailBox extends FragmentBase implements MailBoxCallback, MessageCou
 				row.bind(grid);
 				h = new Holder();
 				h.subject = (TextView) row.findViewById(R.id.subject);
+				h.from = (TextView) row.findViewById(R.id.from);
+				h.ts = (TextView) row.findViewById(R.id.timestamp);
 				row.setTag(h);
 				convertView = row;
 			} else h = (Holder) convertView.getTag();
 			MailHeader header = getItem(position);
 			h.subject.setText(header.subject);
+			h.from.setText(header.from);
 			return convertView;
 		}
 	}
 	private static class Holder {
-		public TextView subject;
+		public TextView subject,from,ts;
+	}
+	@Override public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+		MailHeader h = adapter.getItem(position);
+		Log.v(TAG,"mail clicked:"+h.id);
 	}
 }
