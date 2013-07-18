@@ -88,8 +88,9 @@ public class SessionKeeper extends Service {
 	static final int INCOMING_ATTACK = 0x300;
 	static final int FOOD_WARNING = 0x400;
 	static final int EJECTED = 0x500;
+	static final int EL_NOTIFY = 0x600;
 
-	NotificationCompat.Builder mBuilder,chatBuilder,incomingAttackBuilder,foodWarning,disconnectBuilder;
+	NotificationCompat.Builder mBuilder,chatBuilder,incomingAttackBuilder,foodWarning,disconnectBuilder,elNotificationBuilder;
 	private SharedPreferences config;
 	public class MyBinder extends Binder {
 		public SessionKeeper getService() {
@@ -536,13 +537,17 @@ public class SessionKeeper extends Service {
 			}
 			
 			if (list.size() > 0) {
-				NotificationCompat.Builder b = new NotificationCompat.Builder(SessionKeeper.this);
-				b.setSmallIcon(R.drawable.ic_launcher);
-				b.setAutoCancel(true);
-				b.setContentTitle("new city EL'd").setDefaults(Notification.DEFAULT_SOUND);
 				Log.v(TAG,"new city EL'd");
-				b.setContentText(String.format("%d cities enlightened %s",list.size(),bu.toString()));
-				mNotificationManager.notify(0, b.build());
+				elNotificationBuilder.setContentText(String.format("%d cities enlightened %s",list.size(),bu.toString()));
+				
+				TaskStackBuilder stackBuilder = TaskStackBuilder.create(SessionKeeper.this);
+				// FIXME stackBuilder.addNextIntent(LouSessionMain.getIntent(acct, SessionKeeper.this));
+				stackBuilder.addNextIntent(EnlightenedCityList.getIntent(acct, SessionKeeper.this));
+				PendingIntent resultPendingIntent = stackBuilder
+						.getPendingIntent(EL_NOTIFY | sessionid, PendingIntent.FLAG_UPDATE_CURRENT);
+				elNotificationBuilder.setContentIntent(resultPendingIntent);
+
+				mNotificationManager.notify(0, elNotificationBuilder.build());
 			}
 			
 			if (cb != null) cb.onEnlightenedCityChanged();
@@ -650,7 +655,11 @@ public class SessionKeeper extends Service {
 				.setContentTitle("you have been disconnected")
 				.setContentText("FIXME")
 				.setDefaults(Notification.DEFAULT_SOUND);
-			
+			elNotificationBuilder = new NotificationCompat.Builder(SessionKeeper.this);
+			elNotificationBuilder.setSmallIcon(R.drawable.ic_launcher);
+			elNotificationBuilder.setAutoCancel(true);
+			elNotificationBuilder.setContentTitle("new city EL'd").setDefaults(Notification.DEFAULT_SOUND);
+
 			Intent resultIntent = new Intent(SessionKeeper.this,LouMain.class);
 			TaskStackBuilder stackBuilder = TaskStackBuilder.create(SessionKeeper.this);
 			stackBuilder.addParentStack(LouMain.class);

@@ -13,6 +13,7 @@ import com.angeldsis.louapi.LouState;
 import com.angeldsis.louapi.LouState.City;
 import com.angeldsis.louapi.data.Coord;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.TypedArray;
 import android.graphics.Color;
@@ -189,5 +190,10 @@ public class EnlightenedCityList extends SessionUser {
 		Log.v(TAG,"gotCityData()");
 		((TextView)findViewById(R.id.avail_carts)).setText(String.format("%d",session.state.currentCity.freecarts));
 		((ResourceBar)findViewById(R.id.resourceBar)).update(session.state.currentCity);
+	}
+	public static Intent getIntent(AccountWrap acct, Context context) {
+		Intent i = new Intent(context,EnlightenedCityList.class);
+		i.putExtras(acct.toBundle());
+		return i;
 	}
 }
