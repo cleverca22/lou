@@ -3,8 +3,6 @@ package com.angeldsis.lounative;
 import java.util.Iterator;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridLayout;
@@ -19,7 +17,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Tray;
 import org.eclipse.swt.widgets.TrayItem;
 
-import com.angeldsis.louapi.Account;
 import com.angeldsis.louapi.Log;
 import com.angeldsis.louapi.LouSession;
 import com.angeldsis.louapi.ServerInfo;
@@ -42,7 +39,7 @@ public class WorldSelect extends Shell {
 			Button b = new Button(this,0);
 			b.setText("login");
 			// FIXME, check if the world already has a CoreSession
-			b.addMouseListener(new LoginAction(a));
+			b.addSelectionListener(new LoginAction(a));
 		}
 		setText("World Select");
 		setupTray(display,session);
@@ -53,17 +50,13 @@ public class WorldSelect extends Shell {
 	static void start(Display display, LouSession session) {
 		new WorldSelect(display, session);
 	}
-	class LoginAction implements MouseListener {
+	class LoginAction extends Clicker {
 		private ServerInfo a;
 		LoginAction(ServerInfo a2) {
 			this.a = a2;
 			Log.v("WorldSelect","account:"+a2.worldid);
 		}
-		public void mouseDoubleClick(MouseEvent e) {
-		}
-		public void mouseDown(MouseEvent e) {
-		}
-		public void mouseUp(MouseEvent e) {
+		@Override public void clicked() {
 			new CoreSession(a,display);
 		}
 	}
@@ -102,6 +95,13 @@ public class WorldSelect extends Shell {
 				image2.dispose();
 				image.dispose();
 				WorldSelect.item = null;
+				
+				// does this work?
+				Shell[] shells = display.getShells();
+				int i;
+				for (i=0; i<shells.length; i++) {
+					shells[i].dispose();
+				}
 			}
 		});
 		item.addListener (SWT.MenuDetect, new Listener () {

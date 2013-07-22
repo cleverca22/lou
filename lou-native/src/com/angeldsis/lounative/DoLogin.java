@@ -16,7 +16,7 @@ import com.angeldsis.louutil.HttpUtilImpl;
 
 import org.eclipse.swt.layout.GridData;
 
-public class DoLogin extends Shell implements MouseListener {
+public class DoLogin extends Shell {
 	Text user,pass;
 	Button btnSavePw;
 	LouSession session;
@@ -47,7 +47,12 @@ public class DoLogin extends Shell implements MouseListener {
 		}
 		
 		Button button = new Button(this,0);
-		button.addMouseListener(this);
+		button.addSelectionListener(new Clicker() {
+			@Override
+			public void clicked() {
+				doLogin();
+			}
+		});
 		button.setText("login!");
 		this.setText("login screen");
 		this.open();
@@ -57,18 +62,7 @@ public class DoLogin extends Shell implements MouseListener {
 			if (!display.readAndDispatch()) display.sleep();
 		}
 	}
-	@Override
-	public void mouseDoubleClick(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
-	@Override
-	public void mouseDown(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
-	@Override
-	public void mouseUp(MouseEvent e) {
+	public void doLogin() {
 		String username = user.getText();
 		String password = pass.getText();
 		Config config = Config.getConfig();
@@ -79,10 +73,11 @@ public class DoLogin extends Shell implements MouseListener {
 			config.clearCredentials();
 		}
 		System.out.println("starting login");
+		// FIXME, do login in a background thread, and show a fancy ui
 		result reply = session.startLogin(username,password);
 		if (reply.error) {
 			System.out.println(reply.errmsg);
-			reply.e.printStackTrace();
+			if (reply.e != null) reply.e.printStackTrace();
 		}
 		if (reply.worked) {
 			config.setRememberMe(HttpUtilImpl.getInstance().getCookieData());
@@ -93,7 +88,6 @@ public class DoLogin extends Shell implements MouseListener {
 		}
 		else {
 			config.flush();
-			return;
 		}
 	}
 	protected void checkSubclass() {

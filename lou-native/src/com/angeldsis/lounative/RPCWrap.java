@@ -19,8 +19,11 @@ public class RPCWrap extends RPC {
 	private static String TAG = "RPCWrap";
 	private ChatWindow chat;
 	private CoreSession core;
-	public RPCWrap(Account acct, LouState state) {
+	private MailWindow mailHook;
+	private CoreSession session;
+	public RPCWrap(Account acct, LouState state, CoreSession session) {
 		super(acct, state, HttpUtilImpl.getInstance());
+		this.session = session;
 	}
 	@Override
 	public void visDataReset() {
@@ -33,6 +36,7 @@ public class RPCWrap extends RPC {
 	public void gotCityData() {
 	}
 	public void setChat(ChatWindow chatWindow) {
+		// FIXME, null check, maybe open the window?
 		this.chat = chatWindow;
 	}
 	@Override
@@ -55,6 +59,7 @@ public class RPCWrap extends RPC {
 	@Override
 	public void onEjected() {
 		// TODO Auto-generated method stub
+		session.onEjected();
 		Log.e(TAG,"ejected");
 	}
 	@Override
@@ -120,14 +125,15 @@ public class RPCWrap extends RPC {
 		
 	}
 	@Override public void onFoodWarning() {
-		Log.v(TAG,"onFoodWarning");
 		Iterator<City> i = foodWarnings.warnings.values().iterator();
 		while (i.hasNext()) {
 			City c = i.next();
-			if (!c.name.equals("C21_07")) continue;
-			Log.v(TAG,"name:" +c.name);
 			int timeLeft = c.foodEmptyTime(state);
-			Log.v(TAG,String.format("%,d",timeLeft));
+			if (timeLeft > 3600) continue;
+			Log.v(TAG,String.format("food warning %s %,d",c.name,timeLeft));
 		}
+	}
+	public void setMail(MailWindow mailWindow) {
+		mailHook = mailWindow;
 	}
 }

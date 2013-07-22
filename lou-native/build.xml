@@ -3,7 +3,7 @@
     <!--this file was created by Eclipse Runnable JAR Export Wizard-->
     <!--ANT 1.7 is required                                        -->
     <target name="all" depends="create_run_jar,create_run_jar_win32,create_run_jar_win64"/>
-    <target name="create_run_jar">
+    <target name="create_run_jar" depends="config">
         <jar destfile="/home/clever/apps/lou/lou-native/lou-linux32.jar" filesetmanifest="mergewithoutmain">
             <manifest>
                 <attribute name="Main-Class" value="com.angeldsis.lounative.LouMain"/>
@@ -13,11 +13,12 @@
             <fileset dir="../lou-api/bin"/>
             <fileset dir="../lou-utils/bin/"/>
             <zipfileset excludes="META-INF/*.SF" src="tagsoup-1.2.1.jar"/>
-            <fileset dir="/home/clever/workspace-android/org.eclipse.swt"/>
+            <!--<fileset dir="/home/clever/workspace-android/org.eclipse.swt"/>-->
             <zipfileset excludes="META-INF/*.SF" src="/home/clever/workspace-android/org.eclipse.swt/swt.jar"/>
+            <fileset dir="build/"/>
         </jar>
     </target>
-    <target name="create_run_jar_win32">
+    <target name="create_run_jar_win32" depends="config">
         <jar destfile="/home/clever/apps/lou/lou-native/lou-win32.jar" filesetmanifest="mergewithoutmain">
             <manifest>
                 <attribute name="Main-Class" value="com.angeldsis.lounative.LouMain"/>
@@ -28,9 +29,10 @@
             <fileset dir="../lou-utils/bin/"/>
             <zipfileset excludes="META-INF/*.SF" src="tagsoup-1.2.1.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="../swt-win32/swt.jar"/>
+            <fileset dir="build/"/>
         </jar>
     </target>
-    <target name="create_run_jar_win64">
+    <target name="create_run_jar_win64" depends="config">
         <jar destfile="/home/clever/apps/lou/lou-native/lou-win64.jar" filesetmanifest="mergewithoutmain">
             <manifest>
                 <attribute name="Main-Class" value="com.angeldsis.lounative.LouMain"/>
@@ -41,6 +43,25 @@
             <fileset dir="../lou-utils/bin/"/>
             <zipfileset excludes="META-INF/*.SF" src="tagsoup-1.2.1.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="../swt-win64/swt.jar"/>
+            <fileset dir="build/"/>
         </jar>
+    </target>
+    <target name="setHash">
+        <exec executable="C:/Program Files/Git/bin/git.exe" outputproperty="GIT_HASH" os="Windows XP">
+            <arg line="rev-parse HEAD" />
+        </exec>
+        <exec executable="git" outputproperty="GIT_HASH" os="Linux">
+            <arg line="rev-parse HEAD" />
+        </exec>
+    </target>
+    <target name="config" depends="setHash">
+        <copy file="templates/lou-version.txt" tofile="build/lou-version.txt" overwrite="true" />
+        <replace file="build/lou-version.txt" token="HASH" value="${GIT_HASH}" />
+    </target>
+    <target name="sign" depends="all">
+        <property file="props"/>
+        <signjar jar="lou-linux32.jar" alias="lou-native" keystore="keystore" storepass="${password}"/>
+        <signjar jar="lou-win32.jar" alias="lou-native" keystore="keystore" storepass="${password}"/>
+        <signjar jar="lou-win64.jar" alias="lou-native" keystore="keystore" storepass="${password}"/>
     </target>
 </project>

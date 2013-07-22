@@ -8,14 +8,23 @@ import java.io.IOException;
 import java.util.InvalidPropertiesFormatException;
 import java.util.Properties;
 
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
+
 public class Config {
 	private static Config self;
 	Properties props;
 	private Config() throws InvalidPropertiesFormatException, FileNotFoundException, IOException {
-		props = new Properties();
-		File config = new File("config.xml");
+		File config = getConfigFile();
 		if (config.exists()) {
-			props.loadFromXML(new FileInputStream(config));
+			try {
+				props.loadFromXML(new FileInputStream(config));
+			} catch (Exception e) {
+				if (e instanceof SAXParseException) {
+					config.delete();
+					props = new Properties();
+				}
+			}
 		}
 	}
 	static void init() throws InvalidPropertiesFormatException, FileNotFoundException, IOException {
@@ -36,9 +45,15 @@ public class Config {
 	public void setPassword(String password) {
 		props.setProperty("password", password);
 	}
+	private File getConfigFile() {
+		Properties p = new Properties(System.getProperties());
+		String home = p.getProperty("user.home");
+		props = new Properties();
+		return new File(home+"/lou-native/config.xml");
+	}
 	public void flush() {
 		try {
-			props.storeToXML(new FileOutputStream(new File("config.xml")), null);
+			props.storeToXML(new FileOutputStream(getConfigFile()), null);
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

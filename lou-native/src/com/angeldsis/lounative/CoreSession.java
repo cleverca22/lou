@@ -1,5 +1,7 @@
 package com.angeldsis.lounative;
 
+import java.util.ArrayList;
+
 import org.eclipse.swt.widgets.Display;
 import org.json2.JSONObject;
 
@@ -17,6 +19,7 @@ public class CoreSession {
 	SubsList subListWindow;
 	Display display;
 	IdleTroops idleTroops;
+	static ArrayList<CoreSession> sessions = new ArrayList<CoreSession>();
 
 	public CoreSession(ServerInfo si, Display display) {
 		this.display = display;
@@ -28,8 +31,9 @@ public class CoreSession {
 		a.pathid = si.pathid;
 		a.worldid = si.worldid;
 		a.sessionid = si.sessionId;
-		rpc = new RPCWrap(a,state);
+		rpc = new RPCWrap(a,state,this);
 		state.setRPC(rpc);
+		sessions.add(this);
 		rpc.OpenSession(true,new RPCDone() {
 			public void requestDone(JSONObject reply) {
 				Log.v(TAG,"session opened");
@@ -73,5 +77,11 @@ public class CoreSession {
 	}
 	public void cityChanged() {
 		if (idleTroops != null) idleTroops.cityChanged();
+	}
+	public void openMail() {
+		rpc.setMail(new MailWindow(display,rpc));
+	}
+	public void onEjected() {
+		sessions.remove(this);
 	}
 }

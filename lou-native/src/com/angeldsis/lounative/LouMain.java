@@ -1,5 +1,7 @@
 package com.angeldsis.lounative;
 
+import java.lang.Thread.UncaughtExceptionHandler;
+
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
@@ -15,6 +17,15 @@ public class LouMain {
 	Display display;
 	int auto_world;
 	public static void main(String[] args) throws Exception {
+		Logger.init();
+		UncaughtExceptionHandler currentHandler = Thread.getDefaultUncaughtExceptionHandler();
+		DefaultExceptionHandler deh;
+		if (!(currentHandler instanceof DefaultExceptionHandler)) {
+			deh = new DefaultExceptionHandler(currentHandler);
+			Thread.currentThread().setUncaughtExceptionHandler(deh);
+			Thread.setDefaultUncaughtExceptionHandler(deh);
+		} else deh = (DefaultExceptionHandler) currentHandler;
+
 		int i;
 		int world = 0;
 		for (i = 0; i < args.length; i++) {
@@ -26,11 +37,14 @@ public class LouMain {
 			}
 		}
 		LouMain.instance = new LouMain();
-		LouMain.instance.init(world);
+		try {
+			LouMain.instance.init(world);
+		} catch (Exception e) {
+			deh.uncaughtException(Thread.currentThread(), e);
+		}
 	}
 	private void init(int world) throws Exception {
 		Config.init();
-		Logger.init();
 		display = new Display();
 		session = new LouSession(HttpUtilImpl.getInstance());
 		auto_world = world;
@@ -62,5 +76,9 @@ public class LouMain {
 				break;
 			}
 		}
+		for (CoreSession sess : CoreSession.sessions) {
+			sess.rpc.stopLooping();
+		}
+		display.dispose();
 	}
 }

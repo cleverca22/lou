@@ -5,13 +5,10 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -28,6 +25,7 @@ public class MainWindow extends Shell implements ReportCallback {
 	CoreSession session;
 	private Button btnSaveAllReports;
 	private Button btnIdleTroops;
+	private Button btnMail;
 	public MainWindow(Display display, final CoreSession coreSession) {
 		session = coreSession;
 		setText("main window");
@@ -70,7 +68,15 @@ public class MainWindow extends Shell implements ReportCallback {
 			}
 		});
 		btnOpensharedreport.setText("OpenSharedReport");
-		new Label(this, SWT.NONE);
+		
+		btnMail = new Button(this, SWT.NONE);
+		btnMail.setText("Mail");
+		btnMail.addSelectionListener(new Clicker() {
+			@Override
+			public void clicked() {
+				coreSession.openMail();
+			}
+		});
 		cityButton.addSelectionListener(new SelectionListener(){
 			@Override
 			public void widgetSelected(SelectionEvent e) {
