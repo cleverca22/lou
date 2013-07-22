@@ -36,11 +36,12 @@ public class RPCWrap extends RPC {
 	public void gotCityData() {
 	}
 	public void setChat(ChatWindow chatWindow) {
-		// FIXME, null check, maybe open the window?
 		this.chat = chatWindow;
 	}
 	@Override
 	public void onChat(final ArrayList<ChatMsg> d) {
+		// FIXME, show some kind of notification to re-open chat
+		if (chat == null) return;
 		int i;
 		for (i = 0; i < d.size(); i++) {
 			chat.handle_msg(d.get(i));
