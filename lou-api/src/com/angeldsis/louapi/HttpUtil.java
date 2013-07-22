@@ -13,7 +13,7 @@ public interface HttpUtil {
 		public InputStream stream;
 		public String location;
 		public int contentLength;
-		Exception e;
+		public Exception e;
 		public HttpReply(Exception e) {
 			this.e = e;
 		}
