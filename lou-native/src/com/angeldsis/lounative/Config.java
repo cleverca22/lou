@@ -16,6 +16,8 @@ public class Config {
 	Properties props;
 	private Config() throws InvalidPropertiesFormatException, FileNotFoundException, IOException {
 		File config = getConfigFile();
+		File dir = config.getParentFile();
+		if (!dir.exists()) dir.mkdir();
 		if (config.exists()) {
 			try {
 				props.loadFromXML(new FileInputStream(config));
