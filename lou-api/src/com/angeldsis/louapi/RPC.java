@@ -972,6 +972,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 	}
 	public void stopLooping() {
 		cont = false;
+		interrupt();
 	}
 	/** called when all state.visData has been reloaded */
 	public abstract void visDataReset();
@@ -1411,7 +1412,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 					obj.put("folder", folder.id);
 					doRPC("IGMGetMsgCount",obj,new RPCCallback() {
 						@Override void requestDone(rpcreply r) throws JSONException, Exception {
-							cb.gotCount((Integer)r.reply);
+							cb.gotCount((Integer)r.reply,folder);
 						}
 					},5);
 				} catch (JSONException e) {
@@ -1420,6 +1421,16 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			}
 		});
 	}
+	/**
+	 * start and end are inclusive
+	 * @param start
+	 * @param end
+	 * @param folder
+	 * @param sort
+	 * @param ascending
+	 * @param direction
+	 * @param cb
+	 */
 	public void IGMGetMsgHeader(final int start, final int end, final MailBoxFolder folder, final int sort,
 			final boolean ascending, final boolean direction, final MessageHeaderCallback cb) {
 		post(new Runnable() {
@@ -1453,11 +1464,59 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			}
 		});
 	}
+	public void IGMGetMsg(final MailHeader mh, final GotMailMessage cb) {
+		post(new Runnable() {
+			public void run() {
+				JSONObject obj = new JSONObject();
+				try {
+					obj.put("id", mh.id);
+					doRPC("IGMGetMsg",obj,new RPCCallback() {
+						void requestDone(final rpcreply r) {
+							runOnUiThread(new Runnable() {
+								public void run() {
+									cb.gotMailMessage((String) r.reply);
+								}
+							});
+						}
+					},5);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+	public void IGMBulkSendMsg(final String to, final String cc, final String subject, final String body) {
+		post(new Runnable() {
+			public void run() {
+				JSONObject obj = new JSONObject();
+				try {
+					obj.put("targets", to);
+					obj.put("ccTargets", cc);
+					obj.put("subject", subject);
+					obj.put("body", body);
+					doRPC("IGMBulkSendMsg",obj,new RPCCallback() {
+						void requestDone(final rpcreply r) {
+							runOnUiThread(new Runnable() {
+								public void run() {
+									Log.v(TAG,"reply"+r.reply);
+								}
+							});
+						}
+					},5);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+	public interface GotMailMessage {
+		void gotMailMessage(String message);
+	}
 	public interface MailBoxCallback {
 		void done(MailBoxFolder[] folders);
 	}
 	public interface MessageCountCallback {
-		void gotCount(int count);
+		void gotCount(int count, MailBoxFolder folder);
 	}
 	public interface MessageHeaderCallback {
 		void gotHeaders(MailHeader[] out);
