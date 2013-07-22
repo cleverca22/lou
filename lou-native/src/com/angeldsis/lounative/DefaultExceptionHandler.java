@@ -9,8 +9,10 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.Thread.UncaughtExceptionHandler;
 
+import com.angeldsis.louapi.DnsError;
 import com.angeldsis.louapi.HttpUtil.HttpReply;
 import com.angeldsis.louapi.Log;
+import com.angeldsis.louapi.TimeoutError;
 import com.angeldsis.louutil.HttpUtilImpl;
 
 public class DefaultExceptionHandler implements UncaughtExceptionHandler {
@@ -33,7 +35,20 @@ public class DefaultExceptionHandler implements UncaughtExceptionHandler {
 			e1.printStackTrace();
 		}
 		e.printStackTrace(printWriter);
-		HttpReply reply = HttpUtilImpl.getInstance().postUrl("http://angeldsis.com/dsisscripts/load/loudesktop", result.toString());
+		HttpReply reply;
+		try {
+			reply = HttpUtilImpl.getInstance().postUrl("http://angeldsis.com/dsisscripts/load/loudesktop", result.toString().getBytes());
+		} catch (TimeoutError e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+			oldHook.uncaughtException(t, e);
+			return;
+		} catch (DnsError e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+			oldHook.uncaughtException(t, e);
+			return;
+		}
 		if (reply.e == null) {
 			Log.v("FIXME","show a friendly error");
 			// upload worked, show a friendly error
