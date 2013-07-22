@@ -3,44 +3,38 @@
     <!--this file was created by Eclipse Runnable JAR Export Wizard-->
     <!--ANT 1.7 is required                                        -->
     <target name="all" depends="create_run_jar,create_run_jar_win32,create_run_jar_win64"/>
-    <target name="create_run_jar" depends="config">
+    <target name="create_run_jar" depends="config,compile">
         <jar destfile="/home/clever/apps/lou/lou-native/lou-linux32.jar" filesetmanifest="mergewithoutmain">
             <manifest>
                 <attribute name="Main-Class" value="com.angeldsis.lounative.LouMain"/>
                 <attribute name="Class-Path" value="."/>
             </manifest>
-            <fileset dir="bin"/>
-            <fileset dir="../lou-api/bin"/>
-            <fileset dir="../lou-utils/bin/"/>
+            <fileset dir="ant-out"/>
             <zipfileset excludes="META-INF/*.SF" src="tagsoup-1.2.1.jar"/>
             <!--<fileset dir="/home/clever/workspace-android/org.eclipse.swt"/>-->
             <zipfileset excludes="META-INF/*.SF" src="/home/clever/workspace-android/org.eclipse.swt/swt.jar"/>
             <fileset dir="build/"/>
         </jar>
     </target>
-    <target name="create_run_jar_win32" depends="config">
+    <target name="create_run_jar_win32" depends="config,compile">
         <jar destfile="/home/clever/apps/lou/lou-native/lou-win32.jar" filesetmanifest="mergewithoutmain">
             <manifest>
                 <attribute name="Main-Class" value="com.angeldsis.lounative.LouMain"/>
                 <attribute name="Class-Path" value="."/>
             </manifest>
-            <fileset dir="bin"/>
-            <fileset dir="../lou-api/bin"/>
-            <fileset dir="../lou-utils/bin/"/>
+            <fileset dir="ant-out"/>
             <zipfileset excludes="META-INF/*.SF" src="tagsoup-1.2.1.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="../swt-win32/swt.jar"/>
             <fileset dir="build/"/>
         </jar>
     </target>
-    <target name="create_run_jar_win64" depends="config">
+    <target name="create_run_jar_win64" depends="config,compile">
         <jar destfile="/home/clever/apps/lou/lou-native/lou-win64.jar" filesetmanifest="mergewithoutmain">
             <manifest>
                 <attribute name="Main-Class" value="com.angeldsis.lounative.LouMain"/>
                 <attribute name="Class-Path" value="."/>
             </manifest>
-            <fileset dir="bin"/>
-            <fileset dir="../lou-api/bin"/>
-            <fileset dir="../lou-utils/bin/"/>
+            <fileset dir="ant-out"/>
             <zipfileset excludes="META-INF/*.SF" src="tagsoup-1.2.1.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="../swt-win64/swt.jar"/>
             <fileset dir="build/"/>
@@ -63,5 +57,10 @@
         <signjar jar="lou-linux32.jar" alias="lou-native" keystore="keystore" storepass="${password}"/>
         <signjar jar="lou-win32.jar" alias="lou-native" keystore="keystore" storepass="${password}"/>
         <signjar jar="lou-win64.jar" alias="lou-native" keystore="keystore" storepass="${password}"/>
+    </target>
+    <target name="compile">
+        <javac srcdir="../lou-api/src/" destdir="ant-out/" classpath="../lou-api/libs/gson-2.2.2.jar"/>
+        <javac srcdir="../lou-utils/src/" destdir="ant-out/"/>
+        <javac srcdir="src/" destdir="ant-out/" classpath="/home/clever/workspace-android/org.eclipse.swt/swt.jar"/>
     </target>
 </project>
