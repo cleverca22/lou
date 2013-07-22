@@ -88,7 +88,11 @@ public class LouSession {
 			if (!m.find()) {
 				Log.e(TAG,"error4 "+html);
 				Log.e(TAG,"sessionid not found");
-				return null; // FIXME
+				result r = new result();
+				r.error = true;
+				r.worked = false;
+				r.errmsg = "sessionid not found";
+				return r;
 			}
 			String sessionId = m.group(0);
 			Log.v(TAG,"sessionid "+sessionId);
