@@ -61,6 +61,6 @@
     <target name="compile">
         <javac srcdir="../lou-api/src/" destdir="ant-out/" classpath="../lou-api/libs/gson-2.2.2.jar"/>
         <javac srcdir="../lou-utils/src/" destdir="ant-out/"/>
-        <javac srcdir="src/" destdir="ant-out/" classpath="/home/clever/workspace-android/org.eclipse.swt/swt.jar"/>
+        <javac srcdir="src/" destdir="ant-out/" classpath="../swt-linux32/swt.jar"/>
     </target>
 </project>
