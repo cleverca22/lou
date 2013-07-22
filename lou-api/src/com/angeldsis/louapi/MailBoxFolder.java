@@ -6,6 +6,7 @@ import org.json2.JSONObject;
 public class MailBoxFolder {
 	public String name;
 	int id,p;
+	public int count;
 	public MailBoxFolder(JSONObject in) throws JSONException {
 		id = in.getInt("i");
 		name = in.getString("n");
