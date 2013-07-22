@@ -27,6 +27,8 @@ public class ChatMsg {
 			return "[Alliance] ["+sender+"] "+message;
 		} else if (channel.equals("@O")) {
 			return "[Officer] ["+sender+"] "+message;
+		} else if (channel.equals("@C")) {
+			return "[Continent] ["+sender+"] "+message;
 		} else if (channel.equals("privatein")) {
 			return "[PM] ["+sender+"] "+message;
 		} else if (channel.equals("privateout")) {
