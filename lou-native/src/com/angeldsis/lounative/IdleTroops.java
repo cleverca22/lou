@@ -91,6 +91,7 @@ public class IdleTroops extends Shell {
 	}
 	@Override public void dispose() {
 		session.idleTroops = null;
+		rpc.setDefenseOverviewEnabled(false);
 		super.dispose();
 	}
 }
