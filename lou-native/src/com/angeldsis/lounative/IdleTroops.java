@@ -21,7 +21,9 @@ public class IdleTroops extends Shell {
 	private Text text_1;
 	RPC rpc;
 	private ScrolledComposite list;
-	public IdleTroops(RPCWrap rpc) {
+	CoreSession session;
+	public IdleTroops(RPCWrap rpc, CoreSession session) {
+		this.session = session;
 		this.rpc = rpc;
 		setLayout(new GridLayout(3, false));
 		
@@ -86,5 +88,9 @@ public class IdleTroops extends Shell {
 	}
 	public void cityChanged() {
 		onDefenseOverviewUpdate();
+	}
+	@Override public void dispose() {
+		session.idleTroops = null;
+		super.dispose();
 	}
 }

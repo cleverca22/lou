@@ -66,7 +66,7 @@ public class CoreSession {
 	}
 	public void openIdleTroops() {
 		if (idleTroops == null) {
-			idleTroops = new IdleTroops(rpc);
+			idleTroops = new IdleTroops(rpc,this);
 			idleTroops.open();
 		} else {
 			idleTroops.forceFocus();
