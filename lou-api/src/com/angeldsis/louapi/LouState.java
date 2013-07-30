@@ -279,11 +279,12 @@ public class LouState {
 		//else Log.v(TAG,"no attacks?");
 		JSONArray vr = d.optJSONArray("vr");
 		if (vr != null) {
-			Log.v(TAG,"vr:"+vr);
 			for (x = 0; x < vr.length(); x++) {
 				JSONArray r = vr.getJSONArray(x);
 				int type = r.getInt(0);
 				int count = r.getInt(1);
+				int change = count - voidResources[type-5];
+				if (change != 0) Log.v(TAG,"void resource "+type+" changed by "+change);
 				voidResources[type-5] = count;
 			}
 		}
