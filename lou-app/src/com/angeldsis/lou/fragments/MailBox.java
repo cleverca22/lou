@@ -7,7 +7,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -51,7 +50,7 @@ public class MailBox extends FragmentBase implements MailBoxCallback, MessageCou
 		if (parent.session == null) return;
 		parent.session.rpc.IGMGetMsgCount(inbox,this);
 	}
-	@Override public void gotCount(int count) {
+	@Override public void gotCount(int count, MailBoxFolder folder) {
 		Log.v(TAG,"message count: "+count);
 		parent.session.rpc.IGMGetMsgHeader(0,20,inbox,3,false,true,this);
 	}
