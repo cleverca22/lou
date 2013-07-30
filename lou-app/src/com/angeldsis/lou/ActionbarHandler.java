@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.MenuItem;
@@ -13,6 +14,7 @@ import com.angeldsis.lou.allianceforum.AllianceForumList;
 import com.angeldsis.lou.city.SendTrade;
 import com.angeldsis.lou.fragments.ChatWindow;
 import com.angeldsis.lou.fragments.FoodWarnings;
+import com.angeldsis.lou.fragments.IdleUnits;
 import com.angeldsis.lou.fragments.MailBox;
 import com.angeldsis.lou.fragments.ShrineMonitor;
 import com.angeldsis.lou.world.DungeonList;
@@ -104,15 +106,25 @@ public class ActionbarHandler {
 			i.putExtras(acct.toBundle());
 			a.startActivity(i);
 			return true;
-		case R.id.dungeonlist:
+/*		case R.id.dungeonlist:
 			i = new Intent(a,DungeonList.class);
 			i.putExtras(acct.toBundle());
 			a.startActivity(i);
-			return true;
+			return true;*/
 		case R.id.idleunits:
-			i = new Intent(a,IdleUnits.class);
-			i.putExtras(acct.toBundle());
-			a.startActivity(i);
+			if (fu != null) {
+				FragmentTransaction trans = fu.getSupportFragmentManager().beginTransaction();
+				trans.replace(R.id.second_frame, new IdleUnits());
+				trans.replace(R.id.main_frame, new DungeonList());
+				trans.addToBackStack(null);
+				trans.commit();
+			} else {
+				Bundle options = acct.toBundle();
+				options.putSerializable("fragment2", IdleUnits.class);
+				i = new Intent(a,SingleFragment.class);
+				i.putExtras(options);
+				a.startActivity(i);
+			}
 			return true;
 		case R.id.update:
 			Uri location = Uri.parse("http://andoria.angeldsis.com/apks/LouMain.apk");

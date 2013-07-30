@@ -1,14 +1,22 @@
-package com.angeldsis.lou;
+package com.angeldsis.lou.fragments;
 
 import java.util.Arrays;
 import java.util.Comparator;
 
+import com.angeldsis.lou.FragmentBase;
+import com.angeldsis.lou.MyTableRow;
+import com.angeldsis.lou.R;
+import com.angeldsis.lou.SessionUser;
+import com.angeldsis.lou.MyTableRow.LayoutParameters;
+import com.angeldsis.lou.R.id;
+import com.angeldsis.lou.R.layout;
 import com.angeldsis.louapi.LouState.City;
 import com.angeldsis.louapi.data.UnitCount;
 
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -17,7 +25,7 @@ import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-public class IdleUnits extends SessionUser implements OnItemClickListener {
+public class IdleUnits extends FragmentBase implements OnItemClickListener {
 	private static final String TAG = "IdleUnits";
 	MyTableRow.LayoutParameters grid = new MyTableRow.LayoutParameters();
 	ListView list;
@@ -25,27 +33,30 @@ public class IdleUnits extends SessionUser implements OnItemClickListener {
 	TextView cityname;
 	@Override public void onCreate(Bundle sis) {
 		super.onCreate(sis);
-		setContentView(R.layout.idle_units);
-		list = (ListView) findViewById(R.id.list);
+		//setTitle("Idle Units");
+	}
+	@Override public View onCreateView(LayoutInflater inflater, ViewGroup root, Bundle sis) {
+		ViewGroup root2 = (ViewGroup) inflater.inflate(R.layout.idle_units, root, false);
+		list = (ListView) root2.findViewById(R.id.list);
 		list.setOnItemClickListener(this);
-		mAdapter = new IdleUnitAdapter(this);
+		mAdapter = new IdleUnitAdapter();
 		list.setAdapter(mAdapter);
-		cityname = (TextView) findViewById(R.id.cityname);
-		setTitle("Idle Units");
+		cityname = (TextView) root2.findViewById(R.id.cityname);
+		return root2;
 	}
 	@Override public void session_ready() {
-		session.rpc.setDefenseOverviewEnabled(true);
+		parent.session.rpc.setDefenseOverviewEnabled(true);
 		onDefenseOverviewUpdate();
 		updateCityName();
 	}
 	@Override public void onStop() {
-		if (session != null) session.rpc.setDefenseOverviewEnabled(false);
+		if (parent != null && parent.session != null) parent.session.rpc.setDefenseOverviewEnabled(false);
 		if (mAdapter != null) mAdapter.notifyDataSetInvalidated();
 		super.onStop();
 	}
 	@Override public void onDefenseOverviewUpdate() {
-		City[] list2 = new City[session.rpc.state.cities.size()];
-		list2 = session.rpc.state.cities.values().toArray(list2);
+		City[] list2 = new City[parent.session.rpc.state.cities.size()];
+		list2 = parent.session.rpc.state.cities.values().toArray(list2);
 		Arrays.sort(list2, new Comparator<City>(){
 			@Override
 			public int compare(City a, City b) {
@@ -62,7 +73,7 @@ public class IdleUnits extends SessionUser implements OnItemClickListener {
 	}
 	private class IdleUnitAdapter extends BaseAdapter {
 		City[] list;
-		public IdleUnitAdapter(Context context) {
+		public IdleUnitAdapter() {
 			super();
 			list = new City[0];
 		}
@@ -72,7 +83,7 @@ public class IdleUnits extends SessionUser implements OnItemClickListener {
 		}
 		@Override public View getView(int position, View oldrow, ViewGroup root) {
 			if (oldrow == null) {
-				oldrow = IdleUnits.this.getLayoutInflater().inflate(R.layout.idle_unit_row, root,false);
+				oldrow = parent.getLayoutInflater().inflate(R.layout.idle_unit_row, root,false);
 			}
 			MyTableRow row = (MyTableRow) oldrow;
 			row.bind(grid);
@@ -90,7 +101,7 @@ public class IdleUnits extends SessionUser implements OnItemClickListener {
 				}
 				if (b.length() == 0) b.append("other");
 				unitcount.setText(b.toString());
-			} else unitcount.setText("none units");
+			} else unitcount.setText("no units");
 			return oldrow;
 		}
 		@Override public int getCount() {
@@ -106,15 +117,15 @@ public class IdleUnits extends SessionUser implements OnItemClickListener {
 	@Override
 	public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
 		City c = mAdapter.getItem(arg2);
-		session.rpc.state.changeCity(c);
+		parent.session.rpc.state.changeCity(c);
 		Exception e = new Exception();
 		e.printStackTrace();
 	}
-	public void onCityChanged() {
+	@Override public void onCityChanged() {
 		Log.v(TAG,"city changed!");
 		updateCityName();
 	}
 	private void updateCityName() {
-		cityname.setText(session.rpc.state.currentCity.name);
+		cityname.setText(parent.session.rpc.state.currentCity.name);
 	}
 }

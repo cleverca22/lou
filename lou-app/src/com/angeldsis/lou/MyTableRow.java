@@ -17,6 +17,7 @@ public class MyTableRow extends LinearLayout {
 		}}
 	public MyTableRow(Context context, AttributeSet attrs) {
 		super(context, attrs);
+		this.setClickable(false); // FIXME, use attribute set?
 	}
 	public void bind(LayoutParameters grid) {
 		params = grid;
@@ -38,7 +39,7 @@ public class MyTableRow extends LinearLayout {
 			usedwidth += width;
 			if (height > highest) highest = height;
 		}
-		int targetwidth = MeasureSpec.makeMeasureSpec(availwidth, MeasureSpec.UNSPECIFIED);
+		int targetwidth = MeasureSpec.makeMeasureSpec(usedwidth, MeasureSpec.UNSPECIFIED);
 		setMeasuredDimension(targetwidth,highest);
 	}
 	@Override protected void onLayout(boolean changed, int l, int t, int r, int b) {

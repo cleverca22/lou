@@ -109,7 +109,10 @@ public class FragmentUser extends FragmentActivity implements Callbacks, Session
 		while (i.hasNext()) i.next().onFoodWarning();
 	}
 	@Override public void onEnlightenedCityChanged() {}
-	@Override public void onDefenseOverviewUpdate() {}
+	@Override public void onDefenseOverviewUpdate() {
+		Iterator<FragmentBase> i = hooks.iterator();
+		while (i.hasNext()) i.next().onDefenseOverviewUpdate();
+	}
 	@Override public void cellUpdated(Cell c) {
 		Iterator<FragmentBase> i = hooks.iterator();
 		while (i.hasNext()) i.next().cellUpdated(c);
@@ -141,6 +144,8 @@ public class FragmentUser extends FragmentActivity implements Callbacks, Session
 	}
 	@Override
 	public void onCityChanged() {
+		Iterator<FragmentBase> i = hooks.iterator();
+		while (i.hasNext()) i.next().onCityChanged();
 	}
 	@Override
 	public void onEjected() {

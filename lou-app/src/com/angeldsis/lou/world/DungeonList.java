@@ -17,6 +17,7 @@ import com.angeldsis.louapi.world.WorldParser.MapItem;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -60,23 +61,26 @@ public class DungeonList extends WorldUser implements OnItemClickListener, OnIte
 	Filter filter = dungeonFilter;
 	public void onCreate(Bundle sis) {
 		super.onCreate(sis);
-		setContentView(R.layout.dungeon_list);
 		params = new MyTableRow.LayoutParameters();
-		list = (ListView) findViewById(R.id.list);
+	}
+	@Override public View onCreateView(LayoutInflater inflater, ViewGroup root, Bundle sis) {
+		ViewGroup vg = (ViewGroup) inflater.inflate(R.layout.dungeon_list, root, false);
+		list = (ListView) vg.findViewById(R.id.list);
 		list.setOnItemClickListener(this);
 		adapter = new DungeonListAdapter();
 		list.setAdapter(adapter);
-		zerks = (TextView) findViewById(R.id.zerks);
-		Spinner filter = (Spinner) findViewById(R.id.filter);
+		zerks = (TextView) vg.findViewById(R.id.zerks);
+		Spinner filter = (Spinner) vg.findViewById(R.id.filter);
 		filter.setOnItemSelectedListener(this);
+		return vg;
 	}
 	@Override public void cellUpdated(Cell cIN) {
-		currentCity = session.rpc.state.currentCity.location;
+		currentCity = parent.session.rpc.state.currentCity.location;
 		// FIXME, only scan what changed
 		ArrayList<MapItem> allItems = new ArrayList<MapItem>();
 		int i,j;
-		for (i=0; i < session.rpc.worldParser.cells.length; i++) {
-			Cell c = session.rpc.worldParser.cells[i];
+		for (i=0; i < parent.session.rpc.worldParser.cells.length; i++) {
+			Cell c = parent.session.rpc.worldParser.cells[i];
 			if (c == null) continue;
 			for (j=0; j<c.objects.length; j++) {
 				MapItem item = c.objects[j];
@@ -113,7 +117,7 @@ public class DungeonList extends WorldUser implements OnItemClickListener, OnIte
 			DungeonViewHolder holder;
 			if (convertView == null) {
 				// FIXME, use a different row and holder for each type
-				convertView = DungeonList.this.getLayoutInflater().inflate(R.layout.dungeon_row, root,false);
+				convertView = parent.getLayoutInflater().inflate(R.layout.dungeon_row, root,false);
 				MyTableRow row = (MyTableRow) convertView;
 				row.bind(params);
 				holder = new DungeonViewHolder();
@@ -177,8 +181,8 @@ public class DungeonList extends WorldUser implements OnItemClickListener, OnIte
 		MapItem item = adapter.getItem(position);
 		if (item instanceof Dungeon) {
 			Dungeon d = (Dungeon) item;
-			Intent i = new Intent(this,SendAttack.class);
-			i.putExtras(acct.toBundle());
+			Intent i = new Intent(parent,SendAttack.class);
+			i.putExtras(parent.acct.toBundle());
 			i.putExtra("dungeon", d.location.toCityId());
 			i.putExtra("maxloot", d.getloot());
 			startActivity(i);
@@ -187,8 +191,11 @@ public class DungeonList extends WorldUser implements OnItemClickListener, OnIte
 	}
 	@Override public void session_ready() {
 		super.session_ready();
-		if (session.rpc.state.currentCity.units != null) {
-			UnitCount uc = session.rpc.state.currentCity.units[6];
+		onCityChanged();
+	}
+	@Override public void onCityChanged() {
+		if (parent.session.rpc.state.currentCity.units != null) {
+			UnitCount uc = parent.session.rpc.state.currentCity.units[6];
 			if (uc != null) {
 				zerks.setText(""+uc.c);
 				return;

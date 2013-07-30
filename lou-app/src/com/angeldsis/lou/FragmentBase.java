@@ -49,4 +49,6 @@ public abstract class FragmentBase extends Fragment {
 	public void cityListChanged() {}
 	public void onReportCountUpdate() {}
 	public void cellUpdated(Cell c) {}
+	public void onDefenseOverviewUpdate() {}
+	public void onCityChanged() {}
 }
