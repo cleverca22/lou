@@ -41,12 +41,14 @@ public class SendAttack extends SessionUser implements OrderUnitsCallback {
 		super.onCreate(sis);
 		Intent msg = getIntent();
 		Bundle args = msg.getExtras();
-		target = Coord.fromCityId(args.getInt("dungeon"));
+		target = Coord.fromCityId(args.getInt("target"));
 		maxloot = args.getInt("maxloot");
+		int zerks = args.getInt("zerks");
 		Log.v(TAG,"target:"+target.format());
 		setContentView(R.layout.sendattack);
 		
-		unitcounts[6] = maxloot/10;
+		if (zerks > 0) unitcounts[6] = zerks;
+		else unitcounts[6] = maxloot/10;
 		
 		debug = (TextView)findViewById(R.id.textView2);
 		avail_ts = (TextView) findViewById(R.id.avail_ts);

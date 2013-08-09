@@ -39,7 +39,7 @@ public class MyTableRow extends LinearLayout {
 			usedwidth += width;
 			if (height > highest) highest = height;
 		}
-		int targetwidth = MeasureSpec.makeMeasureSpec(usedwidth, MeasureSpec.UNSPECIFIED);
+		int targetwidth = MeasureSpec.makeMeasureSpec(availwidth, MeasureSpec.AT_MOST);
 		setMeasuredDimension(targetwidth,highest);
 	}
 	@Override protected void onLayout(boolean changed, int l, int t, int r, int b) {

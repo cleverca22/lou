@@ -63,10 +63,10 @@ public class ChatWindow extends Shell implements SelectionListener {
 		}
 	}
 	private TabData continent,alliance,officer,PM;
-	public ChatWindow(Display display,RPCWrap rpc) {
+	public ChatWindow(Display display, RPCWrap rpc) {
 		this.rpc = rpc;
 		setLayout(new GridLayout(1, true));
-		setText("Chat");
+		setText("W"+rpc.account.worldid+" Chat");
 		
 		tabFolder = new TabFolder(this, SWT.NONE);
 		tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));

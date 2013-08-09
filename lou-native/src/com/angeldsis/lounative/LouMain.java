@@ -42,6 +42,7 @@ public class LouMain {
 		} catch (Exception e) {
 			deh.uncaughtException(Thread.currentThread(), e);
 		}
+		System.exit(0);
 	}
 	private void init(int world) throws Exception {
 		Config.init();

@@ -604,4 +604,8 @@ public class LouState {
 		String td = reply.getString("td");
 		Log.v(TAG,"td: "+td);
 	}
+	public float getInfantrySpeed() {
+		// FIXME, use the proper values based on virtues and research
+		return (18 * 60) + 46; // 18mins 46sec per field, my current tech from w96
+	}
 }

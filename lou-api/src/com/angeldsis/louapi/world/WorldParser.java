@@ -7,6 +7,7 @@ import org.json2.JSONException;
 import org.json2.JSONObject;
 
 import com.angeldsis.louapi.Log;
+import com.angeldsis.louapi.LouState;
 import com.angeldsis.louapi.RPC;
 import com.angeldsis.louapi.data.BaseLou;
 import com.angeldsis.louapi.data.Coord;
@@ -157,6 +158,7 @@ public class WorldParser {
 			Dungeon d = (Dungeon) cell.objects[fineid];
 			if (d == null) {
 				d = new Dungeon();
+				d.stateObj = rpc.state;
 				cell.objects[fineid] = d;
 			}
 			d.location = new Coord(cell.getFineCol() + finecol,cell.getFineRow() + finerow);
@@ -174,9 +176,18 @@ public class WorldParser {
 			changes.add(d);
 			break;
 		case 3: // boss
-		default:
-			//Log.v(TAG,String.format("cell:%d packed:%s d:%2d e:%2d f:%d x:%s",cell.id,packed,d2,e,f,y.readRest()));
-			//log(String.format("%d %d %d",d,e,f));
+			packed = y.read3Bytes();
+			Boss boss = (Boss) cell.objects[fineid];
+			if (boss == null) {
+				boss = new Boss();
+				cell.objects[fineid] = boss;
+			}
+			boss.location = new Coord(cell.getFineCol() + finecol,cell.getFineRow() + finerow);
+			boss.state = ((packed&1) != 0);
+			boss.bossType = ((packed>>1)&15);
+			boss.bossLevel = ((packed>>5)&15);
+			boss.slot = ((packed>>9)&0x1f);
+			boss.startStep = y.readMultiBytes();
 			break;
 		case 4: // moongate
 			Moongate mg = (Moongate) cell.objects[fineid];
@@ -213,6 +224,11 @@ public class WorldParser {
 			//Log.v(TAG,String.format("lawless %d:%d flags:%d points:%d",col,row,lc.flags,lc.points));
 		case 7: // free slot
 			//Log.v(TAG,String.format("cell:%d packed:%s d:%2d e:%2d f:%d x:%s",cell.id,packed,d2,e,f,x));
+			break;
+		default:
+			//Log.v(TAG,String.format("cell:%d packed:%s d:%2d e:%2d f:%d x:%s",cell.id,packed,d2,e,f,y.readRest()));
+			//log(String.format("%d %d %d",d,e,f));
+			break;
 		}
 	}
 	private void parseWorldChanges(Cell cell, JSONArray d, ArrayList<Object> changes) throws Exception {
@@ -245,6 +261,7 @@ public class WorldParser {
 	}
 	public static class MapItem {
 		public Coord location;
+		public LouState stateObj;
 	}
 	public interface WorldCallbacks {
 		void cellUpdated(Cell c, ArrayList<Object> changes);

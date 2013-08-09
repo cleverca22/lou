@@ -12,6 +12,17 @@ public abstract class WorldUser extends FragmentBase {
 	public void session_ready() {
 		Log.v(TAG,"enabling world");
 		parent.session.rpc.setWorldEnabled(true);
+		resetFocus();
+		WorldParser p = parent.session.rpc.worldParser;
+		p.enable();
+	}
+	public void onStop() {
+		Log.v(TAG,"disabling world");
+		parent.session.rpc.worldParser.disable();
+		if (parent.session != null) parent.session.rpc.setWorldEnabled(false);
+		super.onStop();
+	}
+	public void resetFocus() {
 		WorldParser p = parent.session.rpc.worldParser;
 		Coord c = parent.session.rpc.state.currentCity.location;
 		int col = c.x/32;
@@ -21,12 +32,5 @@ public abstract class WorldUser extends FragmentBase {
 		
 		p.minrow = row - 1;
 		p.maxrow = row + 1;
-		p.enable();
-	}
-	public void onStop() {
-		Log.v(TAG,"disabling world");
-		parent.session.rpc.worldParser.disable();
-		if (parent.session != null) parent.session.rpc.setWorldEnabled(false);
-		super.onStop();
 	}
 }

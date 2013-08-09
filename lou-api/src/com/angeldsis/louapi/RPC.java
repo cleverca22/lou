@@ -28,7 +28,7 @@ import com.angeldsis.louapi.world.WorldParser.WorldCallbacks;
 
 public abstract class RPC extends Thread implements WorldCallbacks {
 	private static final String TAG = "RPC";
-	private Account account;
+	public Account account;
 	String instanceid;
 	String urlbase;
 	public LouState state;

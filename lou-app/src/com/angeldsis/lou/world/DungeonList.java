@@ -8,6 +8,7 @@ import com.angeldsis.lou.MyTableRow;
 import com.angeldsis.lou.R;
 import com.angeldsis.louapi.data.Coord;
 import com.angeldsis.louapi.data.UnitCount;
+import com.angeldsis.louapi.world.Boss;
 import com.angeldsis.louapi.world.CityMapping;
 import com.angeldsis.louapi.world.Dungeon;
 import com.angeldsis.louapi.world.LawlessCity;
@@ -29,6 +30,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 public class DungeonList extends WorldUser implements OnItemClickListener, OnItemSelectedListener {
+	int lootCapacity;
 	MyTableRow.LayoutParameters params;
 	private static final String TAG = "DungeonList";
 	DungeonListAdapter adapter;
@@ -56,6 +58,12 @@ public class DungeonList extends WorldUser implements OnItemClickListener, OnIte
 			if (i instanceof CityMapping) {
 				return true;
 			} else return false;
+		}
+	};
+	Filter bossFilter = new Filter() {
+		@Override public boolean checkItem(MapItem i) {
+			if (i instanceof Boss) return true;
+			return false;
 		}
 	};
 	Filter filter = dungeonFilter;
@@ -92,15 +100,30 @@ public class DungeonList extends WorldUser implements OnItemClickListener, OnIte
 		Log.v(TAG,"found "+allItems.size()+" items");
 		MapItem[] list2 = new MapItem[allItems.size()];
 		allItems.toArray(list2);
-		Arrays.sort(list2,new Comparator<MapItem>() {
-			@Override
-			public int compare(MapItem x, MapItem y) {
-				double dist1 = x.location.distance(currentCity);
-				double dist2 = y.location.distance(currentCity);
-				if (dist1 < dist2) return -1;
-				else if (dist1 > dist2) return 1;
-				return 0;
-			}});
+		if (filter == dungeonFilter) {
+			final float speed = parent.session.state.getInfantrySpeed();
+			Arrays.sort(list2,new Comparator<MapItem>() {
+				@Override
+				public int compare(MapItem x, MapItem y) {
+					Dungeon x1 = (Dungeon) x;
+					Dungeon y1 = (Dungeon) y;
+					double lootrate1 = x1.lootRate(speed,lootCapacity);
+					double lootrate2 = y1.lootRate(speed,lootCapacity);
+					if (lootrate1 < lootrate2) return 1;
+					else if (lootrate1 > lootrate2) return -1;
+					return 0;
+				}});
+		} else {
+			Arrays.sort(list2,new Comparator<MapItem>() {
+				@Override
+				public int compare(MapItem x, MapItem y) {
+					double dist1 = x.location.distance(currentCity);
+					double dist2 = y.location.distance(currentCity);
+					if (dist1 < dist2) return -1;
+					else if (dist1 > dist2) return 1;
+					return 0;
+				}});
+		}
 		adapter.update(list2);
 	}
 	class DungeonListAdapter extends BaseAdapter {
@@ -125,15 +148,27 @@ public class DungeonList extends WorldUser implements OnItemClickListener, OnIte
 				holder.level = (TextView) row.findViewById(R.id.level);
 				holder.distance = (TextView) row.findViewById(R.id.distance);
 				holder.maxloot = (TextView) row.findViewById(R.id.maxloot);
+				holder.lootRate = (TextView) row.findViewById(R.id.lootRate);
 				convertView.setTag(holder);
 			} else holder = (DungeonViewHolder) convertView.getTag();
 			
 			MapItem item = getItem(position);
+			float speed = parent.session.state.getInfantrySpeed();
+			double time = speed * item.location.distance(currentCity);
 			if (item instanceof Dungeon) {
 				Dungeon obj = (Dungeon)item;
 				holder.type.setText(obj.getType());
 				holder.level.setText("("+obj.level+") "+obj.progress+"%");
 				holder.maxloot.setText(""+obj.getloot());
+				int lootrate = (int) obj.lootRate(speed,lootCapacity);
+				holder.lootRate.setText(lootrate+"/h");
+			}
+			if (item instanceof Boss) {
+				Boss boss = (Boss)item;
+				holder.type.setText(boss.getType());
+				holder.level.setText(""+boss.bossLevel);
+				holder.maxloot.setText(""+boss.getZerks());
+				holder.lootRate.setText(boss.location.format());
 			}
 			if (item instanceof LawlessCity) {
 				LawlessCity obj = (LawlessCity) item;
@@ -143,7 +178,7 @@ public class DungeonList extends WorldUser implements OnItemClickListener, OnIte
 				CityMapping cm = (CityMapping) item;
 				holder.type.setText(cm.name);
 			}
-			holder.distance.setText(String.format("%.2f",item.location.distance(currentCity)));
+			holder.distance.setText(String.format("%dmins",(int)(time/60)));
 			return convertView;
 		}
 		@Override public int getItemViewType(int position) {
@@ -172,6 +207,7 @@ public class DungeonList extends WorldUser implements OnItemClickListener, OnIte
 		public TextView distance;
 	}
 	private static class DungeonViewHolder extends BaseHolder {
+		public TextView lootRate;
 		public TextView maxloot;
 		public TextView level;
 		public TextView type;
@@ -183,9 +219,16 @@ public class DungeonList extends WorldUser implements OnItemClickListener, OnIte
 			Dungeon d = (Dungeon) item;
 			Intent i = new Intent(parent,SendAttack.class);
 			i.putExtras(parent.acct.toBundle());
-			i.putExtra("dungeon", d.location.toCityId());
+			i.putExtra("target", d.location.toCityId());
 			i.putExtra("maxloot", d.getloot());
 			startActivity(i);
+		}
+		if (item instanceof Boss) {
+			Boss b = (Boss) item;
+			Intent i = new Intent(parent,SendAttack.class);
+			i.putExtras(parent.acct.toBundle());
+			i.putExtra("target", b.location.toCityId());
+			i.putExtra("zerks", b.getZerks());
 		}
 		// FIXME, allow settling lawless, plundering cities, and assaulting castles
 	}
@@ -194,10 +237,13 @@ public class DungeonList extends WorldUser implements OnItemClickListener, OnIte
 		onCityChanged();
 	}
 	@Override public void onCityChanged() {
+		super.resetFocus();
+		lootCapacity = 0;
 		if (parent.session.rpc.state.currentCity.units != null) {
 			UnitCount uc = parent.session.rpc.state.currentCity.units[6];
 			if (uc != null) {
 				zerks.setText(""+uc.c);
+				lootCapacity = uc.c * 10;
 				return;
 			}
 		}
@@ -215,6 +261,8 @@ public class DungeonList extends WorldUser implements OnItemClickListener, OnIte
 		case 2:
 			filter = cityFilter;
 			break;
+		case 3:
+			filter = bossFilter;
 		}
 		cellUpdated(null);
 	}

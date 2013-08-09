@@ -1,5 +1,6 @@
 package com.angeldsis.louapi.world;
 
+import com.angeldsis.louapi.LouState;
 import com.angeldsis.louapi.world.WorldParser.MapItem;
 
 public class Dungeon extends MapItem implements Comparable {
@@ -43,5 +44,17 @@ public class Dungeon extends MapItem implements Comparable {
 		if (other.dist < dist) return 1;
 		else if (other.dist > dist) return -1;
 		return 0;
+	}
+	public double getDistance() {
+		return location.distance(stateObj.currentCity.location);
+	}
+	public double getTripsPerHour(float speed) {
+		return 60/(getDistance() * speed * 2);
+	}
+	public double lootRate(float speed, int lootCapacity) {
+		int loot = getloot();
+		float maxtrips = (float)lootCapacity / (float)loot;
+		if (maxtrips > 15) maxtrips = 15;
+		return getTripsPerHour(speed) * loot * maxtrips;
 	}
 }
