@@ -49,7 +49,7 @@ public class ServerList extends Fragment {
 	private void redoList() {
 		LayoutInflater inflater = getActivity().getLayoutInflater();
 		ViewGroup root = (ViewGroup) getView();
-		boolean active[] = new boolean[128];
+		boolean active[] = new boolean[300];
 		
 		LouSession sess = SessionKeeper.session2;
 		TextView age = (TextView) root.findViewById(R.id.age);
@@ -82,7 +82,9 @@ public class ServerList extends Fragment {
 					}
 				});
 				list2.addView(row);
-				active[s.acct.worldid] = true;
+				
+				// FIXME, only set as active if its not a sub?
+				active[s.acct.pathid] = true;
 				Iterator<SubRequest> i3 = s.state.subs.iterator();
 				Log.v(TAG,"source session:"+s.acct.worldid+" "+s.state.self.getName());
 				while (i3.hasNext()) {
@@ -117,7 +119,7 @@ public class ServerList extends Fragment {
 		Iterator<ServerInfo> i = SessionKeeper.session2.servers.iterator();
 		while (i.hasNext()) {
 			final ServerInfo a = i.next();
-			if (active[a.worldid]) {
+			if (active[a.pathid]) {
 			} else if (a.offline) {
 				ViewGroup row = (ViewGroup) inflater.inflate(R.layout.offline_server, top,false);
 				TextView t = (TextView) row.findViewById(R.id.servername);

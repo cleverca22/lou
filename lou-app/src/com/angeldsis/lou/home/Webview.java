@@ -209,7 +209,7 @@ public class Webview extends Fragment implements CookieCallback {
 	static class result {
 		public String sessionid;
 		public String serverid;
-		public String pathid;
+		public int pathid;
 	}
 	@Override public void done(com.angeldsis.louapi.LouSession.result r) {
 		Log.v(TAG,"done?");

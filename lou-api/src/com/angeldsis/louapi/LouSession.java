@@ -196,7 +196,7 @@ public class LouSession {
 						if (!m.find()) Log.e(TAG,"cant find url parts "+buf);
 						else {
 							currentRow.serverid = m.group(1);
-							currentRow.pathid = m.group(2);
+							currentRow.pathid = Integer.parseInt(m.group(2));
 						}
 					}
 				} else if (size > 0) {

@@ -18,7 +18,7 @@ public class AccountWrap extends Account {
 		world = a.world;
 	}
 	public AccountWrap(Bundle args) {
-		pathid = args.getString("pathid");
+		pathid = args.getInt("pathid");
 		serverid = args.getString("serverid");
 		sessionid = args.getString("sessionid");
 		worldid = args.getInt("worldid");
@@ -34,7 +34,7 @@ public class AccountWrap extends Account {
 	}
 	public Bundle toBundle() {
 		Bundle args = new Bundle();
-		args.putString("pathid", pathid);
+		args.putInt("pathid", pathid);
 		args.putString("serverid", serverid);
 		args.putString("sessionid", sessionid);
 		args.putInt("worldid", worldid);

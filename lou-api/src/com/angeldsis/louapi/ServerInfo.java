@@ -5,6 +5,7 @@ public class ServerInfo {
 	protected String lastLogin;
 	public String sessionId;
 	public boolean offline;
-	public String serverid, pathid;
+	public String serverid;
+	public int pathid;
 	public int worldid;
 }
