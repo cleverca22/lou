@@ -38,7 +38,6 @@
         <activity android:name="BuildQueueOverview"></activity>
         <activity android:name=".world.DungeonList"></activity>
         <activity android:name=".world.SendAttack"></activity>
-        <activity android:name="IdleUnits"></activity>
         <activity android:name="EnlightenedCityList"></activity>
         <activity android:name="FragmentUser"></activity>
         <activity android:name="SingleFragment"></activity>

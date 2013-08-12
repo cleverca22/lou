@@ -26,6 +26,7 @@ public class ResourceBar2 extends FragmentBase {
 	Runnable ticker = new Runnable() {
 		@Override public void run() {
 			ResourceBar2.this.update();
+			handler.removeCallbacks(ticker);
 			handler.postDelayed(ticker, 2000);
 		}
 	};
@@ -33,8 +34,15 @@ public class ResourceBar2 extends FragmentBase {
 		super.onStart();
 		Log.v(TAG,"onStart");
 	}
-	@Override public void onStop() {
-		super.onStop();
+	@Override public void onResume() {
+		super.onResume();
+		if (parent == null) return;
+		if (parent.session == null) return;
+		ticker.run();
+	}
+	@Override public void onPause() {
+		super.onPause();
+		Log.v(TAG,"onPause");
 		handler.removeCallbacks(ticker);
 	}
 	@Override public void gotCityData() {
@@ -43,6 +51,7 @@ public class ResourceBar2 extends FragmentBase {
 				(lastCity == parent.session.state.currentCity)) update();
 	}
 	@Override public void session_ready() {
+		Log.v(TAG,"session_ready");
 		ticker.run();
 	}
 	@Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {

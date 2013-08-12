@@ -58,8 +58,12 @@ public class SelectCity extends LinearLayout implements OnItemSelectedListener {
 			
 			if (o instanceof City) {
 				City c = (City) o;
-				if (c.location == null) throw new IllegalStateException("c.location shouldnt be null "+position);
-				v.setText(String.format("%3s %7s %s",c.location.getContinent(),c.location.format(),c.name));
+				if (c.location == null) {
+					//throw new IllegalStateException("c.location shouldnt be null "+position);
+					v.setText("ERROR "+c.name);
+				} else {
+					v.setText(String.format("%3s %7s %s",c.location.getContinent(),c.location.format(),c.name));
+				}
 			} else {
 				Coord c = Coord.fromCityId((Integer)o);
 				v.setText(c.getContinent()+" "+c.format());

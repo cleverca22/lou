@@ -37,6 +37,7 @@ public class SendAttack extends SessionUser implements OrderUnitsCallback {
 	ListView units;
 	int[] unitcounts = new int[20];
 	int[] maxcounts = new int[20];
+	int raidTimeReferenceType; // 0normal, 1 repeat until done
 	@Override public void onCreate(Bundle sis) {
 		super.onCreate(sis);
 		Intent msg = getIntent();
@@ -47,8 +48,13 @@ public class SendAttack extends SessionUser implements OrderUnitsCallback {
 		Log.v(TAG,"target:"+target.format());
 		setContentView(R.layout.sendattack);
 		
-		if (zerks > 0) unitcounts[6] = zerks;
-		else unitcounts[6] = maxloot/10;
+		if (zerks > 0) {
+			raidTimeReferenceType = 0;
+			unitcounts[6] = zerks;
+		} else {
+			raidTimeReferenceType = 1;
+			unitcounts[6] = maxloot/10;
+		}
 		
 		debug = (TextView)findViewById(R.id.textView2);
 		avail_ts = (TextView) findViewById(R.id.avail_ts);
@@ -69,7 +75,7 @@ public class SendAttack extends SessionUser implements OrderUnitsCallback {
 			}
 		}
 		debug.setText("sending...");
-		session.rpc.OrderUnits(session.rpc.state.currentCity,units,target,this);
+		session.rpc.OrderUnits(session.rpc.state.currentCity,units,target,raidTimeReferenceType,this);
 	}
 	private void update_units() {
 		Log.v(TAG,"update_units");
@@ -97,6 +103,7 @@ public class SendAttack extends SessionUser implements OrderUnitsCallback {
 	}
 	@Override
 	public void done(int r0, int r1) {
+		// FIXME, if this is a boss raid, mark it in a central data store
 		debug.setText(String.format("reply %d %d",r0,r1));
 	}
 	private class UnitAdapter extends ArrayAdapter<UnitCount> {

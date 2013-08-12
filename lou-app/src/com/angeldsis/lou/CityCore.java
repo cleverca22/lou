@@ -3,6 +3,7 @@ package com.angeldsis.lou;
 import java.util.Iterator;
 
 import com.angeldsis.lou.city.SelectCity;
+import com.angeldsis.lou.fragments.MinisterConfig;
 import com.angeldsis.lou.fragments.PurifyResources;
 import com.angeldsis.lou.fragments.ResourceBar2;
 import com.angeldsis.louapi.LouState.City;
@@ -22,7 +23,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-public class CityCore extends FragmentBase {
+public class CityCore extends FragmentBase implements OnClickListener {
 	private static final String TAG = "CityCore";
 	TradeAdapter tradeAdapter;
 	@Override public void onCreate(Bundle sis) {
@@ -45,6 +46,8 @@ public class CityCore extends FragmentBase {
 				i.putExtra("fragment", PurifyResources.class);
 				getActivity().startActivity(i);
 			}});
+		b = (Button) vg.findViewById(R.id.ministers);
+		b.setOnClickListener(this);
 		if (savedInstanceState == null) {
 			FragmentTransaction ft = getChildFragmentManager().beginTransaction();
 			ft.replace(R.id.resource_bar, new ResourceBar2());
@@ -133,6 +136,16 @@ public class CityCore extends FragmentBase {
 			}
 			// FIXME, show the right artifact and make it work
 			return convertView;
+		}
+	}
+	@Override public void onClick(View view) {
+		switch (view.getId()) {
+		case R.id.ministers:
+			FragmentTransaction ft = getFragmentManager().beginTransaction();
+			ft.replace(R.id.main_frame, new MinisterConfig());
+			ft.addToBackStack(null);
+			ft.commit();
+			break;
 		}
 	};
 }

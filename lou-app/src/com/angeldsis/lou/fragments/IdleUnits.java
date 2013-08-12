@@ -14,11 +14,14 @@ import com.angeldsis.louapi.LouState.City;
 import com.angeldsis.louapi.data.UnitCount;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.View.MeasureSpec;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.BaseAdapter;
@@ -35,13 +38,31 @@ public class IdleUnits extends FragmentBase implements OnItemClickListener {
 		super.onCreate(sis);
 		//setTitle("Idle Units");
 	}
+	Handler delay = new Handler();
 	@Override public View onCreateView(LayoutInflater inflater, ViewGroup root, Bundle sis) {
-		ViewGroup root2 = (ViewGroup) inflater.inflate(R.layout.idle_units, root, false);
+		final ViewGroup root2 = (ViewGroup) inflater.inflate(R.layout.idle_units, root, false);
 		list = (ListView) root2.findViewById(R.id.list);
 		list.setOnItemClickListener(this);
 		mAdapter = new IdleUnitAdapter();
 		list.setAdapter(mAdapter);
 		cityname = (TextView) root2.findViewById(R.id.cityname);
+		
+		// FIXME, find a better solution then a 150ms delay
+		// maybe just make a custom viewgroup that lays things out right
+		delay.postDelayed(new Runnable() {
+			public void run() {
+				Configuration config = parent.getResources().getConfiguration();
+				View root3 = (View) parent.findViewById(R.id.second_frame).getParent();
+				// FIXME, handle smaller screens differently
+				if (config.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+					root2.getLayoutParams().width = root3.getWidth()/2;
+					Log.v(TAG,"setting width to half of "+root3.getWidth());
+				} else {
+					root2.getLayoutParams().height = root3.getHeight()/2;
+					Log.v(TAG,"setting height to half of "+root3.getHeight());
+				}
+			}
+		}, 150);
 		return root2;
 	}
 	@Override public void session_ready() {

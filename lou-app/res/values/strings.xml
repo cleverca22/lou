@@ -61,6 +61,7 @@
             <item >Dungeons</item>
             <item >Lawless</item>
             <item >Cities&amp;Castles</item>
+            <item >Bosses</item>
         </string-array>
     <string name="no_warnings">No Food Warnings</string>
     <string name="allow_abandon">Allow substiture to abandon your cities</string>

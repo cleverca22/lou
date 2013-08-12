@@ -4,11 +4,11 @@
     <item android:id="@+id/city" android:title="City" android:showAsAction="ifRoom|withText"></item>
     <item android:id="@+id/sendTrade" android:title="Send Trade"></item>
     <item android:id="@+id/allianceForum" android:title="Alliance Forum" android:showAsAction="ifRoom"></item>
-    <item android:id="@+id/bqo" android:title="Build Queue Overview"></item><item android:id="@+id/dungeonlist" android:title="Dungeon List" android:showAsAction="ifRoom"></item><item android:id="@+id/subs" android:title="Substitute options"></item>
+    <item android:id="@+id/bqo" android:title="Build Queue Overview"></item><item android:id="@+id/subs" android:title="Substitute options"></item>
     <item android:id="@+id/options" android:title="Options"></item>
     <item android:id="@+id/getfunds" android:title="Buy Funds"></item>
     <item android:id="@+id/el_city_list" android:title="EL city list"></item>
-    <item android:id="@+id/idleunits" android:title="Idle Units"></item>
+    <item android:id="@+id/idleunits" android:title="Idle Units" android:showAsAction="ifRoom"></item>
     <item android:id="@+id/foodWarning" android:title="Food Warnings"></item>
     <item android:id="@+id/cityCore" android:title="City Core"></item>
     <item android:id="@+id/shrine_monitor" android:title="Shrine Monitor"></item>

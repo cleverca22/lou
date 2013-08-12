@@ -229,6 +229,7 @@ public class DungeonList extends WorldUser implements OnItemClickListener, OnIte
 			i.putExtras(parent.acct.toBundle());
 			i.putExtra("target", b.location.toCityId());
 			i.putExtra("zerks", b.getZerks());
+			startActivity(i);
 		}
 		// FIXME, allow settling lawless, plundering cities, and assaulting castles
 	}
