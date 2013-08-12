@@ -146,6 +146,7 @@ public class EnlightenedCityList extends SessionUser {
 				row.setBackgroundColor(green);
 			} else row.setBackgroundColor(transparent);
 			
+			// FIXME, find a color/icon scheme, to save space
 			if (missing_wood > 0) holder.wood.setText(Utils.NumberFormat(missing_wood));
 			else holder.wood.setText("overfilled "+Utils.NumberFormat(missing_wood * -1));
 			
