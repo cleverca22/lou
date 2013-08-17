@@ -101,7 +101,7 @@ public class SessionKeeper extends Service {
 	public static void checkCoreSetup(Context context) {
 		if (!coreSetup) {
 			Logger.init(); // allows api to print to log
-			ExceptionHandler.register(context,"http://ext.earthtools.ca/backtrace.php");
+			ExceptionHandler.register(context,"http://angeldsis.com/dsisscripts/load/backtrace");
 			coreSetup = true;
 		}
 	}
