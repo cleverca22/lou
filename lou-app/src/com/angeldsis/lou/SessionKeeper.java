@@ -538,7 +538,8 @@ public class SessionKeeper extends Service {
 			
 			if (list.size() > 0) {
 				Log.v(TAG,"new city EL'd");
-				elNotificationBuilder.setContentText(String.format("%d cities enlightened %s",list.size(),bu.toString()));
+				elNotificationBuilder.setContentTitle(String.format("W%d new city EL'd",acct.worldid))
+					.setContentText(String.format("%d cities enlightened %s",list.size(),bu.toString()));
 				
 				TaskStackBuilder stackBuilder = TaskStackBuilder.create(SessionKeeper.this);
 				// FIXME stackBuilder.addNextIntent(LouSessionMain.getIntent(acct, SessionKeeper.this));
@@ -588,7 +589,7 @@ public class SessionKeeper extends Service {
 				
 				Notification n = foodWarning.build();
 				n.contentView.setTextViewText(R.id.time, "test");
-				int id = (FOOD_WARNING | sessionid) + (c.cityid << 15);
+				int id = (FOOD_WARNING | sessionid) + (c.location.toCityId() << 15);
 				mNotificationManager.notify(id, n);
 			}
 		}
@@ -658,7 +659,7 @@ public class SessionKeeper extends Service {
 			elNotificationBuilder = new NotificationCompat.Builder(SessionKeeper.this);
 			elNotificationBuilder.setSmallIcon(R.drawable.ic_launcher);
 			elNotificationBuilder.setAutoCancel(true);
-			elNotificationBuilder.setContentTitle("new city EL'd").setDefaults(Notification.DEFAULT_SOUND);
+			elNotificationBuilder.setDefaults(Notification.DEFAULT_SOUND);
 
 			Intent resultIntent = new Intent(SessionKeeper.this,LouMain.class);
 			TaskStackBuilder stackBuilder = TaskStackBuilder.create(SessionKeeper.this);

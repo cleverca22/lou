@@ -132,7 +132,7 @@ public class IdleUnits extends FragmentBase implements OnItemClickListener {
 			return list[position];
 		}
 		@Override public long getItemId(int position) {
-			return getItem(position).cityid;
+			return getItem(position).location.toCityId();
 		}
 	}
 	@Override

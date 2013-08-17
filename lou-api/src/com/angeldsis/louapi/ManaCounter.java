@@ -12,14 +12,14 @@ public class ManaCounter extends Counter {
 		this.max = max;
 		this.step = step;
 	}
-	public int getCurrent() {
+	public long getCurrent() {
 		if (delta == 0) return 0;
 		long dV = state.getServerStep();
 		if (dV == 0) return 0;
 		long dW = dV - step;
 		double now = dW * delta + base;
 		if (now > max) return max;
-		return (int) now;
+		return (long) now;
 	}
 	public void update(double base, double delta, int max2, int step) {
 		max = max2;

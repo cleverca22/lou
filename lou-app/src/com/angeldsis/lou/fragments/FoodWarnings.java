@@ -42,7 +42,7 @@ public class FoodWarnings extends FragmentBase implements OnItemClickListener {
 			return data[arg0];
 		}
 		@Override public long getItemId(int arg0) {
-			return data[arg0].cityid;
+			return data[arg0].location.toCityId();
 		}
 		@Override public View getView(int position, View convertView, ViewGroup root) {
 			if (convertView == null) {

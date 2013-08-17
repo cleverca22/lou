@@ -38,7 +38,7 @@ public class SelectCity extends LinearLayout implements OnItemSelectedListener {
 			Object o = getItem(position);
 			if (o instanceof City) {
 				City c = (City) o;
-				return c.cityid;
+				return c.location.toCityId();
 			}
 			return (Integer)o;
 		}

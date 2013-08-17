@@ -45,6 +45,7 @@ public class LouState {
 	public int[] voidResources = new int[4];
 	// FIXME, maybe move this elsewhere?
 	private static final int[] types = { UnitCount.ZERK, UnitCount.PALADIN };
+	public ArrayList<Coord> recentBosses;
 
 	public LouState() {
 		init();
@@ -57,6 +58,7 @@ public class LouState {
 	}
 	private void init() {
 		incoming_attacks = new ArrayList<IncomingAttack>();
+		recentBosses = new ArrayList<Coord>();
 		gold = new Counter(this);
 		mana = new ManaCounter(this);
 		subs = new ArrayList<SubRequest>();
@@ -86,7 +88,7 @@ public class LouState {
 				cityout = new City();
 			}
 			cityout.name = cityin.getString("n");
-			cityout.cityid = cityid;
+			cityout.location = Coord.fromCityId(cityid);
 			this.cities.put(cityid,cityout);
 		}
 		currentCity = this.cities.values().iterator().next(); // FIXME
@@ -103,7 +105,7 @@ public class LouState {
 		private static final String TAG = "City";
 		@SerializedName("res") public Resource[] resources;
 		@SerializedName("name") public String name;
-		@SerializedName("id") public int cityid;
+		//@SerializedName("id") public int cityid;
 		transient public ArrayList<LouVisData> visData;
 		transient public int visreset;
 		transient public BuildQueue[] queue;
@@ -140,7 +142,6 @@ public class LouState {
 			int i = 0;
 			for (i = 0; i < 4; i++) resources[i].fix(i);
 			init();
-			location = Coord.fromCityId(cityid);
 			if (units != null) {
 				if (units.length != 20) units = new UnitCount[20];
 			}
@@ -153,8 +154,9 @@ public class LouState {
 			}
 		}
 		@Override public int compareTo(Integer o) {
-			if (cityid < o) return -1;
-			if (cityid > o) return 1;
+			if (location == null) return -1;
+			if (location.toCityId() < o) return -1;
+			if (location.toCityId() > o) return 1;
 			return 0;
 		}
 		public int foodEmptyTime(LouState state) {

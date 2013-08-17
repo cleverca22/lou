@@ -18,11 +18,11 @@ public class Counter {
 		delta = 0;
 		lastTime = 0;
 	}
-	public int getCurrent() {
+	public long getCurrent() {
 		long dT = state.getServerStep();
 		if (dT == 0) return 0;
 		long dU = dT - step;
-		return (int) (dU * delta + base);
+		return (long) (dU * delta + base);
 	}
 	public void update(double base2, double delta2, int step) {
 		//String oldval = getCurrent();

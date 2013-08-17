@@ -206,7 +206,7 @@ public class LouSessionMain extends FragmentBase implements OnItemClickListener,
 			notifyDataSetChanged();
 		}
 		public long getItemId(int position) {
-			return getItem(position).cityid;
+			return getItem(position).location.toCityId();
 		}
 		@Override public City getItem(int position) {
 			return list[position];
@@ -231,7 +231,7 @@ public class LouSessionMain extends FragmentBase implements OnItemClickListener,
 			
 			City i = getItem(position);
 			holder.bar2.update(i);
-			holder.name.setText(i.name);
+			holder.name.setText(i.location.format()+" "+i.name);
 			return convertView;
 		}
 	}

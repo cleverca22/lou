@@ -89,7 +89,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			public void run() {
 				try {
 					JSONObject obj = new JSONObject();
-					obj.put("cityid",v.getCity().cityid);
+					obj.put("cityid",v.getCity().location.toCityId());
 					obj.put("buildingid", v.visId);
 					doRPC("GetBuildingInfo",obj,new RPCCallback() {
 						@Override
@@ -130,7 +130,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			public void run() {
 				try {
 					JSONObject obj = new JSONObject();
-					obj.put("cityid",v.getCity().cityid);
+					obj.put("cityid",v.getCity().location.toCityId());
 					obj.put("buildingid", v.visId);
 					doRPC("DemolishBuilding",obj,new RPCCallback() {
 						@Override
@@ -345,7 +345,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			public void run() {
 				try {
 					JSONObject obj = new JSONObject();
-					obj.put("cityid", c.cityid);
+					obj.put("cityid", c.location.toCityId());
 					obj.put("buildingid", coord);
 					obj.put("buildingType", structureid);
 					obj.put("isPaid", true);
@@ -377,7 +377,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 				try {
 					JSONObject obj = new JSONObject();
 					obj.put("buildingPlace",coord);
-					obj.put("cityid", c.cityid);
+					obj.put("cityid", c.location.toCityId());
 					doRPC("GetBuildingUpgradeInfo",obj,new RPCCallback() {
 						@Override
 						void requestDone(rpcreply r) throws JSONException,
@@ -618,9 +618,9 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			ArrayList<String> requests = new ArrayList<String>();
 			if (!passive) {
 				if (c != null) {
-					requests.add("CITY:"+c.cityid);
+					requests.add("CITY:"+c.location.toCityId());
 					if (state.fetchVis) {
-						requests.add("VIS:c:"+state.currentCity.cityid+":0:-1085:-638:775:565:"+state.currentCity.visreset); // FIXME last field is reset, check webfrontend.vis.Main.js for others
+						requests.add("VIS:c:"+state.currentCity.location.toCityId()+":0:-1085:-638:775:565:"+state.currentCity.visreset); // FIXME last field is reset, check webfrontend.vis.Main.js for others
 					}
 				}
 				if (chat_queue.size() > 0) {
@@ -1182,7 +1182,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			public void run() {
 				JSONObject obj = new JSONObject();
 				try {
-					obj.put("cityid", currentCity.cityid);
+					obj.put("cityid", currentCity.location.toCityId());
 					obj.put("x", x);
 					obj.put("y", y);
 					doRPC("GetOrderTargetInfo",obj,new RPCCallback() {
@@ -1208,7 +1208,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			public void run() {
 				JSONObject obj = new JSONObject();
 				try {
-					obj.put("cityid", currentCity.cityid);
+					obj.put("cityid", currentCity.location.toCityId());
 					int i;
 					JSONArray r = new JSONArray();
 					for (i=1; i<5; i++) {
@@ -1311,7 +1311,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			public void run() {
 				JSONObject obj = new JSONObject();
 				try {
-					obj.put("cityid", city.cityid);
+					obj.put("cityid", city.location.toCityId());
 					obj.put("units", units);
 					obj.put("targetPlayer", "");
 					obj.put("targetCity", target.format());
@@ -1365,7 +1365,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			public void run() {
 				JSONObject obj = new JSONObject();
 				try {
-					obj.put("cityid", city.cityid);
+					obj.put("cityid", city.location.toCityId());
 					obj.put("res",counts);
 					Log.v(TAG,obj.toString());
 					doRPC("ResourceToVoid",obj,new RPCCallback() {
