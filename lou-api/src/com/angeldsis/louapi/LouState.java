@@ -380,7 +380,7 @@ public class LouState {
 		JSONArray u = p.optJSONArray("u");
 		Log.v(TAG,"unit data:"+u);
 		if (u != null) {
-			currentCity.units = new UnitCount[20];
+			currentCity.units = new UnitCount[80];
 			for (x=0; x < u.length(); x++) {
 				JSONObject t2 = u.getJSONObject(x);
 				UnitCount t = new UnitCount(); // FIXME, reuse objects to help with gc presure
