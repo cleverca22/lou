@@ -47,6 +47,7 @@ public class MailBox extends FragmentBase implements MailBoxCallback, MessageCou
 			else if (folders[x].name.equals("@Out")) outbox = folders[x];
 		}
 		Log.v(TAG,"getting inbox");
+		if (parent == null) return;
 		if (parent.session == null) return;
 		parent.session.rpc.IGMGetMsgCount(inbox,this);
 	}

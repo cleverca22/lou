@@ -35,8 +35,8 @@ public class SendAttack extends SessionUser implements OrderUnitsCallback {
 	int maxloot;
 	TextView debug,avail_ts;
 	ListView units;
-	int[] unitcounts = new int[20];
-	int[] maxcounts = new int[20];
+	int[] unitcounts = new int[80];
+	int[] maxcounts = new int[80];
 	int raidTimeReferenceType; // 0normal, 1 repeat until done
 	@Override public void onCreate(Bundle sis) {
 		super.onCreate(sis);
