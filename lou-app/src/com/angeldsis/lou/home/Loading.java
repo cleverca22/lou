@@ -14,6 +14,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -56,6 +57,7 @@ public class Loading extends Fragment {
 			HttpUtilImpl.getInstance().restore_cookie(cookie);
 			SessionKeeper.checkCookie(new CookieCallback() {
 				public void done(result r) {
+					// FIXME, detect if the request should have been cancled?
 					if (r.worked) {
 						Log.v(TAG,"cookie checked "+SessionKeeper.session2.servers.size());
 						if (!stopped) {
@@ -90,7 +92,8 @@ public class Loading extends Fragment {
 		return inflater.inflate(R.layout.loading, container,false);
 	}
 	private void openLogin() {
-		FragmentTransaction trans = getActivity().getSupportFragmentManager().beginTransaction();
+		FragmentActivity a = getActivity();
+		FragmentTransaction trans = a.getSupportFragmentManager().beginTransaction();
 		//trans.replace(R.id.main_frame, new Webview());
 		trans.replace(R.id.main_frame,new louLogin());
 		trans.commit();
