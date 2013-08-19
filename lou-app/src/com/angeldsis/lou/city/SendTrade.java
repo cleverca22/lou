@@ -108,7 +108,12 @@ public class SendTrade extends SessionUser implements CitySelected, GotOrderTarg
 			}
 			@Override
 			public void onTextChanged(CharSequence s, int start, int before, int count) {
-				int val = Integer.parseInt(s.toString());
+				int val;
+				try {
+					val = Integer.parseInt(s.toString());
+				} catch (NumberFormatException e) {
+					val = 0;
+				}
 				b.setProgress(val);
 				targets[pos] = val;
 			}

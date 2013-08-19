@@ -21,6 +21,9 @@ public class SingleFragment extends FragmentUser {
 			Class<? extends Fragment> fragmentClass = (Class<? extends Fragment>) args.get("fragment");
 			Log.v(TAG,args.toString());
 			Log.v(TAG,"class:"+fragmentClass);
+			if (fragmentClass == null) {
+				throw new IllegalStateException("unexpected null with args:"+args.toString());
+			}
 			try {
 				trans.replace(R.id.main_frame, fragmentClass.newInstance());
 			

@@ -118,8 +118,8 @@ public class CityView extends SessionUser implements Callbacks, LayoutCallbacks 
 		build = menu.findItem(R.id.build);
 		upgrade = menu.findItem(R.id.upgrade);
 		visible = menu.findItem(R.id.clear);
-		build.setEnabled(build_on);
-		upgrade.setEnabled(upgrade_on);
+		build.setVisible(build_on);
+		upgrade.setVisible(upgrade_on);
 		visible.setVisible(visible_on);
 		return true;
 	}
@@ -135,8 +135,8 @@ public class CityView extends SessionUser implements Callbacks, LayoutCallbacks 
 			showBuildDialog();
 			return true;
 		case R.id.upgrade:
-			int typeid = ((LouStructure)mTest.mTest.selected).typeid;
-			session.rpc.UpgradeBuilding(session.state.currentCity, mTest.mTest.currentCoord.toCoord(),
+			int typeid = ((LouStructure)mTest.mTest.newselection.target).typeid;
+			session.rpc.UpgradeBuilding(session.state.currentCity, mTest.mTest.newselection.id.toCoord(),
 					typeid, new UpgradeStarted() {
 				@Override
 				public void started() {
@@ -160,7 +160,7 @@ public class CityView extends SessionUser implements Callbacks, LayoutCallbacks 
 		if (prev != null) ft.remove(prev);
 		ft.addToBackStack(null);
 		DialogFragment newFragment = BuildMenu.newInstance(session.state.currentCity,
-				mTest.mTest.currentCoord.toCoord());
+				mTest.mTest.newselection.id.toCoord());
 		newFragment.show(ft, "dialog");
 	}
 	public void do_build(long cityid,int structureid,int coord) {
@@ -184,7 +184,7 @@ public class CityView extends SessionUser implements Callbacks, LayoutCallbacks 
 			build_on = enabled;
 			return;
 		}
-		build.setEnabled(enabled);
+		build.setVisible(enabled);
 	}
 	@Override
 	public void showUpgradeMenu(boolean b) {
@@ -192,7 +192,7 @@ public class CityView extends SessionUser implements Callbacks, LayoutCallbacks 
 			upgrade_on = b;
 			return;
 		}
-		upgrade.setEnabled(b);
+		upgrade.setVisible(b);
 	}
 	@Override
 	public void showClear(boolean b) {

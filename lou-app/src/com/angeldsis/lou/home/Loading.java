@@ -93,6 +93,7 @@ public class Loading extends Fragment {
 	}
 	private void openLogin() {
 		FragmentActivity a = getActivity();
+		if (a == null) return;
 		FragmentTransaction trans = a.getSupportFragmentManager().beginTransaction();
 		//trans.replace(R.id.main_frame, new Webview());
 		trans.replace(R.id.main_frame,new louLogin());

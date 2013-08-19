@@ -21,7 +21,7 @@ class StructureId {
 		return new RectF(col*128,row*80,(col*128)+128,(row*80)+80);
 	}
 	public StructureId down() {
-		if (row == 22) return null;
+		if (row == 22) return this;
 		return new StructureId(col,row+1);
 	}
 	public StructureId up() {
@@ -29,11 +29,11 @@ class StructureId {
 		return new StructureId(col,row-1);
 	}
 	public StructureId right() {
-		if (col == 22) return null;
+		if (col == 22) return this;
 		return new StructureId(col+1,row);
 	}
 	public StructureId left() {
-		if (col == 0) return null;
+		if (col == 0) return this;
 		return new StructureId(col-1,row);
 	}
 	public String toString() {

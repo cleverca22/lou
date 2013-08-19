@@ -62,7 +62,12 @@ public class DungeonList extends WorldUser implements OnItemClickListener, OnIte
 	};
 	Filter bossFilter = new Filter() {
 		@Override public boolean checkItem(MapItem i) {
-			if (i instanceof Boss) return true;
+			if (i instanceof Boss) {
+				Boss b = (Boss) i;
+				if (parent.session.state.recentBosses.contains(b.location)) return false;
+				//if (b.bossLevel > 5) return false; // FIXME, use TA rank
+				return true;
+			}
 			return false;
 		}
 	};

@@ -3,16 +3,13 @@ package com.angeldsis.lou;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import org.json2.JSONException;
-import org.json2.JSONObject;
-
 import com.angeldsis.louapi.CityBuilding;
 import com.angeldsis.louapi.CityResField;
 import com.angeldsis.louapi.LouState;
 import com.angeldsis.louapi.LouState.City;
 import com.angeldsis.louapi.LouVisData;
 import com.angeldsis.louapi.RPC;
-import com.angeldsis.louapi.RPC.RPCDone;
+import com.angeldsis.louapi.Resource;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -36,8 +33,7 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 	ArrayList<VisObject> buildings;
 	float zoom;
 	Drawable dirt, selection, hammer;
-	RectF newBuilding;
-	VisObject selected;
+	@Deprecated RectF newBuilding;
 	LouState state;
 	Context context;
 	int maxx,maxy;
@@ -45,8 +41,8 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 	GestureDetector gd;
 	Handler h = new Handler();
 	private RPC rpc;
-	StructureId currentCoord;
 	LayoutCallbacks callbacks;
+	CitySelection newselection;
 	public CityLayout(CityView context) {
 		super(context);
 		callbacks = context;
@@ -60,7 +56,7 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 		selection.setBounds(-25, 15, 178 - 25, 144 + 15);
 		hammer = context.getResources().getDrawable(R.drawable.decal_building_valid);
 		hammer.setBounds(-25, 0, 178 - 25, 114);
-		selected = null;
+		newselection = null;
 		// water.setBounds(0,0,896,560);
 		buildings = new ArrayList<VisObject>();
 
@@ -87,6 +83,9 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 		if (maxy < 0) maxy = 0;
 	}
 	protected void onLayout(boolean changed, int l, int t, int r, int b) {
+		redoChildren();
+	}
+	private void redoChildren() {
 		//Log.v(TAG,"onLayout");
 		adjustMax();
 		int x;
@@ -157,10 +156,22 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 		
 		dirt.draw(c);
 		
-		if (selected != null) {
+		if (newselection != null) {
 			c.save();
-			c.translate(selected.rect.left,selected.rect.top);
-			selection.draw(c);
+			if (newselection.type == SelectionType.VisObject) {
+				c.translate(newselection.target.rect.left,newselection.target.rect.top);
+				selection.draw(c);
+			}
+			if (newselection.type == SelectionType.emptyCell) {
+				RectF focus = newselection.id.toRectF();
+				c.translate(focus.left, focus.top);
+				hammer.draw(c);
+			}
+			if (newselection.type == SelectionType.wall) {
+				RectF focus = newselection.id.toRectF();
+				c.translate(focus.left, focus.top);
+				selection.draw(c);
+			}
 			c.restore();
 		}
 		/*if (newBuilding != null) {
@@ -171,7 +182,7 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 				c.restore();
 			}
 		}*/
-		if (currentCoord != null) {
+		/*if (currentCoord != null) {
 			c.save();
 			RectF focus = currentCoord.toRectF();
 			c.translate(focus.left,focus.top);
@@ -179,7 +190,7 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 			if (t == coord_type.empty) hammer.draw(c);
 			else selection.draw(c);
 			c.restore();
-		}
+		}*/
 		
 		int i,j;
 		for (i = buildings.size() - 1; i >= 0; i--) {
@@ -221,13 +232,13 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 		zoom = f;
 		adjustMax();
 		invalidate();
-		onLayout(false, 0, 0, 0, 0);
+		redoChildren();
 	}
 	public void gotVisData() {
 		City self = state.currentCity;
 		LouVisData[] changes = self.visData.toArray(new LouVisData[self.visData.size()]);
 		onVisObjAdded(changes,false);
-		onLayout(false, 0, 0, 0, 0);
+		redoChildren();
 		requestLayout();
 	}
 	public void visDataReset() {
@@ -261,7 +272,7 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 				break;
 			}
 			if (doLayout) {
-				onLayout(false, 0, 0, 0, 0);
+				redoChildren();
 				requestLayout();
 			}
 		}
@@ -369,12 +380,14 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 		int x = (int) ((getScrollX() + e.getX()) / zoom);
 		int y = (int) ((getScrollY() + e.getY()) / zoom);
 		Log.v(TAG,"x:"+x+" y:"+y);
+		selectCoord(StructureId.fromXY(x, y));
+		return true; // FIXME?
+		/*
 		Iterator<VisObject> i = buildings.iterator();
 		while (i.hasNext()) {
 			VisObject o = i.next();
 			if (!o.rect.contains(x, y)) continue;
-			selected = o;
-			currentCoord = StructureId.fromXY(x, y);
+			newselection = new CitySelection(o,StructureId.fromXY(x, y));
 			o.selected();
 			invalidate();
 			requestFocusFromTouch();
@@ -389,9 +402,9 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 					callbacks.showBuildMenu(false);
 					callbacks.showClear(true);
 				}
-				lastevent = new Runnable() {
-					@Override
-					public void run() {
+				//lastevent = new Runnable() {
+					//@Override
+					//public void run() {
 						/*rpc.GetBuildingInfo(s.base, new RPCDone() {
 							@Override
 							public void requestDone(JSONObject reply) {
@@ -408,22 +421,20 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 									e.printStackTrace();
 								}
 							}
-						})*/;
-					}
-				};
-				h.postDelayed(lastevent, 5000);
+						})
+					//}
+				//};
+				//h.postDelayed(lastevent, 5000);
 			}
 			newBuilding = null;
 			return true;
-		}
+		}*/
 		// grid units: x=128, y=80
-		makeMenu(x,y);
-		return false;
+		//makeMenu(x,y);
 	}
 	void makeMenu(int x, int y) {
 		selectCoord(StructureId.fromXY(x, y));
-		selected = null;
-		Log.v(TAG,"GetUpgradeInfo("+((y/80)+512)+","+(x/128)+","+currentCoord+")");
+		Log.v(TAG,"GetUpgradeInfo("+((y/80)+512)+","+(x/128)+","+newselection.id+")");
 		callbacks.showBuildMenu(true);
 		callbacks.showUpgradeMenu(false);
 		callbacks.showClear(true);
@@ -436,8 +447,9 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 		if ((in.col == 0) || (in.col == 22)) return coord_type.invalid;
 		
 		if ((in.row == 1) || (in.row == 21) || (in.col == 1) || (in.col == 21)) {
-			// FIXME use row when matching by col
-			switch (in.col) {
+			int x = in.col;
+			if ((in.col == 1) || (in.col == 21)) x = in.row;
+			switch (x) {
 			case 1:
 			case 2:
 				return coord_type.invalid;
@@ -464,8 +476,9 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 		}
 		if ((in.row == 2) && (in.col == 2)) return coord_type.wall;
 		if ((in.row == 11) || (in.col == 11)) {
-			// FIXME use row when matching by col
-			switch (in.col) {
+			int x = in.col;
+			if (in.col == 11) x = in.row;
+			switch (x) {
 			case 2:
 			case 3:
 			case 4:
@@ -482,28 +495,82 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 		return coord_type.empty;
 	}
 	private void selectCoord(StructureId in) {
-		boolean empty_slot = true;
-		if (empty_slot) {
-			newBuilding = in.toRectF();
-			if (state.currentCity.queue.length == 16) {
-				// the build queue is full, you cant select empty cells
-				clearSelection();
-				return;
+		coord_type type = getCoordType(in);
+		Log.v(TAG,String.format("selectCoord(%s %s)",in.toString(),type.toString()));
+		switch (type) {
+		case invalid:
+			callbacks.showBuildMenu(false);
+			callbacks.showUpgradeMenu(false);
+			newselection = new CitySelection(in,SelectionType.emptyCell); // FIXME, use invalid type
+			break;
+		case wall:
+			callbacks.showBuildMenu(false);
+			callbacks.showUpgradeMenu(false);
+			newselection = new CitySelection(in,SelectionType.wall);
+			break;
+		case empty:
+			// figure out if the cell is occupied by a visobject
+			Iterator<VisObject> i = buildings.iterator();
+			int x = in.col * 128, y = in.row * 80; // FIXME, just use row/col directly
+			VisObject selection = null;
+			while (i.hasNext()) {
+				VisObject o = i.next();
+				if (!o.rect.contains(x, y)) continue;
+				selection = o;
+				break;
 			}
+			if (selection != null) {
+				newselection = new CitySelection(selection,StructureId.fromXY(x, y));
+				selection.selected();
+				panToSelection();
+				if (selection instanceof LouStructure) {
+					LouStructure s = (LouStructure)selection;
+					if (s.base.level < 10) {
+						callbacks.showUpgradeMenu(true);
+						callbacks.showBuildMenu(false);
+						callbacks.showClear(true);
+					} else {
+						callbacks.showUpgradeMenu(false);
+						callbacks.showBuildMenu(false);
+						callbacks.showClear(true);
+					}
+					return;
+				} else if (selection instanceof ResFieldUI) {
+					Log.v(TAG,"its a resource node");
+					callbacks.showBuildMenu(false);
+					callbacks.showUpgradeMenu(false);
+					return;
+				}
+			} else {
+				if (state.currentCity.queue.length == 16) { // FIXME, use real queue length
+					// the build queue is full, you can't select empty cells
+					callbacks.showBuildMenu(false);
+				} else callbacks.showBuildMenu(true);
+				callbacks.showUpgradeMenu(false);
+				newselection = new CitySelection(in,SelectionType.emptyCell);
+			}
+			break;
+		default:
+			newselection = new CitySelection(in,SelectionType.emptyCell);
+			Log.v(TAG,"unchecked type");
+			break;
 		}
-		currentCoord = in;
-		requestFocusFromTouch();
+		
+		//requestFocusFromTouch();
+		panToSelection();
+	}
+	private void panToSelection() {
 		RectF viewport = new RectF(getScrollX()/zoom,getScrollY()/zoom,
 				(getScrollX()/zoom)+(getWidth()/zoom),(getScrollY()/zoom)+(getHeight()/zoom));
-		Log.v(TAG,viewport.toString());
-		if (!viewport.contains(newBuilding)) {
-			if (newBuilding.bottom > viewport.bottom) scrollBy(0,(int)((newBuilding.bottom - viewport.bottom)* zoom));
-			if (newBuilding.top < viewport.top) scrollBy(0,(int)((newBuilding.top - viewport.top)* zoom));
-			if (newBuilding.right > viewport.right) scrollBy((int)((newBuilding.right - viewport.right) * zoom),0);
-			if (newBuilding.left < viewport.left) scrollBy((int)((newBuilding.left - viewport.left)*zoom),0);
+		//Log.v(TAG,"panToSelection "+viewport.toString());
+		RectF target = newselection.id.toRectF();
+		if (!viewport.contains(target)) {
+			if (target.bottom > viewport.bottom) scrollBy(0,(int)((target.bottom - viewport.bottom)* zoom));
+			if (target.top < viewport.top) scrollBy(0,(int)((target.top - viewport.top)* zoom));
+			if (target.right > viewport.right) scrollBy((int)((target.right - viewport.right) * zoom),0);
+			if (target.left < viewport.left) scrollBy((int)((target.left - viewport.left)*zoom),0);
 		}
 		invalidate();
-		Log.v(TAG,String.format("selectCoord(%s)",in.toString()));
 	}
 	public interface LayoutCallbacks {
 		void showBuildMenu(boolean enabled);
@@ -511,14 +578,15 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 		void showClear(boolean b);
 	}
 	public void clearSelection() {
-		selected = null;
-		newBuilding = null;
+		newselection = null;
 		invalidate();
 	}
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		Log.v(TAG,"onKeyDown("+keyCode+","+event+")");
 		StructureId target = null;
+		StructureId currentCoord = null;
+		if (newselection != null) currentCoord = newselection.id;
 		switch (keyCode) {
 		case KeyEvent.KEYCODE_DPAD_DOWN:
 			if (currentCoord == null) {
@@ -528,13 +596,15 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 			}
 			break;
 		case KeyEvent.KEYCODE_DPAD_UP:
-			target = currentCoord.up();
+			if (currentCoord != null) target = currentCoord.up();
 			break;
 		case KeyEvent.KEYCODE_DPAD_RIGHT:
-			target = currentCoord.right();
+			if (currentCoord != null) target = currentCoord.right();
 			break;
 		case KeyEvent.KEYCODE_DPAD_LEFT:
-			target = currentCoord.left();
+			if (currentCoord != null) {
+				target = currentCoord.left();
+			}
 			break;
 		default:
 			return false;
@@ -557,5 +627,24 @@ public class CityLayout extends ViewGroup implements OnScaleGestureListener, OnG
 		}
 		buildings.clear();
 		Log.v(TAG,"hooks and buildings cleared");
+	}
+	public class CitySelection {
+		VisObject target;
+		SelectionType type;
+		StructureId id;
+		public CitySelection(VisObject o, StructureId structureId) {
+			// a vis object (structure/resource node) was selected
+			target = o;
+			type = SelectionType.VisObject;
+			id = structureId;
+		}
+		public CitySelection(StructureId in, SelectionType typein) {
+			// an empty cell is selected
+			id = in;
+			type = typein;
+		}
+	}
+	private enum SelectionType {
+		VisObject, emptyCell, wall;
 	}
 }

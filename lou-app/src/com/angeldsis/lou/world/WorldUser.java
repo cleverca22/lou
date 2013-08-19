@@ -3,6 +3,7 @@ package com.angeldsis.lou.world;
 import android.util.Log;
 
 import com.angeldsis.lou.FragmentBase;
+import com.angeldsis.lou.SessionKeeper.Session;
 import com.angeldsis.lou.SessionUser;
 import com.angeldsis.louapi.data.Coord;
 import com.angeldsis.louapi.world.WorldParser;
@@ -18,7 +19,8 @@ public abstract class WorldUser extends FragmentBase {
 	}
 	public void onStop() {
 		Log.v(TAG,"disabling world");
-		parent.session.rpc.worldParser.disable();
+		Session s = parent.session;
+		s.rpc.worldParser.disable();
 		if (parent.session != null) parent.session.rpc.setWorldEnabled(false);
 		super.onStop();
 	}
