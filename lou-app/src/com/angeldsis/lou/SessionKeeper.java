@@ -343,7 +343,7 @@ public class SessionKeeper extends Service {
 		}
 		public void unsetCallback(Callbacks cb1) {
 			if (cb == cb1) {
-				state.disableVis();
+				state.disableVis(); // FIXME, move this into the onStop of anything using vis
 				cb = null;
 			}
 			saveState();
@@ -355,6 +355,7 @@ public class SessionKeeper extends Service {
 			Gson gson = new Gson();
 			FileOutputStream stateout;
 			Player self = state.self; // FIXME, to track down a null pointer
+			if (self == null) throw new IllegalStateException("unexpected null, alive:"+alive+" li:"+loggingIn);
 			File source = SessionKeeper.this.getFileStreamPath(getStateName(self.getId())+".tmp");
 			try {
 				stateout = SessionKeeper.this.openFileOutput(getStateName(self.getId())+".tmp", MODE_PRIVATE);
