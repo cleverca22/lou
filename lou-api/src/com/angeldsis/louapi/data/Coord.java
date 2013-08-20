@@ -50,4 +50,11 @@ public class Coord {
 		int y = this.y - in.y;
 		return Math.sqrt( (x*x) + (y*y) );
 	}
+	@Override public boolean equals(Object o) {
+		if (o instanceof Coord) {
+			Coord other = (Coord) o;
+			if ((x == other.x) && (y == other.y)) return true;
+		}
+		return false;
+	}
 }
