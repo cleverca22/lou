@@ -21,7 +21,7 @@ public class IncomingAttack {
 	public Alliance sourceAlliance;
 	private LouState state;
 	public String sourceCityName;
-	public int total_strength_attacker,total_strength_defender,tc;
+	public int total_strength_attacker,total_strength_defender;
 	public boolean targetIsMe;
 	public Coord sourceLocation,targetLocation;
 	/*public IncomingAttack(JSONObject X) throws JSONException {
@@ -82,7 +82,7 @@ public class IncomingAttack {
 		// 5==internal attack or beseiged, probly not type
 		int type = a.optInt("t");
 
-		tc = a.optInt("tc"); // cityid
+		targetLocation = Coord.fromCityId(a.optInt("tc"));
 		targetCityName = a.optString("tcn");
 
 		sourceCityName = a.optString("cn");
