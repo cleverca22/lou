@@ -413,10 +413,11 @@ public class SessionKeeper extends Service {
 			Log.v(TAG,"done doing logout");
 		}
 		private void teardown() {
+			// this may get ran before init is fully done, if the OpenSession call fails
 			alive = false;
 			sessions.remove(this);
 			rpc.stopLooping();
-			chat.teardown();
+			if (chat != null) chat.teardown();
 			SessionKeeper.this.updateNotification();
 			SessionKeeper.this.checkState("teardown");
 		}

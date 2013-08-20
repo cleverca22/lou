@@ -427,6 +427,8 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 					Log.v(TAG,r2.toString(1));
 					instanceid = r2.getString("i");
 					if ("00000000-0000-0000-0000-000000000000".equals(instanceid)) {
+						// FIXME, inform the user of the failure
+						// FIXME, ask ea what exactly causes this failure?
 						onEjected();
 						return;
 					}
