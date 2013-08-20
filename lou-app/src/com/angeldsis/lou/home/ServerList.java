@@ -68,6 +68,7 @@ public class ServerList extends Fragment {
 				final Session s = i2.next();
 				ViewGroup row = (ViewGroup) inflater.inflate(R.layout.one_server, list2,false);
 				TextView t = (TextView) row.findViewWithTag("server_name");
+				if (s.state.self == null) throw new IllegalStateException("unexpected null, loggingin:"+s.loggingIn);
 				t.setText(s.acct.world+" "+s.state.self.getName());
 				Button b = (Button) row.findViewWithTag("button");
 				//Log.v(TAG,b.toString());

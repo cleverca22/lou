@@ -232,7 +232,8 @@ public class SessionKeeper extends Service {
 		public LouState state;
 		public AccountWrap acct;
 		Callbacks cb;
-		boolean alive = false,loggingIn;
+		boolean alive = false;
+		public boolean loggingIn;
 		public int sessionid;
 		public ChatHistory chat;
 		boolean threadActive;
