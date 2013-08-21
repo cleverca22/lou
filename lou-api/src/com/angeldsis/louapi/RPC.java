@@ -1161,7 +1161,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 					obj.put("id", cityid);
 					doRPC("GetPublicCityInfo",obj,new RPCCallback() {
 						void requestDone(rpcreply r) {
-							Log.v(TAG,r.reply.toString());
+							Log.v(TAG,"GetPublicCityInfo reply:"+r.reply);
 							final PublicCityInfo p = new PublicCityInfo(world,(JSONObject) r.reply);
 							runOnUiThread(new Runnable() {
 								public void run() {
