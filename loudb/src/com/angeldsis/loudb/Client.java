@@ -304,10 +304,10 @@ public class Client implements Runnable, WorldCallbacks {
 				HashMap<Integer,AttackGroup> groups = new HashMap<Integer,AttackGroup>();
 				for (j=0; j<all_at.length; j++) {
 					IncomingAttack in = all_at[j];
-					AttackGroup out = groups.get(in.tc);
+					AttackGroup out = groups.get(in.targetLocation.toCityId());
 					if (out == null) {
 						out = new AttackGroup();
-						groups.put(in.tc, out);
+						groups.put(in.targetLocation.toCityId(), out);
 						out.target_city = in.targetCityName;
 					}
 					out.attacker_size += in.total_strength_attacker;
