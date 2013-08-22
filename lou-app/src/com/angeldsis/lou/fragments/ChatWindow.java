@@ -373,6 +373,7 @@ public class ChatWindow extends FragmentBase {
 	}
 	public void session_ready() {
 		if (parent == null) throw new IllegalStateException("parent was null, wtf");
+		if (parent.session == null) throw new IllegalStateException("session was null, wtf");
 		((ToggleButton)(topView.findViewById(R.id.dingOnMsg))).setChecked(parent.session.dingOnMessage);
 		for (Channel c : channels.values()) {
 			//c.oldmessagelist.removeAllViews();
