@@ -140,10 +140,10 @@ public class CityView extends SessionUser implements Callbacks, LayoutCallbacks 
 					typeid, new UpgradeStarted() {
 				@Override
 				public void started() {
-					build.setEnabled(false);
-					upgrade.setEnabled(false);
+					build.setVisible(false);
+					upgrade.setVisible(false);
 					visible.setVisible(false);
-					mTest.mTest.clearSelection();
+					if (mTest.mTest != null) mTest.mTest.clearSelection();
 				}
 			});
 			return true;
@@ -171,8 +171,8 @@ public class CityView extends SessionUser implements Callbacks, LayoutCallbacks 
 		session.rpc.UpgradeBuilding(session.state.currentCity, coord, structureid, new UpgradeStarted() {
 			@Override
 			public void started() {
-				build.setEnabled(false);
-				upgrade.setEnabled(false);
+				build.setVisible(false);
+				upgrade.setVisible(false);
 				visible.setVisible(false);
 				mTest.mTest.clearSelection();
 			}
