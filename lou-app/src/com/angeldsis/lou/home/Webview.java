@@ -38,6 +38,7 @@ public class Webview extends Fragment implements CookieCallback {
 	LoadPage loadpage;
 	private TextView lastUrl;
 	String username;
+	boolean paused = true;
 	public View onCreateView (LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		LinearLayout l = new LinearLayout(getActivity());
 		l.setOrientation(LinearLayout.VERTICAL);
@@ -105,6 +106,7 @@ public class Webview extends Fragment implements CookieCallback {
 					//db.close();
 					//loadpage = new LoadPage();
 					//loadpage.execute("http://www.lordofultima.com/game/world/change");
+					if (paused == true) throw new IllegalStateException("tried to check while paused");
 					SessionKeeper.checkCookie(Webview.this,username);
 					return true;
 				}
@@ -117,6 +119,14 @@ public class Webview extends Fragment implements CookieCallback {
 		@Override public void onReceivedError (WebView view, int errorCode, String description, String failingUrl) {
 			Log.v(TAG,String.format("onReceivedError(%s,%d,%s,%s",view,errorCode,description,failingUrl));
 		}
+	}
+	@Override public void onResume() {
+		paused = false;
+		super.onResume();
+	}
+	@Override public void onPause() {
+		paused = true;
+		super.onPause();
 	}
 	@Override public void onDestroy() {
 		v.destroy();
@@ -220,6 +230,7 @@ public class Webview extends Fragment implements CookieCallback {
 				Log.v(TAG,"abort, abort!");
 				return;
 			}
+			if (paused == true) throw new IllegalStateException("done ran while paused");
 			FragmentTransaction trans = activity.getSupportFragmentManager().beginTransaction();
 			trans.replace(R.id.main_frame, new ServerList());
 			trans.commit();
