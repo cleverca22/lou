@@ -243,7 +243,8 @@ public class DungeonList extends WorldUser implements OnItemClickListener, OnIte
 		onCityChanged();
 	}
 	@Override public void onCityChanged() {
-		super.resetFocus();
+		if (filter == bossFilter) super.resetFocus(4);
+		else super.resetFocus(1);
 		lootCapacity = 0;
 		if (parent.session.rpc.state.currentCity.units != null) {
 			UnitCount uc = parent.session.rpc.state.currentCity.units[6];
