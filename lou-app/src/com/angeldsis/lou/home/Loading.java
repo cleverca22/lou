@@ -57,13 +57,13 @@ public class Loading extends Fragment {
 			HttpUtilImpl.getInstance().restore_cookie(cookie);
 			SessionKeeper.checkCookie(new CookieCallback() {
 				public void done(result r) {
-					// FIXME, detect if the request should have been cancled?
+					FragmentActivity a = getActivity();
+					if (a == null) return;
 					if (r.worked) {
 						Log.v(TAG,"cookie checked "+SessionKeeper.session2.servers.size());
 						if (!stopped) {
-							FragmentTransaction trans = getActivity().getSupportFragmentManager().beginTransaction();
-							trans.replace(R.id.main_frame, new ServerList());
-							trans.commit();
+							a.getSupportFragmentManager().beginTransaction()
+								.replace(R.id.main_frame, new ServerList()).commit();
 						} else {
 							Log.v(TAG,"fragment stopped, cant update ui");
 						}
@@ -81,7 +81,7 @@ public class Loading extends Fragment {
 							else b.putString("message", "unknown error");
 							
 							f.setArguments(b);
-							getActivity().getSupportFragmentManager().beginTransaction()
+							a.getSupportFragmentManager().beginTransaction()
 								.replace(R.id.main_frame, f).commit();
 						}
 					}
