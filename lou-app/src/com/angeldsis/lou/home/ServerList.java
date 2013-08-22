@@ -15,6 +15,9 @@ import com.angeldsis.louapi.data.SubRequest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -40,7 +43,18 @@ public class ServerList extends Fragment {
 			Log.v(TAG,"returning empty list");
 			return null;
 		}
-		return inflater.inflate(R.layout.server_list, container,false);
+		ViewGroup root = (ViewGroup) inflater.inflate(R.layout.server_list, container,false);
+		TextView version = (TextView)root.findViewById(R.id.app_version);
+		PackageManager pm = getActivity().getPackageManager();
+		try {
+			PackageInfo self = pm.getPackageInfo("com.angeldsis.lou", 0);
+			version.setText(self.versionName);
+		} catch (NameNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			version.setText("error");
+		}
+		return root;
 	}
 	public void onResume() {
 		super.onResume();
