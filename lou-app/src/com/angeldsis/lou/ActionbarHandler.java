@@ -114,12 +114,13 @@ public class ActionbarHandler {
 		case R.id.idleunits:
 			if (fu != null) {
 				FragmentTransaction trans = fu.getSupportFragmentManager().beginTransaction();
-				trans.replace(R.id.second_frame, new IdleUnits());
 				trans.replace(R.id.main_frame, new DungeonList());
+				trans.replace(R.id.second_frame, new IdleUnits());
 				trans.addToBackStack(null);
 				trans.commit();
 			} else {
 				Bundle options = acct.toBundle();
+				options.putSerializable("fragment", DungeonList.class);
 				options.putSerializable("fragment2", IdleUnits.class);
 				i = new Intent(a,SingleFragment.class);
 				i.putExtras(options);
