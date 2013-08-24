@@ -116,7 +116,10 @@ public class FragmentUser extends FragmentActivity implements Callbacks, Session
 		Iterator<FragmentBase> i = hooks.iterator();
 		while (i.hasNext()) i.next().onFoodWarning();
 	}
-	@Override public void onEnlightenedCityChanged() {}
+	@Override public void onEnlightenedCityChanged() {
+		Iterator<FragmentBase> i = hooks.iterator();
+		while (i.hasNext()) i.next().onEnlightenedCityChanged();
+	}
 	@Override public void onDefenseOverviewUpdate() {
 		Iterator<FragmentBase> i = hooks.iterator();
 		while (i.hasNext()) i.next().onDefenseOverviewUpdate();

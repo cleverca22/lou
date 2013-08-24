@@ -51,4 +51,8 @@ public abstract class FragmentBase extends Fragment {
 	public void cellUpdated(Cell c) {}
 	public void onDefenseOverviewUpdate() {}
 	public void onCityChanged() {}
+	public void onEnlightenedCityChanged() {
+		// TODO Auto-generated method stub
+		
+	}
 }

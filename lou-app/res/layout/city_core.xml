@@ -12,11 +12,11 @@
 
     </FrameLayout>
 
-    <com.angeldsis.lou.city.SelectCity
+    <FrameLayout
         android:id="@+id/selectCity"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" >
-    </com.angeldsis.lou.city.SelectCity>
+    </FrameLayout>
 
     <Button
         android:id="@+id/purify"

@@ -22,11 +22,11 @@
                     android:layout_height="wrap_content"
                     android:text="Source City:" />
 
-                <com.angeldsis.lou.city.SelectCity
+                <FrameLayout
                     android:id="@+id/changeCity"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" >
-                </com.angeldsis.lou.city.SelectCity>
+                </FrameLayout>
 
             </LinearLayout>
 
@@ -175,12 +175,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" >
 
-            <com.angeldsis.lou.city.SelectCity
+            <FrameLayout
                 android:id="@+id/selectCity"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1" >
-            </com.angeldsis.lou.city.SelectCity>
+            </FrameLayout>
 
             <Button
                 android:id="@+id/cityGroupDropdown"
@@ -371,7 +371,6 @@
             style="?android:attr/buttonStyleSmall"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="sendTrade"
             android:text="Send Resources" />
 
         <TextView

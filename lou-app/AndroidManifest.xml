@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="com.angeldsis.lou"
       android:versionCode="2"
-      android:versionName="0.22.6">
+      android:versionName="0.22.7">
     <uses-sdk android:minSdkVersion="9" android:targetSdkVersion="17"/>
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -34,9 +34,7 @@
         <activity android:name=".allianceforum.ShowPosts"></activity>
         <activity android:name=".allianceforum.NewThread"></activity>
         <activity android:name="com.angeldsis.lou.ShowCoord"></activity>
-        <activity android:name=".city.SendTrade"></activity>
         <activity android:name="BuildQueueOverview"></activity>
-        <activity android:name="EnlightenedCityList"></activity>
         <activity android:name="FragmentUser"></activity>
         <activity android:name="SingleFragment"></activity>
         </application>

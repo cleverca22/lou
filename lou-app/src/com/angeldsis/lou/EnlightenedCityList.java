@@ -19,6 +19,7 @@ import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -28,18 +29,37 @@ import android.widget.CheckBox;
 import android.widget.ListView;
 import android.widget.TextView;
 
-public class EnlightenedCityList extends SessionUser {
+public class EnlightenedCityList extends FragmentBase {
 	private static final String TAG = "EnlightenedCityList";
 	MyTableRow.LayoutParameters params;
 	CityList adapter;
-	boolean loaded;
 	boolean filter = true;
-	public void onCreate(Bundle sis) {
+	boolean initial = true;
+	private ResourceBar resourceBar;
+	TextView avail_carts;
+	public EnlightenedCityList() {
+		Log.v(TAG,"constructor",new Exception());
+	}
+	public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle sis) {
 		super.onCreate(sis);
+		Log.v(TAG,"onCreateView",new Exception());
 		params = new MyTableRow.LayoutParameters();
-		setContentView(R.layout.el_city_list);
+		ViewGroup root = (ViewGroup) inflater.inflate(R.layout.el_city_list, parent, false);
 		adapter = new CityList();
-		((ListView)findViewById(R.id.list)).setAdapter(adapter);
+		ListView list = (ListView) root.findViewById(R.id.list);
+		list.setAdapter(adapter);
+		resourceBar = (ResourceBar) root.findViewById(R.id.resourceBar);
+		avail_carts = (TextView)root.findViewById(R.id.avail_carts);
+		
+		if ((sis == null) && (initial)) {
+			initial = false;
+			Log.v(TAG,"no saved state");
+			SelectCity selectCity = new SelectCity();
+			selectCity.setMode(SelectCity.ChangeCurrentCity);
+			getChildFragmentManager().beginTransaction()
+				.replace(R.id.selectCity, selectCity).commit();
+		}
+		return root;
 	}
 	private static class ViewHolder {
 		public TextView coord;
@@ -52,19 +72,14 @@ public class EnlightenedCityList extends SessionUser {
 	@Override public void session_ready() {
 		Log.v(TAG,"session_ready()");
 		onEnlightenedCityChanged();
-		if (!loaded) {
-			SelectCity s = (SelectCity) findViewById(R.id.selectCity);
-			s.setMode(SelectCity.ChangeCurrentCity);
-			s.session_ready(session.rpc.state,this);
-			loaded = true;
-		}
-		((ResourceBar)findViewById(R.id.resourceBar)).setState(session.state);
-		super.session_ready();
+		resourceBar.setState(parent.session.state);
+		resourceBar.update(parent.session.state.currentCity);
+		gotCityData();
 	}
 	@Override public void onEnlightenedCityChanged() {
 		Log.v(TAG,"onEnlightenedCityChanged()");
 		EnlightenedCity[] data;
-		TreeMap<Integer,EnlightenedCity> datain = session.rpc.enlightenedCities.data;
+		TreeMap<Integer,EnlightenedCity> datain = parent.session.rpc.enlightenedCities.data;
 		data = new EnlightenedCity[datain.size()];
 		datain.values().toArray(data);
 		adapter.setData(datain.values());
@@ -94,7 +109,7 @@ public class EnlightenedCityList extends SessionUser {
 			final ViewHolder holder;
 			MyTableRow row;
 			if (convertView == null) {
-				convertView = EnlightenedCityList.this.getLayoutInflater().inflate(R.layout.el_city_row, root, false);
+				convertView = getActivity().getLayoutInflater().inflate(R.layout.el_city_row, root, false);
 				row = (MyTableRow) convertView;
 				row.bind(params);
 				holder = new ViewHolder();
@@ -109,10 +124,13 @@ public class EnlightenedCityList extends SessionUser {
 				b.setOnClickListener(new OnClickListener() {
 					@Override public void onClick(View v) {
 						Log.v(TAG,""+holder.city.id);
-						Intent i = new Intent(EnlightenedCityList.this,SendTrade.class);
-						i.putExtras(acct.toBundle());
-						i.putExtra("targetCity", holder.city.id);
-						startActivity(i);
+						SendTrade st = new SendTrade();
+						Bundle args = new Bundle();
+						args.putInt("targetCity", holder.city.id);
+						st.setArguments(args);
+						getActivity().getSupportFragmentManager().beginTransaction()
+							.addToBackStack(null)
+							.replace(R.id.main_frame, st).commit();
 					}});
 			} else {
 				row = (MyTableRow) convertView;
@@ -125,14 +143,14 @@ public class EnlightenedCityList extends SessionUser {
 			holder.coord.setText(coord.format());
 			holder.comment.setText(holder.city.comment);
 			
-			holder.start.setText(session.state.stepToString(holder.city.endstep));
+			holder.start.setText(parent.session.state.stepToString(holder.city.endstep));
 			
 			long needed = EnlightenedCity.res_needed[holder.city.palace_level];
-			long missing_wood = needed - (holder.city.wood + holder.city.getResourceCount(session.rpc.state, 0) + holder.city.incoming_wood);
-			long missing_stone = needed - (holder.city.stone + holder.city.getResourceCount(session.rpc.state, 1) + holder.city.incoming_stone);
+			long missing_wood = needed - (holder.city.wood + holder.city.getResourceCount(parent.session.state, 0) + holder.city.incoming_wood);
+			long missing_stone = needed - (holder.city.stone + holder.city.getResourceCount(parent.session.state, 1) + holder.city.incoming_stone);
 			
 			// [1:00:08 AM] [RD] Mr. Liver: if hlp & !not full > greeen or highlighting in some way
-			TypedArray a = obtainStyledAttributes(null, R.styleable.ElCityList);
+			TypedArray a = getActivity().obtainStyledAttributes(null, R.styleable.ElCityList);
 			int color = a.getColor(R.styleable.ElCityList_rowHighlight1, 0);
 			a.recycle();
 			if (color == 0) { throw new IllegalStateException("You forgot to put the attr on the theme, artard"); }
@@ -180,7 +198,7 @@ public class EnlightenedCityList extends SessionUser {
 	}
 	public void onCityChanged() {
 		if (filter) {
-			LouState state = session.state;
+			LouState state = parent.session.state;
 			City city = state.currentCity;
 			Coord location = city.location;
 			int continent = location.getContinentInt();
@@ -189,8 +207,8 @@ public class EnlightenedCityList extends SessionUser {
 	}
 	public void gotCityData() {
 		Log.v(TAG,"gotCityData()");
-		((TextView)findViewById(R.id.avail_carts)).setText(String.format("%d",session.state.currentCity.freecarts));
-		((ResourceBar)findViewById(R.id.resourceBar)).update(session.state.currentCity);
+		avail_carts.setText(String.format("%d",parent.session.state.currentCity.freecarts));
+		resourceBar.update(parent.session.state.currentCity);
 	}
 	public static Intent getIntent(AccountWrap acct, Context context) {
 		Intent i = new Intent(context,EnlightenedCityList.class);

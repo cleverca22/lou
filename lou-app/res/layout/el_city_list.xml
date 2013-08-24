@@ -24,11 +24,11 @@
                     android:text="@string/current_city"
                     android:textAppearance="?android:attr/textAppearanceMedium" />
 
-                <com.angeldsis.lou.city.SelectCity
+                <FrameLayout
                     android:id="@+id/selectCity"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" >
-                </com.angeldsis.lou.city.SelectCity>
+                </FrameLayout>
             </LinearLayout>
 
             <LinearLayout

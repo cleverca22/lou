@@ -51,14 +51,14 @@ public class CityCore extends FragmentBase implements OnClickListener {
 		if (savedInstanceState == null) {
 			FragmentTransaction ft = getChildFragmentManager().beginTransaction();
 			ft.replace(R.id.resource_bar, new ResourceBar2());
+			SelectCity selectCity = new SelectCity();
+			selectCity.setMode(SelectCity.ChangeCurrentCity);
+			ft.replace(R.id.selectCity, selectCity);
 			ft.commit();
 		}
 		return v;
 	}
 	@Override public void session_ready() {
-		SelectCity sc = (SelectCity) getView().findViewById(R.id.selectCity);
-		sc.setMode(SelectCity.ChangeCurrentCity);
-		sc.session_ready(parent.session.rpc.state, parent);
 	}
 	public void gotCityData() {
 		City c = parent.session.state.currentCity;

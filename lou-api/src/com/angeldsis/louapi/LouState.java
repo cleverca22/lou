@@ -47,6 +47,7 @@ public class LouState {
 	private static final int[] types = { UnitCount.ZERK, UnitCount.PALADIN };
 	public ArrayList<Coord> recentBosses;
 	private JSONArray config; // FIXME, use a map?
+	public CityGroup[] groups;
 
 	public LouState() {
 		init();
@@ -231,12 +232,27 @@ public class LouState {
 	public void parsePlayerUpdate(JSONObject d) throws JSONException {
 		int x;
 		getFullPlayerData = false;
-		//JSONArray cg = d.optJSONArray("cg");
 		//boolean female = d.getBoolean("f");
-		//Log.v(TAG,"cg:"+cg+" f:"+female);
+		
 		// FIXME check d.c array for changes to cities array
 		//JSONArray c = d.optJSONArray("c");
 		//Log.v(TAG,"c:"+c);
+		
+		JSONArray cg = d.optJSONArray("cg");
+		if (cg != null) {
+			CityGroup groups[] = new CityGroup[cg.length() + 1];
+			groups[0] = new CityGroup(CityGroup.Type.ALL,this.cities);
+			int j;
+			for (j=0; j<cg.length(); j++) {
+				JSONObject item = cg.getJSONObject(j);
+				Log.v(TAG,"cg:"+item);
+				String name = item.getString("n");
+				JSONArray cities = item.getJSONArray("c");
+				groups[j+1] = new CityGroup(name,cities,this);
+			}
+			this.groups = groups;
+		}
+
 		if (d.has("g")) {
 			JSONObject g = d.optJSONObject("g");
 			double base = g.optDouble("b");

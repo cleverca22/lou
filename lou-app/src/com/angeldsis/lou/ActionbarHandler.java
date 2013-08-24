@@ -97,9 +97,17 @@ public class ActionbarHandler {
 			a.startActivity(i);
 			return true;
 		case R.id.sendTrade:
-			i = new Intent(a,SendTrade.class);
-			i.putExtras(acct.toBundle());
-			a.startActivity(i);
+			if (fu != null) {
+				fu.getSupportFragmentManager().beginTransaction()
+					.replace(R.id.main_frame, new SendTrade())
+					.addToBackStack(null).commit();
+			} else {
+				Bundle options = acct.toBundle();
+				options.putSerializable("fragment", SendTrade.class);
+				i = new Intent(a,SingleFragment.class);
+				i.putExtras(options);
+				a.startActivity(i);
+			}
 			return true;
 		case R.id.bqo:
 			i = new Intent(a,BuildQueueOverview.class);
@@ -133,9 +141,17 @@ public class ActionbarHandler {
 			a.startActivity(i);
 			return true;
 		case R.id.el_city_list:
-			i = new Intent(a,EnlightenedCityList.class);
-			i.putExtras(acct.toBundle());
-			a.startActivity(i);
+			if (fu != null) {
+				fu.getSupportFragmentManager().beginTransaction()
+					.replace(R.id.main_frame, new EnlightenedCityList())
+					.addToBackStack(null).commit();
+			} else {
+				Bundle options = acct.toBundle();
+				options.putSerializable("fragment", EnlightenedCityList.class);
+				i = new Intent(a,SingleFragment.class);
+				i.putExtras(options);
+				a.startActivity(i);
+			}
 			return true;
 		case R.id.foodWarning:
 			if (fu != null) {

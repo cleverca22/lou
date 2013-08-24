@@ -1,33 +1,33 @@
 package com.angeldsis.lou.city;
 
-import java.util.Iterator;
-
 import junit.framework.Assert;
-import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.util.AttributeSet;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.BaseAdapter;
-import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import com.angeldsis.louapi.LouState;
+import com.angeldsis.lou.FragmentBase;
+import com.angeldsis.lou.R;
+import com.angeldsis.louapi.CityGroup;
 import com.angeldsis.louapi.LouState.City;
 import com.angeldsis.louapi.data.Coord;
 
-public class SelectCity extends LinearLayout implements OnItemSelectedListener {
+public class SelectCity extends FragmentBase implements OnItemSelectedListener {
 	// FIXME, if you change city thru another method, it doesn't update
-	// TODO, change into a fragment
+	// is the above still broken?
 	CitySelected callback;
 	int palaceLocation = -1;
 	public static final int ChangeCurrentCity = 1;
 	public static final int ModeNormal = 2;
-	public class MyAdapter extends BaseAdapter {
+	public class CityAdapter extends BaseAdapter {
 		@Override public int getCount() {
 			return rawList.length;
 		}
@@ -46,7 +46,7 @@ public class SelectCity extends LinearLayout implements OnItemSelectedListener {
 			Object o = getItem(position);
 			TextView v;
 			if (row == null) {
-				v = new TextView(getContext());
+				v = new TextView(getActivity());
 				row = v;
 			} else v = (TextView) row;
 
@@ -79,47 +79,111 @@ public class SelectCity extends LinearLayout implements OnItemSelectedListener {
 			else return 1;
 		}
 	}
+	private class GroupAdapter extends BaseAdapter {
+		public int getCount() {
+			return groupList.length;
+		}
+		public long getItemId(int pos) {
+			return 0;
+		}
+		public CityGroup getItem(int pos) {
+			return groupList[pos];
+		}
+		public View getView(int pos, View row, ViewGroup parent) {
+			CityGroup cg = getItem(pos);
+			TextView v;
+			if (row == null) {
+				v = new TextView(getActivity());
+				row = v;
+			} else v = (TextView) row;
+			v.setText(cg.name);
+			return row;
+		}
+	}
 	Object[] rawList;
-	MyAdapter adapter;
-	Activity mActivity;
-	Spinner spinner;
+	CityGroup[] groupList;
+	GroupAdapter groupAdapter;
+	CityAdapter cityAdapter;
+	Spinner groupSpinner,citySpinner;
 	private int mode = -1;
-	private LouState mState;
-	public SelectCity(Context context) {
-		super(context);
-		init(context);
+	private City[] cityList;
+	int groupRestore = 0;
+	public SelectCity() {
+		Log.v("SelectCity","constructor");
 	}
-	public SelectCity(Context context, AttributeSet attrs) {
-		super(context, attrs);
-		init(context);
+	@Override public void onCreate(Bundle sis) {
+		Log.v("SelectCity",String.format("onCreate(%s)",sis));
+		super.onCreate(sis);
+		groupAdapter = new GroupAdapter();
+		cityAdapter = new CityAdapter();
 	}
-	private void init(Context context) {
-		spinner = new Spinner(context);
-		LayoutParams d = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.MATCH_PARENT);
-		addView(spinner,d);
-		if (this.isInEditMode()) {
+	public View onCreateView(LayoutInflater inflater, ViewGroup root, Bundle sis) {
+		Log.v("SelectCity","onCreateView "+this+" "+groupRestore);
+		ViewGroup top = (ViewGroup) inflater.inflate(R.layout.select_city, root, false);
+		groupSpinner = (Spinner) top.findViewById(R.id.group);
+		citySpinner = (Spinner) top.findViewById(R.id.city);
+		//LayoutParams d = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.MATCH_PARENT);
+		//addView(spinner,d);
+		//if (this.isInEditMode()) {
 			/*allCities = new City[0];
 			allBookmarks = new int[1];
 			allBookmarks[0] = 30605677;
 			spinner.setAdapter(adapter);*/
+		//}
+		groupSpinner.setOnItemSelectedListener(this);
+		citySpinner.setOnItemSelectedListener(this);
+		
+		if (sis != null) {
+			groupRestore = sis.getInt("group");
+			Log.v("SelectCity","i have saved state");
 		}
-		spinner.setOnItemSelectedListener(this);
+		return top;
+	}
+	public void onDestroyView() {
+		super.onDestroyView();
+		groupSpinner = null;
+		citySpinner = null;
+		groupList = null;
+		cityList = null;
+		rawList = null;
+		Log.v("SelectCity","onDestroyView");
 	}
 	public void setHook(CitySelected cb) {
 		callback = cb;
 	}
-	public void session_ready(LouState state,Activity a) {
-		int activeItem = -1;
+	public void session_ready() {
+		Log.v("SelectCity","session_ready "+groupRestore);
+		int activeItem;
 		Assert.assertFalse("setMode must be called first", -1 == mode);
-		mActivity = a;
 		
+		if (groupList == null) {
+			groupList = parent.session.state.groups;
+			groupSpinner.setAdapter(groupAdapter);
+			cityList = groupList[groupRestore].cities;
+			groupSpinner.setSelection(groupRestore);
+			
+			activeItem = rebuildList();
+			
+			citySpinner.setAdapter(cityAdapter);
+			if (activeItem != -1) citySpinner.setSelection(activeItem);
+			Log.v("SelectCity","a"+groupAdapter.getCount()+" b"+cityAdapter.getCount());
+		} else rebuildList();
+	}
+	@Override public void onSaveInstanceState(Bundle sis) {
+		super.onSaveInstanceState(sis);
+		sis.putInt("group", groupSpinner.getSelectedItemPosition());
+		Exception e = new Exception();
+		e.printStackTrace();
+	}
+	private int rebuildList() {
+		int activeItem = -1;
 		boolean showBookmarks = true;
 		if (mode == ChangeCurrentCity) showBookmarks = false;
 
-		int count = (palaceLocation!=-1?1:0) + state.cities.size();
+		int count = (palaceLocation!=-1?1:0) + cityList.length;
 		String[] bookmarks = null;
 		if (showBookmarks) {
-			SharedPreferences p = mActivity.getSharedPreferences("bookmarks", Context.MODE_PRIVATE);
+			SharedPreferences p = getActivity().getSharedPreferences("bookmarks", Context.MODE_PRIVATE);
 			String part = p.getString("bookmarks", "");
 			if (part.length() > 0) {
 				bookmarks = part.split(",");
@@ -130,13 +194,12 @@ public class SelectCity extends LinearLayout implements OnItemSelectedListener {
 		int position = 0;
 		
 		if (palaceLocation != -1) rawList[position++] = palaceLocation;
-		Iterator<City> it = state.cities.values().iterator();
-		while (it.hasNext()) {
-			rawList[position] = it.next();
-			if ((mode == ChangeCurrentCity) && (rawList[position] == state.currentCity)) activeItem = position;
+		int i;
+		for (i=0; i<cityList.length; i++) {
+			rawList[position] = cityList[i];
+			if ((mode == ChangeCurrentCity) && (rawList[position] == parent.session.state.currentCity)) activeItem = position;
 			position++;
 		}
-		mState = state;
 		
 		if (showBookmarks) {
 			if (bookmarks != null) {
@@ -145,15 +208,39 @@ public class SelectCity extends LinearLayout implements OnItemSelectedListener {
 				}
 			}
 		}
-		adapter = new MyAdapter();
-		spinner.setAdapter(adapter);
-		if (activeItem != -1) spinner.setSelection(activeItem);
+		cityAdapter.notifyDataSetChanged();
+		return activeItem;
 	}
-	@Override public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
-		//Log.v(TAG,"onItemSelected",new Exception());
+	@Override public void onItemSelected(AdapterView<?> arg0, View arg1, int pos, long arg3) {
+		Log.v("SelectCity","onItemSelected"+arg0+" "+arg0.getSelectedItemPosition()+" "+pos);
+		switch (arg0.getId()) {
+		case R.id.group:
+			Log.v("SelectCity","group "+pos);
+			groupRestore = pos;
+			cityList = groupList[pos].cities;
+			rebuildList();
+			break;
+		case R.id.city:
+			if (mode == ChangeCurrentCity) {
+				parent.session.state.changeCity((City) cityAdapter.getItem(pos));
+			} else callback.selected(Coord.getX(arg3),Coord.getY(arg3));
+			break;
+		default:
+			Log.v("SelectCity","bad id"+arg1.getId());
+		}
+	}
+	@Override public void onCityChanged() {
+		// FIXME, make sure this works
 		if (mode == ChangeCurrentCity) {
-			mState.changeCity((City) adapter.getItem(arg2));
-		} else callback.selected(Coord.getX(arg3),Coord.getY(arg3));
+			int i;
+			City findme = parent.session.state.currentCity;
+			for (i=0; i<rawList.length; i++) {
+				if (rawList[i] == findme) {
+					citySpinner.setSelection(i);
+					break;
+				}
+			}
+		}
 	}
 	@Override
 	public void onNothingSelected(AdapterView<?> arg0) {

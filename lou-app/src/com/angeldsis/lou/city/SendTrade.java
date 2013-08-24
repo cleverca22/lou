@@ -1,20 +1,22 @@
 package com.angeldsis.lou.city;
 
-import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
+
+import com.angeldsis.lou.FragmentBase;
 import com.angeldsis.lou.R;
-import com.angeldsis.lou.SessionUser;
 import com.angeldsis.lou.Utils;
 import com.angeldsis.lou.city.SelectCity.CitySelected;
 import com.angeldsis.louapi.LouState;
@@ -24,7 +26,7 @@ import com.angeldsis.louapi.RPC.TradeDirectDone;
 import com.angeldsis.louapi.data.Coord;
 import com.angeldsis.louapi.data.OrderTargetInfo;
 
-public class SendTrade extends SessionUser implements CitySelected, GotOrderTargetInfo, TradeDirectDone {
+public class SendTrade extends FragmentBase implements CitySelected, GotOrderTargetInfo, TradeDirectDone, OnClickListener {
 	private static final String TAG = "SendTrade";
 	CheckBox byLand;
 	TextView player,city,time;
@@ -36,50 +38,81 @@ public class SendTrade extends SessionUser implements CitySelected, GotOrderTarg
 	private boolean palaceDonation;
 	CheckBox palace;
 	Button send_res;
-	SelectCity changeCity;
-	public void onCreate(Bundle b) {
+	SelectCity changeCity, selectCity;
+	private static class Bar {
+		SeekBar seeker;
+		EditText editor;
+		TextView max;
+		public Bar(ViewGroup root, int i, int id1, int id2, int id3) {
+			seeker = (SeekBar) root.findViewById(id1);
+			editor = (EditText) root.findViewById(id2);
+			max = (TextView) root.findViewById(id3);
+		}
+	}
+	Bar bars[];
+	EditText x,y;
+	private TextView result,cartCount,shipCount,cartCap,shipCap;
+	public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle b) {
 		super.onCreate(b);
-		if (Build.VERSION.SDK_INT > 13) initApi14();
-		setContentView(R.layout.send_trade);
-		byLand = (CheckBox) findViewById(R.id.byLand);
+		ViewGroup root = (ViewGroup) inflater.inflate(R.layout.send_trade,parent,false);
+		byLand = (CheckBox) root.findViewById(R.id.byLand);
 		byLand.setChecked(true);
-		palace = (CheckBox) findViewById(R.id.palace);
-		player = (TextView) findViewById(R.id.player);
-		city = (TextView) findViewById(R.id.city);
-		time = (TextView) findViewById(R.id.time);
-		send_res = (Button) findViewById(R.id.send_res);
-		changeCity = (SelectCity) findViewById(R.id.changeCity);
-		changeCity.setMode(SelectCity.ChangeCurrentCity);
-		
-		Intent i = getIntent();
-		Bundle args = i.getExtras();
-		if (args.containsKey("targetCity")) {
+		palace = (CheckBox) root.findViewById(R.id.palace);
+		player = (TextView) root.findViewById(R.id.player);
+		city = (TextView) root.findViewById(R.id.city);
+		time = (TextView) root.findViewById(R.id.time);
+		send_res = (Button) root.findViewById(R.id.send_res);
+		send_res.setOnClickListener(this);
+		bars = new Bar[4];
+		bars[0] = new Bar(root,0,R.id.setWood,R.id.showWood,R.id.maxWood);
+		bars[1] = new Bar(root,1,R.id.setStone,R.id.showStone,R.id.maxStone);
+		bars[2] = new Bar(root,2,R.id.setIron,R.id.showIron,R.id.maxIron);
+		bars[3] = new Bar(root,3,R.id.setFood,R.id.showFood,R.id.maxFood);
+		x = (EditText)root.findViewById(R.id.x);
+		y = (EditText)root.findViewById(R.id.y);
+		result = (TextView) root.findViewById(R.id.result);
+		cartCount = (TextView)root.findViewById(R.id.cartCounts);
+		shipCount = (TextView)root.findViewById(R.id.shipCounts);
+		cartCap = (TextView)root.findViewById(R.id.cartCapacity);
+		shipCap = (TextView)root.findViewById(R.id.shipCapacity);
+
+		Bundle args = getArguments();
+		if ((args != null) && args.containsKey("targetCity")) {
 			targetCity = args.getInt("targetCity");
 			palaceDonation = true;
 			palace.setChecked(true);
 		}
+		
+		if (b == null) {
+			changeCity = new SelectCity();
+			changeCity.setMode(SelectCity.ChangeCurrentCity);
+			selectCity = new SelectCity();
+			selectCity.setMode(SelectCity.ModeNormal);
+			selectCity.setHook(this);
+			if (targetCity != -1) selectCity.setPalace(targetCity);
+			getChildFragmentManager().beginTransaction()
+				.replace(R.id.changeCity, changeCity)
+				.replace(R.id.selectCity, selectCity)
+				.commit();
+		}
+		
+		return root;
 	}
 	@Override public void session_ready() {
 		if (!loaded) {
-			initBar(0,R.id.setWood,R.id.showWood);
-			initBar(1,R.id.setStone,R.id.showStone);
-			initBar(2,R.id.setIron,R.id.showIron);
-			initBar(3,R.id.setFood,R.id.showFood);
-			SelectCity s = (SelectCity) findViewById(R.id.selectCity);
-			s.setHook(this);
-			s.setMode(SelectCity.ModeNormal);
-			if (targetCity != -1) s.setPalace(targetCity);
-			s.session_ready(session.rpc.state,this);
+			initBar(0);
+			initBar(1);
+			initBar(2);
+			initBar(3);
 			loaded = true;
 			updateMaxRes();
-			changeCity.session_ready(session.state, this);
 		}
 		updateCarts();
 	}
-	private void initBar(final int pos, int id, int id2) {
-		final SeekBar b = (SeekBar) findViewById(id);
-		final EditText e = (EditText) findViewById(id2);
-		b.setMax(session.rpc.state.currentCity.getResourceCount(session.rpc.state, pos));
+	private void initBar(final int pos) {
+		final SeekBar b = bars[pos].seeker;
+		final EditText e = bars[pos].editor;
+		b.setMax(parent.session.state.currentCity.getResourceCount(parent.session.state, pos));
 		b.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
 			@Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
 				if (fromUser) {
@@ -118,24 +151,24 @@ public class SendTrade extends SessionUser implements CitySelected, GotOrderTarg
 				targets[pos] = val;
 			}
 		});
-		updateBar(pos,id,id2);
+		updateBar(pos);
 	}
 	private void tweakMax(int pos) {
-		if (pos != 0) updateBar(0,R.id.setWood,R.id.showWood);
-		if (pos != 1) updateBar(1,R.id.setStone,R.id.showStone);
-		if (pos != 2) updateBar(2,R.id.setIron,R.id.showIron);
-		if (pos != 3) updateBar(3,R.id.setFood,R.id.showFood);
+		if (pos != 0) updateBar(0);
+		if (pos != 1) updateBar(1);
+		if (pos != 2) updateBar(2);
+		if (pos != 3) updateBar(3);
 	}
-	private void updateBar(int pos,int id1,int id2) {
-		final SeekBar b = (SeekBar) findViewById(id1);
-		final EditText e = (EditText) findViewById(id2);
-		int resmax = session.rpc.state.currentCity.getResourceCount(session.rpc.state, pos);
+	private void updateBar(int pos) {
+		final SeekBar b = bars[pos].seeker;
+		final EditText e = bars[pos].editor;
+		int resmax = parent.session.state.currentCity.getResourceCount(parent.session.state, pos);
 		int capacityUsed = targets[0] + targets[1] + targets[2] + targets[3];
 		int val,maxcapacity;
 		if (byland) {
-			maxcapacity = (session.rpc.state.currentCity.freecarts * 1000) - capacityUsed;
+			maxcapacity = (parent.session.state.currentCity.freecarts * 1000) - capacityUsed;
 		} else {
-			maxcapacity = (session.rpc.state.currentCity.freeships * 10000) - capacityUsed;
+			maxcapacity = (parent.session.state.currentCity.freeships * 10000) - capacityUsed;
 		}
 		if (resmax > maxcapacity) val = maxcapacity;
 		else val = resmax;
@@ -145,10 +178,10 @@ public class SendTrade extends SessionUser implements CitySelected, GotOrderTarg
 	@Override public void selected(int x, int y) {
 		Log.v(TAG,String.format("selected %d:%d",x,y));
 		targetCity = Coord.toCityId(x, y);
-		((EditText)findViewById(R.id.x)).setText(""+x);
-		((EditText)findViewById(R.id.y)).setText(""+y);
+		this.x.setText(""+x);
+		this.y.setText(""+y);
 		//session.rpc.GetPublicCityInfo(targetCity, this);
-		session.rpc.GetOrderTargetInfo(session.rpc.state.currentCity,x,y,this);
+		parent.session.rpc.GetOrderTargetInfo(parent.session.state.currentCity,x,y,this);
 	}
 	@Override public void done(OrderTargetInfo p) {
 		if (p.alliance != null) {
@@ -160,8 +193,8 @@ public class SendTrade extends SessionUser implements CitySelected, GotOrderTarg
 		city.setText(p.cityname);
 		
 		int speedone;
-		if (byland) speedone = session.rpc.state.tradeSpeedland;
-		else speedone = session.rpc.state.tradeSpeedShip;
+		if (byland) speedone = parent.session.state.tradeSpeedland;
+		else speedone = parent.session.state.tradeSpeedShip;
 		float researchbonus = 0,shrinebonus = 0;
 		float speedtwo = speedone / ( 1 + researchbonus + shrinebonus);
 		double distance;
@@ -181,69 +214,72 @@ public class SendTrade extends SessionUser implements CitySelected, GotOrderTarg
 	public void sendTrade(View v) {
 		Log.v(TAG,"sending resources...");
 		int[] resources = {0,0,0,0};
-		resources[0] = ((SeekBar)findViewById(R.id.setWood)).getProgress();
-		resources[1] = ((SeekBar)findViewById(R.id.setStone)).getProgress();
-		resources[2] = ((SeekBar)findViewById(R.id.setIron)).getProgress();
-		resources[3] = ((SeekBar)findViewById(R.id.setFood)).getProgress();
-		session.rpc.TradeDirect(session.rpc.state.currentCity,resources,byland,targetPlayer,Coord.fromCityId(targetCity),palaceDonation,this);
+		resources[0] = bars[0].seeker.getProgress();
+		resources[1] = bars[1].seeker.getProgress();
+		resources[2] = bars[2].seeker.getProgress();
+		resources[3] = bars[3].seeker.getProgress();
+		parent.session.rpc.TradeDirect(parent.session.state.currentCity,resources,byland,targetPlayer,Coord.fromCityId(targetCity),palaceDonation,this);
 	}
 	@Override
 	public void done(int reply) {
 		// FIXME
 		// reply should be 0 for success
 		Log.v(TAG,"reply is "+reply);
-		TextView out = (TextView) findViewById(R.id.result);
-		if (reply == 0) out.setText("worked");
-		else out.setText("error "+reply);
-		session.rpc.pollSoon();
+		if (reply == 0) result.setText("worked");
+		else result.setText("error "+reply);
+		parent.session.rpc.pollSoon();
 	}
 	private void updateCarts() {
-		City city = session.rpc.state.currentCity;
-		((TextView)findViewById(R.id.cartCounts)).setText(String.format("%d/%d",city.freecarts,city.maxcarts));
-		((TextView)findViewById(R.id.shipCounts)).setText(String.format("%d/%d",city.freeships,city.maxships));
-		((TextView)findViewById(R.id.cartCapacity)).setText(String.format("%d",city.freecarts * 1000));
-		((TextView)findViewById(R.id.shipCapacity)).setText(String.format("%d",city.freeships * 10000));
+		City city = parent.session.state.currentCity;
+		cartCount.setText(String.format("%d/%d",city.freecarts,city.maxcarts));
+		shipCount.setText(String.format("%d/%d",city.freeships,city.maxships));
+		cartCap.setText(String.format("%d",city.freecarts * 1000));
+		shipCap.setText(String.format("%d",city.freeships * 10000));
 	}
 	public void onCityChanged() {
 		updateMaxRes();
-		updateBar(0,R.id.setWood,R.id.showWood);
-		updateBar(1,R.id.setStone,R.id.showStone);
-		updateBar(2,R.id.setIron,R.id.showIron);
-		updateBar(3,R.id.setFood,R.id.showFood);
+		updateBar(0);
+		updateBar(1);
+		updateBar(2);
+		updateBar(3);
 		// FIXME, re-run selected() for new distance, and parts of initBar to update max
-		TextView out = (TextView) findViewById(R.id.result);
-		out.setText("city changed");
+		result.setText("city changed");
 	}
 	public void gotCityData() {
 		// FIXME, run parts of initBar to update max
 		updateCarts();
 		updateMaxRes();
-		updateBar(0,R.id.setWood,R.id.showWood);
-		updateBar(1,R.id.setStone,R.id.showStone);
-		updateBar(2,R.id.setIron,R.id.showIron);
-		updateBar(3,R.id.setFood,R.id.showFood);
+		updateBar(0);
+		updateBar(1);
+		updateBar(2);
+		updateBar(3);
 	}
 	private void updateMaxRes() {
-		LouState state = session.rpc.state;
+		LouState state = parent.session.state;
 		City c = state.currentCity;
-		setField(R.id.maxWood,c.getResourceCount(state, 0));
-		setField(R.id.maxStone,c.getResourceCount(state, 1));
-		setField(R.id.maxIron,c.getResourceCount(state, 2));
-		setField(R.id.maxFood,c.getResourceCount(state, 3));
+		// FIXME
+		setField(0,c.getResourceCount(state, 0));
+		setField(1,c.getResourceCount(state, 1));
+		setField(2,c.getResourceCount(state, 2));
+		setField(3,c.getResourceCount(state, 3));
 	}
-	private void setField(int id, int value) {
-		((TextView)findViewById(id)).setText("/"+Utils.NumberFormat(value));
+	private void setField(int pos, int value) {
+		bars[pos].max.setText("/"+Utils.NumberFormat(value));
 	}
 	public void landChanged(View v) {
 		byland = byLand.isChecked();
-		updateBar(0,R.id.setWood,R.id.showWood);
-		updateBar(1,R.id.setStone,R.id.showStone);
-		updateBar(2,R.id.setIron,R.id.showIron);
-		updateBar(3,R.id.setFood,R.id.showFood);
+		updateBar(0);
+		updateBar(1);
+		updateBar(2);
+		updateBar(3);
 		Coord c = Coord.fromCityId(targetCity);
 		this.selected(c.x,c.y); // FIXME, reuse data from GetOrderTargetInfo
 	}
 	public void palaceChanged(View v) {
 		palaceDonation = palace.isChecked();
+	}
+	@Override
+	public void onClick(View arg0) {
+		sendTrade(arg0);
 	}
 }

@@ -39,7 +39,6 @@ public class FragmentSplitter extends LinearLayout {
 			if (orientation == HORIZONTAL) {
 				secondary.measure(MeasureSpec.makeMeasureSpec(width/2,MeasureSpec.EXACTLY), heightMeasureSpec);
 				main.measure(MeasureSpec.makeMeasureSpec(width/2,MeasureSpec.EXACTLY), heightMeasureSpec);
-				Log.v(TAG,"secondary kids "+secondary.getChildCount());
 			} else {
 				secondary.measure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(height/2,MeasureSpec.EXACTLY));
 				main.measure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(height/2,MeasureSpec.EXACTLY));
