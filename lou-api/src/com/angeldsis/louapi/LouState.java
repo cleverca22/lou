@@ -46,6 +46,7 @@ public class LouState {
 	// FIXME, maybe move this elsewhere?
 	private static final int[] types = { UnitCount.ZERK, UnitCount.PALADIN };
 	public ArrayList<Coord> recentBosses;
+	private JSONArray config; // FIXME, use a map?
 
 	public LouState() {
 		init();
@@ -68,7 +69,7 @@ public class LouState {
 		return cities.get(cityid);
 	}
 	public void processPlayerInfo(JSONObject obj) throws JSONException {
-		// FIXME, shouldnt rebuild the entire array on each pass
+		// FIXME, shouldn't rebuild the entire array on each pass
 		//Log.v(TAG,obj.toString(1));
 		JSONArray cities = obj.getJSONArray("Cities");
 		int x;
@@ -100,6 +101,9 @@ public class LouState {
 		// FIXME should i lock it out like the real client?
 		// refer to webfrontend.gui.EndSubstitutionWidget.js for more info
 		Log.v(TAG,"sl:"+sl+" s:"+s);
+		
+		// an array of n=string v=string objects
+		config = obj.getJSONArray("c");
 	}
 	public class City implements Comparable<Integer> {
 		private static final String TAG = "City";
@@ -609,5 +613,18 @@ public class LouState {
 	public float getInfantrySpeed() {
 		// FIXME, use the proper values based on virtues and research
 		return (18 * 60) + 46; // 18mins 46sec per field, my current tech from w96
+	}
+	public String getConfig(String name) {
+		int i;
+		try {
+			for (i=0; i<config.length(); i++) {
+				JSONObject entry = config.getJSONObject(i);
+				String key = entry.getString("n");
+				if (key.equals(name)) return entry.getString("v");
+			}
+		} catch (JSONException e) {
+			return null;
+		}
+		return null;
 	}
 }

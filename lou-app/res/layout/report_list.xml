@@ -20,9 +20,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:indeterminate="true" />
-
         </LinearLayout>
-
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -37,11 +35,155 @@
                 android:onClick="doExport"
                 android:text="@string/export" />
 
-        <ListView
-            android:id="@+id/reports"
-            android:layout_width="match_parent"
-            android:layout_height="fill_parent" >
-        </ListView>
+            <ListView
+                android:id="@+id/reports"
+                android:layout_width="match_parent"
+                android:layout_height="fill_parent"
+                android:layout_weight="1" >
+
+            </ListView>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" >
+
+                <TextView
+                    android:id="@+id/textView1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="right"
+                    android:text="@string/filters"
+                    android:textAppearance="?android:attr/textAppearanceMedium" />
+
+                <TableLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" >
+
+                    <TableRow
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" >
+
+                        <CheckBox
+                            android:id="@+id/read"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/read" />
+
+                        <CheckBox
+                            android:id="@+id/unread"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/unread" />
+
+                    </TableRow>
+
+                    <TableRow
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" >
+
+                        <CheckBox
+                            android:id="@+id/incoming"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/incoming" />
+
+                        <CheckBox
+                            android:id="@+id/outgoing"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/outgoing" />
+
+                        <CheckBox
+                            android:id="@+id/skirmish"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/skirmish" />
+
+                    </TableRow>
+
+                    <TableRow
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" >
+
+                        <CheckBox
+                            android:id="@+id/plunder"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/plunder" />
+
+                        <CheckBox
+                            android:id="@+id/assault"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/assault" />
+
+                        <CheckBox
+                            android:id="@+id/seige"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/seige" />
+
+                    </TableRow>
+
+                    <TableRow
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" >
+
+                        <CheckBox
+                            android:id="@+id/support"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/support" />
+
+                        <CheckBox
+                            android:id="@+id/scout"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/scout" />
+
+                        <CheckBox
+                            android:id="@+id/trade"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/trade" />
+
+                    </TableRow>
+
+                    <TableRow
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" >
+
+                        <CheckBox
+                            android:id="@+id/raid_boss"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/raid_boss" />
+
+                        <CheckBox
+                            android:id="@+id/raid_dungeon"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/raid_dungeon" />
+
+                        <CheckBox
+                            android:id="@+id/other_reports"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/other_reports" />
+
+                    </TableRow>
+
+                </TableLayout>
+
+                <CheckBox
+                    android:id="@+id/select_all"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/select_all_filters" />
+
+            </LinearLayout>
+
         </LinearLayout>
 
     </ViewSwitcher>

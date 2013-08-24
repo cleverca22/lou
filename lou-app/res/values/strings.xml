@@ -71,4 +71,21 @@
     <string name="req_sub">Requesting Substitute:</string>
     <string name="cancel">Cancel</string>
     <string name="app_version">App Version:</string>
+    <string name="repeat_x_times">Repeat %d times</string>
+    <string name="filters">Filters</string>
+    <string name="read">Read</string>
+    <string name="unread">Unread</string>
+    <string name="incoming">Incoming</string>
+    <string name="outgoing">Outgoing</string>
+    <string name="skirmish">Skirmish</string>
+    <string name="plunder">Plunder</string>
+    <string name="assault">Assault</string>
+    <string name="seige">Seige</string>
+    <string name="support">Support</string>
+    <string name="scout">Scout</string>
+    <string name="trade">Trade</string>
+    <string name="raid_boss">Raid boss</string>
+    <string name="raid_dungeon">Raid Dungeon</string>
+    <string name="other_reports">Other Reports</string>
+    <string name="select_all_filters">Select all filters</string>
 </resources>
