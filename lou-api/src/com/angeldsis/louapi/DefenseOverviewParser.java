@@ -30,7 +30,7 @@ public class DefenseOverviewParser {
 				//Log.v(TAG,"item2:"+item2.toString());
 				JSONArray units = item2.getJSONArray("u");
 				if (city.units == null) {
-					city.units = new UnitCount[20];
+					city.units = new UnitCount[78];
 				}
 				// FIXME, find the right entry, rather then nuke it
 				for (x=0; x<units.length(); x++) {
