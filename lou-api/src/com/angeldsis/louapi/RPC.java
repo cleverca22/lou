@@ -1308,7 +1308,13 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			buildQueueParser = null;
 		}
 	}
-	public void OrderUnits(final City city, final JSONArray units, final Coord target, final int raidTimeReferenceType, final OrderUnitsCallback cb) {
+	public static class NewOrder {
+		public int repeat;
+		public NewOrder() {
+			repeat = 1;
+		}
+	}
+	public void OrderUnits(final City city, final JSONArray units, final Coord target, final int raidTimeReferenceType, final OrderUnitsCallback cb, final NewOrder order) {
 		post(new Runnable() {
 			public void run() {
 				JSONObject obj = new JSONObject();
@@ -1325,7 +1331,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 					obj.put("raidTimeReferenceType",raidTimeReferenceType); // 0normal, 1 repeat until done
 					obj.put("raidReferenceTimeUTCMillis", 0);
 					obj.put("iUnitOrderOptions", 0);
-					obj.put("iOrderCountRaid", 1);
+					obj.put("iOrderCountRaid", order.repeat);
 					Log.v(TAG,"OrderUnits:"+obj.toString());
 					doRPC("OrderUnits",obj,new RPCCallback() {
 						void requestDone(rpcreply r) throws JSONException {
