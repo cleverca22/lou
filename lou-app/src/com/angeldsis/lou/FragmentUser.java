@@ -37,6 +37,7 @@ public class FragmentUser extends FragmentActivity implements Callbacks, Session
 	public AccountWrap acct;
 	private ArrayList<FragmentBase> hooks = new ArrayList<FragmentBase>();
 	Handler handler = new Handler();
+	boolean stopped = true;
 	
 	private ServiceConnection mConnection = new ServiceConnection() {
 		public void onServiceConnected(ComponentName className, IBinder service) {
@@ -59,14 +60,16 @@ public class FragmentUser extends FragmentActivity implements Callbacks, Session
 		setTheme(SessionUser.getCurrentTheme(this));
 	}
 	protected void onStart() {
-		super.onStart();
 		Log.v(TAG,"onStart");
+		super.onStart();
 		Intent intent2 = new Intent(this,SessionKeeper.class);
+		stopped = false;
 		bindService(intent2,mConnection,BIND_AUTO_CREATE);
 	}
 	protected void onStop() {
-		super.onStop();
 		Log.v(TAG,"onStop");
+		stopped = true;
+		super.onStop();
 		if (mBound) {
 			if (session != null) {
 				session.unsetCallback(this);
@@ -84,10 +87,15 @@ public class FragmentUser extends FragmentActivity implements Callbacks, Session
 				finish();
 				return;
 			}
+			if (stopped) throw new IllegalStateException("wtf?");
 			session.setCallback(this);
 			Log.v(TAG,"calling session ready");
 			handler.post(new Runnable() {
 				@Override public void run() {
+					if (stopped) {
+						Log.v(TAG,"oops, ran while stopped");
+						return;
+					}
 					Log.v(TAG,"session ready time!");
 					session_ready();
 				}

@@ -18,6 +18,7 @@ import android.widget.TableRow;
 import android.widget.TextView;
 
 public class IncomingAttacks extends SessionUser {
+	// FIXME, use an adapter
 	private static final String TAG = "IncomingAttacks";
 	TextView city;
 	public void onCreate(Bundle bundle) {

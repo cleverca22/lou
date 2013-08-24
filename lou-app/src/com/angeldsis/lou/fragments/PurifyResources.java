@@ -57,7 +57,12 @@ public class PurifyResources extends FragmentBase {
 					int x;
 					for (x=0;x<4;x++) {
 						EditText et = (EditText) vg.findViewById(inputs[x]);
-						int count = Integer.parseInt(et.getText().toString());
+						int count;
+						try {
+							count = Integer.parseInt(et.getText().toString());
+						} catch (NumberFormatException e) {
+							count = 0;
+						}
 						if (count > 0) {
 							JSONObject item = new JSONObject();
 							item.put("t", x+1);

@@ -699,6 +699,7 @@ public class SessionKeeper extends Service {
 			@Override
 			protected result doInBackground(Object... arg0) {
 				result r = session2.check_cookie(username);
+				if (r == null) throw new IllegalStateException("r was null?");
 				Log.v(TAG,"r is "+r);
 				return r;
 			}

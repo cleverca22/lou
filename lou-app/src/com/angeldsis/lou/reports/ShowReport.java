@@ -60,6 +60,7 @@ public class ShowReport extends SessionUser implements ReportCallback {
 				setField(R.id.when,(new Date(report.reportHeader.timestamp)).toString());
 				setField(R.id.objType,report.objType);
 				setField(R.id.type,"type:"+report.reportHeader.generalType+" "+report.reportHeader.combatType);
+				// FIXME, handle things better
 				setupHalf(side1,report.attacker,R.string.trapped);
 				setupHalf(side2,report.defender,R.string.fortified);
 				break;
