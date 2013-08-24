@@ -14,6 +14,10 @@ public class MyTableRow extends LinearLayout {
 			if (width > widths[i]) widths[i] = width;
 			//Log.v(TAG,"width: "+widths[i]);
 			return widths[i] + 10;
+		}
+		public void reset() {
+			int i;
+			for (i=0; i<15; i++) widths[i] = 0;
 		}}
 	public MyTableRow(Context context, AttributeSet attrs) {
 		super(context, attrs);

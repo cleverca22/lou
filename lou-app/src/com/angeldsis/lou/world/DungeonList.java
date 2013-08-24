@@ -17,6 +17,8 @@ import com.angeldsis.louapi.world.WorldParser.MapItem;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -102,7 +104,7 @@ public class DungeonList extends WorldUser implements OnItemClickListener, OnIte
 				//if (d.type != 4) continue; // only mountains
 			}
 		}
-		Log.v(TAG,"found "+allItems.size()+" items");
+		//Log.v(TAG,"found "+allItems.size()+" items");
 		MapItem[] list2 = new MapItem[allItems.size()];
 		allItems.toArray(list2);
 		if (filter == dungeonFilter) {
@@ -222,11 +224,23 @@ public class DungeonList extends WorldUser implements OnItemClickListener, OnIte
 		MapItem item = adapter.getItem(position);
 		if (item instanceof Dungeon) {
 			Dungeon d = (Dungeon) item;
-			Intent i = new Intent(parent,SendAttack.class);
-			i.putExtras(parent.acct.toBundle());
-			i.putExtra("target", d.location.toCityId());
-			i.putExtra("maxloot", d.getloot());
-			startActivity(i);
+			
+			FragmentTransaction trans = getActivity().getSupportFragmentManager().beginTransaction();
+			trans.addToBackStack(null);
+			
+			trans.remove(this);
+			Fragment leftFragment = new DungeonList();
+			// FIXME, persist state
+			trans.replace(R.id.second_frame, leftFragment);
+			
+			Fragment rightFragment = new SendAttack();
+			Bundle rightArgs = new Bundle();
+			rightArgs.putInt("target", d.location.toCityId());
+			rightArgs.putInt("maxloot", d.getloot());
+			rightFragment.setArguments(rightArgs);
+			trans.replace(R.id.main_frame, rightFragment);
+			
+			trans.commit();
 		}
 		if (item instanceof Boss) {
 			Boss b = (Boss) item;
@@ -271,6 +285,7 @@ public class DungeonList extends WorldUser implements OnItemClickListener, OnIte
 		case 3:
 			filter = bossFilter;
 		}
+		params.reset();
 		cellUpdated(null);
 	}
 	interface Filter {
