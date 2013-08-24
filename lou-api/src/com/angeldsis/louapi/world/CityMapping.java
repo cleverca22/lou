@@ -11,7 +11,6 @@ public class CityMapping extends MapItem {
 	public boolean Castle,Water,Enlighted,PalaceUpgradeing;
 	public String name;
 	public int i;
-	public Coord location;
 	public PlayerMapping playerLink;
 	public CityMapping(int i, BaseLou y, int col, int row, Cell cell) throws Exception {
 		this.i = i;
