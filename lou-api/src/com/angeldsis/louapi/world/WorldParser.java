@@ -207,7 +207,7 @@ public class WorldParser {
 			}
 			s.location = new Coord(cell.getFineCol() + finecol,cell.getFineRow() + finerow);
 			s.type = y.readByte();
-			Log.v(TAG,String.format("SHRINE %s type:%d",s.location.format(),s.type));
+			//Log.v(TAG,String.format("SHRINE %s type:%d",s.location.format(),s.type));
 			break;
 		case 6: // lawless
 			LawlessCity lc = (LawlessCity) cell.objects[fineid];
