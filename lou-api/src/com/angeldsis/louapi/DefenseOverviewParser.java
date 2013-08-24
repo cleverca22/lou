@@ -19,7 +19,7 @@ public class DefenseOverviewParser {
 		int i,j,x;
 		for (i=0; i<jsonArray.length();i++) {
 			JSONObject item = jsonArray.getJSONObject(i);
-			Log.v(TAG,"item:"+item.toString());
+			//Log.v(TAG,"item:"+item.toString());
 			int id = item.getInt("i");
 			City city = rpc.state.findCityById(id);
 			JSONArray c = item.getJSONArray("c");
@@ -27,7 +27,7 @@ public class DefenseOverviewParser {
 				JSONObject item2 = c.getJSONObject(j);
 				int id2 = item2.getInt("i");
 				if (id2 != 0) continue;
-				Log.v(TAG,"item2:"+item2.toString());
+				//Log.v(TAG,"item2:"+item2.toString());
 				JSONArray units = item2.getJSONArray("u");
 				if (city.units == null) {
 					city.units = new UnitCount[20];
