@@ -26,10 +26,12 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ListView;
 import android.widget.TextView;
 
-public class EnlightenedCityList extends FragmentBase {
+public class EnlightenedCityList extends FragmentBase implements OnCheckedChangeListener {
 	private static final String TAG = "EnlightenedCityList";
 	MyTableRow.LayoutParameters params;
 	CityList adapter;
@@ -50,6 +52,8 @@ public class EnlightenedCityList extends FragmentBase {
 		list.setAdapter(adapter);
 		resourceBar = (ResourceBar) root.findViewById(R.id.resourceBar);
 		avail_carts = (TextView)root.findViewById(R.id.avail_carts);
+		CheckBox filter = (CheckBox)root.findViewById(R.id.filter);
+		filter.setOnCheckedChangeListener(this);
 		
 		if ((sis == null) && (initial)) {
 			initial = false;
@@ -138,6 +142,7 @@ public class EnlightenedCityList extends FragmentBase {
 			}
 			
 			holder.city = getItem(position);
+			if (holder.city == null) throw new IllegalStateException("item "+position+" was null");
 			Coord coord = Coord.fromCityId(holder.city.id);
 			holder.level.setText(""+holder.city.palace_level);
 			holder.coord.setText(coord.format());
@@ -214,5 +219,8 @@ public class EnlightenedCityList extends FragmentBase {
 		Intent i = new Intent(context,EnlightenedCityList.class);
 		i.putExtras(acct.toBundle());
 		return i;
+	}
+	@Override public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+		filterChanged(buttonView);
 	}
 }

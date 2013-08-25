@@ -87,7 +87,10 @@ public class FragmentUser extends FragmentActivity implements Callbacks, Session
 				finish();
 				return;
 			}
-			if (stopped) throw new IllegalStateException("wtf?");
+			if (stopped) {
+				Log.v(TAG,"check state ran after a stop?");
+				return;
+			}
 			session.setCallback(this);
 			Log.v(TAG,"calling session ready");
 			handler.post(new Runnable() {
