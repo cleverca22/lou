@@ -68,8 +68,10 @@ public class ReportHeader {
 			return "alliance something "+objType;
 		case Report.types.general.city:
 			return l+": city something";
+		case Report.types.general.trade:
+			return generalType+" "+combatType+" "+l+": trade something "+p;
 		}
-		return generalType+" "+combatType+" "+l+": Plundered by "+p;
+		return generalType+" "+combatType+" "+l+": unknown type "+p;
 	}
 	public Date getTime() {
 		return new Date(timestamp);
