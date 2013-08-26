@@ -143,7 +143,9 @@ public class CityView extends SessionUser implements Callbacks, LayoutCallbacks 
 					build.setVisible(false);
 					upgrade.setVisible(false);
 					visible.setVisible(false);
-					if (mTest.mTest != null) mTest.mTest.clearSelection();
+					if (mTest == null) return;
+					if (mTest.mTest == null) return;
+					mTest.mTest.clearSelection();
 				}
 			});
 			return true;

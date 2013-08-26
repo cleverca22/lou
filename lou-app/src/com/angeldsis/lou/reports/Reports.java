@@ -72,22 +72,32 @@ public class Reports extends SessionUser implements ReportHeaderCallback, OnItem
 	@Override
 	public void session_ready() {
 		String uireports = session.state.getConfig("ur");
-		JSONObject config;
-		try {
-			config = (JSONObject) new JSONTokener(uireports).nextValue();
-			JSONArray filterCheckBoxValues = config.getJSONArray("filterCheckBoxValues");
+		if (uireports == null) {
 			int i;
 			for (i=0; i<filterCheckboxes.length; i++) {
-				filterCheckboxes[i].setChecked(filterCheckBoxValues.getBoolean(i));
+				filterCheckboxes[i].setChecked(true);
 			}
-			JSONArray directionCheckBoxValues = config.getJSONArray("directionCheckBoxValues");
-			incoming.setChecked(directionCheckBoxValues.getBoolean(0));
-			outgoing.setChecked(directionCheckBoxValues.getBoolean(1));
-			Log.v(TAG,"uireports:"+config.toString(1));
+			incoming.setChecked(true);
+			outgoing.setChecked(true);
 			activeMask = getMask();
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} else {
+			try {
+				JSONObject config;
+				config = (JSONObject) new JSONTokener(uireports).nextValue();
+				JSONArray filterCheckBoxValues = config.getJSONArray("filterCheckBoxValues");
+				int i;
+				for (i=0; i<filterCheckboxes.length; i++) {
+					filterCheckboxes[i].setChecked(filterCheckBoxValues.getBoolean(i));
+				}
+				JSONArray directionCheckBoxValues = config.getJSONArray("directionCheckBoxValues");
+				incoming.setChecked(directionCheckBoxValues.getBoolean(0));
+				outgoing.setChecked(directionCheckBoxValues.getBoolean(1));
+				Log.v(TAG,"uireports:"+config.toString(1));
+				activeMask = getMask();
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		this.tz = session.rpc.state.tz;
 		refresh();
