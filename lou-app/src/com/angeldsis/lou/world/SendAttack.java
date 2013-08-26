@@ -177,6 +177,7 @@ public class SendAttack extends FragmentBase implements OrderUnitsCallback, OnSe
 			holder.data = getItem(position);
 			
 			switch (holder.data.t) {
+			case 3: holder.name.setText("rangers");break;
 			case 6: holder.name.setText("zerks");break;
 			default: holder.name.setText("FIXME"+holder.data.t);
 			}
