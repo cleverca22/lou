@@ -222,6 +222,7 @@ public class Webview extends Fragment implements CookieCallback {
 		public int pathid;
 	}
 	@Override public void done(com.angeldsis.louapi.LouSession.result r) {
+		if (paused) return;
 		Log.v(TAG,"done?");
 		if (r.worked) {
 			Log.v(TAG,"worked");
@@ -230,7 +231,6 @@ public class Webview extends Fragment implements CookieCallback {
 				Log.v(TAG,"abort, abort!");
 				return;
 			}
-			if (paused == true) throw new IllegalStateException("done ran while paused");
 			FragmentTransaction trans = activity.getSupportFragmentManager().beginTransaction();
 			trans.replace(R.id.main_frame, new ServerList());
 			trans.commit();

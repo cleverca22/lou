@@ -221,34 +221,38 @@ public class DungeonList extends WorldUser implements OnItemClickListener, OnIte
 	}
 	@Override
 	public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3) {
+		Fragment right;
 		MapItem item = adapter.getItem(position);
+		FragmentTransaction trans = getActivity().getSupportFragmentManager().beginTransaction();
+
+		trans.addToBackStack(null);
+		
+		Fragment leftFragment = new DungeonList();
+		// FIXME, persist state
+		trans.replace(R.id.second_frame, leftFragment);
+
+		Bundle args = new Bundle();
+		args.putInt("target", item.location.toCityId());
+
 		if (item instanceof Dungeon) {
 			Dungeon d = (Dungeon) item;
 			
-			FragmentTransaction trans = getActivity().getSupportFragmentManager().beginTransaction();
-			trans.addToBackStack(null);
-			
-			trans.remove(this);
-			Fragment leftFragment = new DungeonList();
-			// FIXME, persist state
-			trans.replace(R.id.second_frame, leftFragment);
-			
-			Fragment rightFragment = new SendAttack();
-			Bundle rightArgs = new Bundle();
-			rightArgs.putInt("target", d.location.toCityId());
-			rightArgs.putInt("maxloot", d.getloot());
-			rightFragment.setArguments(rightArgs);
-			trans.replace(R.id.main_frame, rightFragment);
+			right = new SendAttack();
+			args.putInt("maxloot", d.getloot());
+			right.setArguments(args);
+			trans.replace(R.id.main_frame, right);
 			
 			trans.commit();
 		}
 		if (item instanceof Boss) {
 			Boss b = (Boss) item;
-			Intent i = new Intent(parent,SendAttack.class);
-			i.putExtras(parent.acct.toBundle());
-			i.putExtra("target", b.location.toCityId());
-			i.putExtra("zerks", b.getZerks());
-			startActivity(i);
+			
+			right = new SendAttack();
+			args.putInt("zerks", b.getZerks());
+			right.setArguments(args);
+			trans.replace(R.id.main_frame,right);
+			
+			trans.commit();
 		}
 		// FIXME, allow settling lawless, plundering cities, and assaulting castles
 	}
