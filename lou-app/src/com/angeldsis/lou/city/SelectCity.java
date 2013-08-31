@@ -135,6 +135,7 @@ public class SelectCity extends FragmentBase implements OnItemSelectedListener {
 		
 		if (sis != null) {
 			groupRestore = sis.getInt("group");
+			mode = sis.getInt("mode");
 			Log.v("SelectCity","i have saved state");
 		}
 		return top;
@@ -172,6 +173,7 @@ public class SelectCity extends FragmentBase implements OnItemSelectedListener {
 	@Override public void onSaveInstanceState(Bundle sis) {
 		super.onSaveInstanceState(sis);
 		sis.putInt("group", groupSpinner.getSelectedItemPosition());
+		sis.putInt("mode", mode);
 		Exception e = new Exception();
 		e.printStackTrace();
 	}

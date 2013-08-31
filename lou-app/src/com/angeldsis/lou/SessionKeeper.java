@@ -347,7 +347,7 @@ public class SessionKeeper extends Service {
 				state.disableVis(); // FIXME, move this into the onStop of anything using vis
 				cb = null;
 			}
-			saveState();
+			if (!loggingIn) saveState();
 		}
 		private String getStateName(int playerid) {
 			return String.format("state_save_w%d_p%d",acct.worldid,playerid);
