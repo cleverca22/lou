@@ -13,8 +13,12 @@ import android.view.ViewGroup;
 import android.widget.Button;
 
 public class DisconnectedDialog extends DialogFragment {
-	public static DisconnectedDialog newInstance() {
-		return new DisconnectedDialog();
+	public static DisconnectedDialog newInstance(String code) {
+		DisconnectedDialog f = new DisconnectedDialog();
+		Bundle args = new Bundle();
+		args.putString("code", code); // FIXME, use this field in the dialog
+		f.setArguments(args);
+		return f;
 	}
 	@Override public void onCreate(Bundle sis) {
 		super.onCreate(sis);

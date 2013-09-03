@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
@@ -45,6 +46,7 @@ import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.support.v4.app.NotificationCompat;
@@ -61,6 +63,7 @@ public class SessionKeeper extends Service {
 	public static LouSession session2;
 	PowerManager.WakeLock wl,doing_network;
 	RpcLogs rpclogs;
+	Handler handler;
 	/* basic wakelock logic
 	 * when any worker thread goes idle (between calling setTimer and Thread.sleep)
 	 * it will check to see if others are active, if everything is going idle, the wakelock gets released
@@ -140,6 +143,7 @@ public class SessionKeeper extends Service {
 		wakeSelf = PendingIntent.getService(this,0,i,0);
 		rpclogs = new RpcLogs(this);
 		config = this.getSharedPreferences("accounts", MODE_PRIVATE);
+		handler = new Handler();
 	}
 	@Override
 	public void onDestroy() {
@@ -147,6 +151,7 @@ public class SessionKeeper extends Service {
 		Log.v(TAG,this+" onDestroyed");
 		self = null;
 		config = null;
+		handler = null;
 	}
 	public static SessionKeeper getInstance() {
 		return self;
@@ -183,6 +188,7 @@ public class SessionKeeper extends Service {
 		return START_NOT_STICKY;
 	}
 	private boolean foregroundmode = false;
+	private AsyncTask<Void, Void, Session> desync;
 	private void updateNotification() {
 		TaskStackBuilder stackBuilder = null;
 		Bundle options = null;
@@ -342,12 +348,27 @@ public class SessionKeeper extends Service {
 		public void setCallback(Callbacks cb1) {
 			cb = cb1;
 		}
+		private boolean savingState = false;
+		private AsyncTask<Void,Void,Void> stateSaver;
 		public void unsetCallback(Callbacks cb1) {
 			if (cb == cb1) {
 				state.disableVis(); // FIXME, move this into the onStop of anything using vis
 				cb = null;
 			}
-			if (!loggingIn) saveState();
+			if (!loggingIn) {
+				if (savingState) return;
+				savingState = true;
+				stateSaver = new AsyncTask<Void,Void,Void>(){
+					@Override protected Void doInBackground(Void... params) {
+						saveState();
+						return null;
+					}
+					protected void onPostExecute(Void v) {
+						savingState = false;
+					}
+				};
+				stateSaver.execute();
+			}
 		}
 		private String getStateName(int playerid) {
 			return String.format("state_save_w%d_p%d",acct.worldid,playerid);
@@ -355,15 +376,13 @@ public class SessionKeeper extends Service {
 		private void saveState() {
 			Gson gson = new Gson();
 			FileOutputStream stateout;
-			Player self = state.self; // FIXME, to track down a null pointer
-			if (self == null) throw new IllegalStateException("unexpected null, alive:"+alive+" li:"+loggingIn);
+			Player self = state.self;
 			File source = SessionKeeper.this.getFileStreamPath(getStateName(self.getId())+".tmp");
 			try {
 				stateout = SessionKeeper.this.openFileOutput(getStateName(self.getId())+".tmp", MODE_PRIVATE);
-				String data1 = gson.toJson(this.state);
-				byte[] data2 = data1.getBytes();
-				stateout.write(data2);
-				stateout.close();
+				OutputStreamWriter writer = new OutputStreamWriter(stateout);
+				gson.toJson(this.state,writer);
+				writer.close();
 				File dest = SessionKeeper.this.getFileStreamPath(getStateName(self.getId()));
 				source.renameTo(dest);
 			} catch (ConcurrentModificationException e) {
@@ -377,6 +396,7 @@ public class SessionKeeper extends Service {
 			}
 		}
 		public void restoreState(int playerid) {
+			// this is now ran in a secondary thread, so it wont cause the UI to hang
 			FileInputStream state;
 			File source = SessionKeeper.this.getFileStreamPath(getStateName(playerid));
 			try {
@@ -384,19 +404,14 @@ public class SessionKeeper extends Service {
 				Gson gson = new Gson();
 				this.state = gson.fromJson(new InputStreamReader(state), LouState.class);
 				
-				Log.v(TAG,"state:"+this.state);
-				Log.v(TAG,"cities:"+this.state.cities);
 				Iterator<City> i = this.state.cities.values().iterator();
 				while (i.hasNext()) i.next().fix(this.state);
 			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (JsonSyntaxException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 				source.delete();
 			} catch (NullPointerException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 				source.delete();
 			}
@@ -404,8 +419,8 @@ public class SessionKeeper extends Service {
 		public void onPlayerData() {
 			if (cb != null) cb.onPlayerData();
 		}
-		public void onEjected() {
-			if (cb != null) cb.onEjected();
+		public void onEjected(String code) {
+			if (cb != null) cb.onEjected(code);
 			teardown();
 			mNotificationManager.notify(SessionKeeper.EJECTED | sessionid, disconnectBuilder.build());
 		}
@@ -511,7 +526,7 @@ public class SessionKeeper extends Service {
 			return cb != null;
 		}
 		public void logRequest(final int req, final int reply, final String func, final int nettime, final int parse1) {
-			rpc.handler.post(new Runnable() {
+			handler.post(new Runnable() {
 				public void run() {
 					rpclogs.logRequest(req,reply,func,nettime,parse1);
 				}
@@ -546,7 +561,11 @@ public class SessionKeeper extends Service {
 				
 				TaskStackBuilder stackBuilder = TaskStackBuilder.create(SessionKeeper.this);
 				// FIXME stackBuilder.addNextIntent(LouSessionMain.getIntent(acct, SessionKeeper.this));
-				stackBuilder.addNextIntent(EnlightenedCityList.getIntent(acct, SessionKeeper.this));
+				Bundle options = acct.toBundle();
+				options.putSerializable("fragment", EnlightenedCityList.class);
+				Intent intent = new Intent(SessionKeeper.this,SingleFragment.class);
+				intent.putExtras(options);
+				stackBuilder.addNextIntent(intent);
 				PendingIntent resultPendingIntent = stackBuilder
 						.getPendingIntent(EL_NOTIFY | sessionid, PendingIntent.FLAG_UPDATE_CURRENT);
 				elNotificationBuilder.setContentIntent(resultPendingIntent);
@@ -578,7 +597,9 @@ public class SessionKeeper extends Service {
 				
 				PendingIntent resultPendingIntent = stackBuilder
 						.getPendingIntent(FOOD_WARNING | sessionid, PendingIntent.FLAG_UPDATE_CURRENT);
-				foodWarning.setContentIntent(resultPendingIntent);
+				foodWarning.setContentIntent(resultPendingIntent)
+					.setContentTitle(String.format("W%d food warning",acct.worldid));
+
 
 				int hours = ((int)timeLeft/60/60);
 				if (hours > 0) foodWarning.setContentText(c.name +" runs out of food in "+hours+" hours");
@@ -597,7 +618,7 @@ public class SessionKeeper extends Service {
 			}
 		}
 		public void logPollRequest(final String c, final int reply_size) {
-			rpc.handler.post(new Runnable() {
+			handler.post(new Runnable() {
 				public void run() {
 					// FIXME, does sqlite inserts on MAIN thread!
 					// this is a hack to avoid concurrent inserts from multiple threads, throwing exceptions
@@ -605,6 +626,9 @@ public class SessionKeeper extends Service {
 					rpclogs.logPollRequest(c,reply_size);
 				}
 			});
+		}
+		public void runOnUiThread(Runnable r) {
+			handler.post(r);
 		}
 	}
 	public void setTimer(long maxdelay) {
@@ -629,14 +653,14 @@ public class SessionKeeper extends Service {
 		void cityListChanged();
 		/** called when the current city changes **/
 		void onCityChanged();
-		void onEjected();
+		void onEjected(String code);
 		void onPlayerData();
 		/** called when new chat messages arrive, return true to block the notification **/
 		boolean onChat(ArrayList<ChatMsg> d);
 		void gotCityData();
 		void tick();
 	}
-	public Session getSession(AccountWrap acct, boolean allow_login) {
+	public void getSession(final AccountWrap acct, boolean allow_login, final SessionGetter cb) {
 		Log.v(TAG,"getSession(world:"+acct.world+")");
 		if (mBuilder == null) {
 			mBuilder = new NotificationCompat.Builder(SessionKeeper.this).setSmallIcon(R.drawable.ic_launcher)
@@ -651,7 +675,6 @@ public class SessionKeeper extends Service {
 					.setAutoCancel(true)
 					.setVibrate(pattern);
 			foodWarning = new NotificationCompat.Builder(SessionKeeper.this).setSmallIcon(R.drawable.ic_launcher)
-					.setContentTitle("food warning")
 					.setContentText("FIXME")
 					.setAutoCancel(false)
 					.setVibrate(pattern).setDefaults(Notification.DEFAULT_SOUND);
@@ -680,17 +703,26 @@ public class SessionKeeper extends Service {
 			Session s = i.next();
 			if (s.sessionid == acct.id) {
 				Log.v(TAG,"found it");
-				return s;
+				cb.gotSession(s);
+				return;
 			}
 		}
 		if (allow_login) {
-			int playerid = config.getInt(session2.currentEmail+"_w"+acct.worldid, -1);
-			Session s2 = new Session(acct,lastSessionid++,playerid,true);
-			sessions.add(s2);
-			updateNotification();
-			refreshConfig();
-			return s2;
-		} else return null; // not a login page, fail out
+			final int playerid = config.getInt(session2.currentEmail+"_w"+acct.worldid, -1);
+			desync = new AsyncTask<Void,Void,Session>() {
+				@Override protected Session doInBackground(Void... params) {
+						Session s2 = new Session(acct,lastSessionid++,playerid,true);
+						return s2;
+					}
+					protected void onPostExecute(Session s2) {
+						sessions.add(s2);
+						updateNotification();
+						refreshConfig();
+						cb.gotSession(s2);
+					}
+				};
+			desync.execute();
+		} else cb.gotSession(null); // not a login page, fail out
 	}
 	public static void checkCookie(final CookieCallback cb, final String username) {
 		Log.v(TAG,"checkCookie");
@@ -758,9 +790,12 @@ public class SessionKeeper extends Service {
 				} else {
 					Log.v(TAG,reason+" leaving it locked "+anyActive);
 				}
-			} else {
+			} /*else {
 				Log.v(TAG,"lock not locked");
-			}
+			}*/
 		}
+	}
+	public interface SessionGetter {
+		void gotSession(Session sess);
 	}
 }

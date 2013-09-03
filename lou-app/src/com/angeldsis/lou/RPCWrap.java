@@ -17,11 +17,9 @@ import com.angeldsis.louapi.world.WorldParser.Cell;
 import com.angeldsis.louutil.HttpUtilImpl;
 
 public class RPCWrap extends RPC {
-	Handler handler = new Handler();
 	SessionKeeper.Session callbacks;
 	public RPCWrap(Account acct, LouState state,SessionKeeper.Session activity) {
 		super(acct, state,HttpUtilImpl.getInstance());
-		Log.v("RPCWrap","handler is "+handler);
 		this.callbacks = activity;
 	}
 	@Override
@@ -49,8 +47,8 @@ public class RPCWrap extends RPC {
 		callbacks.onPlayerData();
 	}
 	@Override
-	public void onEjected() {
-		callbacks.onEjected();
+	public void onEjected(String code) {
+		callbacks.onEjected(code);
 	}
 	@Override
 	public void onCityChanged() {
@@ -60,10 +58,8 @@ public class RPCWrap extends RPC {
 	public void cityListChanged() {
 		callbacks.cityListChanged();
 	}
-	@Override
-	public void runOnUiThread(Runnable r) {
-		//Log.v("RPCWrap","posting "+r+" to "+handler);
-		handler.post(r);
+	@Override public void runOnUiThread(Runnable r) {
+		callbacks.runOnUiThread(r);
 	}
 	@Override
 	public void onVisObjAdded(LouVisData[] v) {

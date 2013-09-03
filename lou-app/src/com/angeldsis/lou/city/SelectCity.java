@@ -105,9 +105,9 @@ public class SelectCity extends FragmentBase implements OnItemSelectedListener {
 	GroupAdapter groupAdapter;
 	CityAdapter cityAdapter;
 	Spinner groupSpinner,citySpinner;
+	int groupRestore = 0;
 	private int mode = -1;
 	private City[] cityList;
-	int groupRestore = 0;
 	public SelectCity() {
 		Log.v("SelectCity","constructor");
 	}
@@ -172,7 +172,7 @@ public class SelectCity extends FragmentBase implements OnItemSelectedListener {
 	}
 	@Override public void onSaveInstanceState(Bundle sis) {
 		super.onSaveInstanceState(sis);
-		sis.putInt("group", groupSpinner.getSelectedItemPosition());
+		sis.putInt("group", groupRestore);
 		sis.putInt("mode", mode);
 		Exception e = new Exception();
 		e.printStackTrace();

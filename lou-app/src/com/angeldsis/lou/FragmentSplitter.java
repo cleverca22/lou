@@ -58,7 +58,6 @@ public class FragmentSplitter extends LinearLayout {
 			main.layout(0, 0, width, height);
 		} else {
 			if (orientation == HORIZONTAL) {
-				Log.v(TAG,String.format("%d %d", width,height));
 				secondary.layout(0, 0, width/2, height);
 				main.layout(width/2, 0, width,height);
 			} else {

@@ -4,6 +4,8 @@ import java.util.ArrayList;
 
 import com.angeldsis.lou.SessionKeeper.Callbacks;
 import com.angeldsis.lou.SessionKeeper.MyBinder;
+import com.angeldsis.lou.SessionKeeper.Session;
+import com.angeldsis.lou.SessionKeeper.SessionGetter;
 import com.angeldsis.lou.home.DisconnectedDialog;
 import com.angeldsis.louapi.ChatMsg;
 import com.angeldsis.louapi.IncomingAttack;
@@ -29,7 +31,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
-@Deprecated public class SessionUser extends FragmentActivity implements Callbacks, SessionUser2 {
+@Deprecated public class SessionUser extends FragmentActivity implements Callbacks, SessionUser2, SessionGetter {
 	private static final String TAG = "SessionUser";
 	SessionKeeper mService;
 	boolean mBound;
@@ -63,17 +65,21 @@ import android.view.MenuItem;
 	}
 	void check_state() {
 		if (session == null) {
-			session = mService.getSession(acct,allow_login);
-			Log.v(TAG,this+" allow login: "+allow_login+" service "+session);
-			if (session == null) {
-				finish();
-				return;
-			}
-			session.setCallback(this);
-			Log.v(TAG,"calling session ready");
-			session_ready();
-			userActive();
+			mService.getSession(acct,allow_login,this);
 		}
+	}
+	@Override
+	public void gotSession(Session sess) {
+		session = sess;
+		Log.v(TAG,this+" allow login: "+allow_login+" service "+session);
+		if (session == null) {
+			finish();
+			return;
+		}
+		session.setCallback(this);
+		Log.v(TAG,"calling session ready");
+		session_ready();
+		userActive();
 	}
 	public void session_ready() {
 		onCityChanged();
@@ -118,7 +124,7 @@ import android.view.MenuItem;
 	/** ignore the event for most, if any subclass needs it, override
 	 */
 	@Override public boolean onChat(ArrayList<ChatMsg> d) { return false; }
-	public void onEjected() {
+	@Override public void onEjected(String code) {
 		// keep in sync with FragmentUser.onEjected
 		Log.v(TAG,"you have been logged out");
 		// FIXME give a better error
@@ -126,7 +132,7 @@ import android.view.MenuItem;
 		Fragment prev = getSupportFragmentManager().findFragmentByTag("dialog");
 		if (prev != null) ft.remove(prev);
 		ft.addToBackStack(null);
-		DialogFragment f = DisconnectedDialog.newInstance();
+		DialogFragment f = DisconnectedDialog.newInstance(code);
 		f.show(ft, "dialog");
 	}
 	public void onPlayerData() {}

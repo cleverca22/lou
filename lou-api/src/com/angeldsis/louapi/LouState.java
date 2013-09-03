@@ -48,7 +48,12 @@ public class LouState {
 	public ArrayList<Coord> recentBosses;
 	private JSONArray config; // FIXME, use a map?
 	public CityGroup[] groups;
-
+	public States accountState;
+	
+	public enum States {
+		NEW, VALID
+	}
+	
 	public LouState() {
 		init();
 	}
@@ -93,7 +98,13 @@ public class LouState {
 			cityout.location = Coord.fromCityId(cityid);
 			this.cities.put(cityid,cityout);
 		}
-		currentCity = this.cities.values().iterator().next(); // FIXME
+		if (this.cities.size() > 0) {
+			currentCity = this.cities.values().iterator().next(); // FIXME
+			accountState = States.VALID;
+		} else {
+			currentCity = null;
+			accountState = States.NEW;
+		}
 		AllianceId = obj.getInt("AllianceId");
 		if (AllianceId > 0) AllianceName = obj.getString("AllianceName");
 		self = Player.get(obj.optInt("Id"),obj.getString("Name"));

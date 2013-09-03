@@ -5,6 +5,8 @@ import java.util.Iterator;
 
 import com.angeldsis.lou.SessionKeeper.Callbacks;
 import com.angeldsis.lou.SessionKeeper.MyBinder;
+import com.angeldsis.lou.SessionKeeper.Session;
+import com.angeldsis.lou.SessionKeeper.SessionGetter;
 import com.angeldsis.lou.home.DisconnectedDialog;
 import com.angeldsis.louapi.ChatMsg;
 import com.angeldsis.louapi.IncomingAttack;
@@ -28,7 +30,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 
 // FIXME, add action bar stuff
-public class FragmentUser extends FragmentActivity implements Callbacks, SessionUser2 {
+public class FragmentUser extends FragmentActivity implements Callbacks, SessionUser2, SessionGetter {
 	private static final String TAG = "FragmentUser";
 	SessionKeeper mService;
 	boolean mBound;
@@ -81,30 +83,37 @@ public class FragmentUser extends FragmentActivity implements Callbacks, Session
 	}
 	void check_state() {
 		if (session == null) {
-			session = mService.getSession(acct,allow_login);
-			Log.v(TAG,this+" allow login: "+allow_login+" service "+session);
-			if (session == null) {
-				finish();
-				return;
-			}
 			if (stopped) {
 				Log.v(TAG,"check state ran after a stop?");
 				return;
 			}
-			session.setCallback(this);
-			Log.v(TAG,"calling session ready");
-			handler.post(new Runnable() {
-				@Override public void run() {
-					if (stopped) {
-						Log.v(TAG,"oops, ran while stopped");
-						return;
-					}
-					Log.v(TAG,"session ready time!");
-					session_ready();
-				}
-			});
-			userActive();
+			mService.getSession(acct,allow_login,this);
 		}
+	}
+	@Override public void gotSession(Session sess) {
+		session = sess;
+		Log.v(TAG,this+" allow login: "+allow_login+" service "+session);
+		if (session == null) {
+			finish();
+			return;
+		}
+		if (stopped) {
+			Log.v(TAG,"check state ran after a stop?");
+			return;
+		}
+		session.setCallback(this);
+		Log.v(TAG,"calling session ready");
+		handler.post(new Runnable() {
+			@Override public void run() {
+				if (stopped) {
+					Log.v(TAG,"oops, ran while stopped");
+					return;
+				}
+				Log.v(TAG,"session ready time!");
+				session_ready();
+			}
+		});
+		userActive();
 	}
 	public void session_ready() {
 		Iterator<FragmentBase> i = hooks.iterator();
@@ -162,15 +171,15 @@ public class FragmentUser extends FragmentActivity implements Callbacks, Session
 		while (i.hasNext()) i.next().onCityChanged();
 	}
 	@Override
-	public void onEjected() {
+	public void onEjected(String code) {
 		// keep in sync with SessionUser.onEjected
-		Log.v(TAG,"you have been logged out");
+		Log.v(TAG,"you have been logged out: "+code);
 		// FIXME give a better error
 		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
 		Fragment prev = getSupportFragmentManager().findFragmentByTag("dialog");
 		if (prev != null) ft.remove(prev);
 		ft.addToBackStack(null);
-		DialogFragment f = DisconnectedDialog.newInstance();
+		DialogFragment f = DisconnectedDialog.newInstance(code);
 		f.show(ft, "dialog");
 	}
 	@Override public void onPlayerData() {

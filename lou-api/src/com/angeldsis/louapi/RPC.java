@@ -53,6 +53,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			tick();
 		}
 	};
+	private QuestTracker questTracker;
 
 	public RPC(Account acct, LouState state,HttpUtil httpUtil) {
 		this.httpUtil = httpUtil;
@@ -411,7 +412,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 	private void OpenSession(final boolean reset,final RPCDone callback2, final int retry_count) {
 		if (retry_count > 10) {
 			Log.e(TAG,"too many retrys");
-			onEjected();
+			onEjected("OPENFAIL");
 			// FIXME, better error msg
 			return;
 		}
@@ -429,7 +430,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 					if ("00000000-0000-0000-0000-000000000000".equals(instanceid)) {
 						// FIXME, inform the user of the failure
 						// FIXME, ask ea what exactly causes this failure?
-						onEjected();
+						onEjected("OPENREJECT");
 						return;
 					}
 					if (r < 0) {
@@ -475,7 +476,8 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 		try {
 			HttpReply reply1 = httpUtil.postUrl(urlbase + function,raw_data);
 			if (reply1.e != null) {
-				Log.e(TAG,"exception when doing rpc call, retrying",reply1.e);
+				Log.v(TAG, "exception is "+reply1.e);
+				Log.e2(TAG,"exception when doing rpc call, retrying",reply1.e);
 				doRPC(function,request,rpcCallback,retry - 1);
 				return;
 				//throw new IllegalStateException("unexpected error",reply1.e);
@@ -560,8 +562,8 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 					rpcDone.requestDone((JSONObject) r.reply);
 					} catch (NullPointerException e) {
 						Log.e(TAG,r.reply.toString());
-						Log.e(TAG, "internal error",e);
-						RPC.this.onEjected();
+						Log.e2(TAG, "internal error",e);
+						RPC.this.onEjected("GETFAIL");
 					}
 					runOnUiThread(new Runnable() {
 						public void run() {
@@ -639,6 +641,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 				requests.add("SERVER:");
 				requests.add("SUBSTITUTION:");
 				requests.add("PLAYER:"+ (state.getFullPlayerData ? "a" : ""));
+				requests.add("QUEST:");
 			}
 			if (enlightenedCities != null) {
 				requests.add("ECO:"+enlightenedCities.getRequestDetails());
@@ -763,9 +766,22 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			});
 		} else if (C.equals("SYS")) {
 			Log.v(TAG,p.toString(1));
-			if (p.getString("D").equals("CLOSED")) {
+			final String D = p.getString("D");
+			if (D.equals("CLOSED")) {
 				this.stopPolling();
-				onEjected();
+				runOnUiThread(new Runnable() {
+					public void run () {
+						onEjected(D);
+					}
+				});
+				stopLooping();
+			} else if (D.equals("GAMEOVER")) {
+				this.stopPolling();
+				runOnUiThread(new Runnable() {
+					public void run () {
+						onEjected(D);
+					}
+				});
 				stopLooping();
 			}
 		} else if (C.equals("REPORT")) {
@@ -793,6 +809,10 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			//Log.v(TAG,"TE: packet "+D.toString());
 		} else if (C.equals("DEFO")) {
 			if (defenseOverviewParser != null) defenseOverviewParser.parse(p.getJSONArray("D"),this);
+		} else if (C.equals("QUEST")) {
+			JSONObject D = p.getJSONObject("D");
+			if (questTracker == null) questTracker = new QuestTracker();
+			questTracker.update(D);
 		} else {
 			Log.v(TAG,"unexpected Poll data "+C+" "+p.toString());
 		}
@@ -800,8 +820,9 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 	}
 	public abstract void onReportCountUpdate();
 	public abstract void onNewAttack(IncomingAttack a);
-	/** called when the session is ended, usually by logging in elsewhere **/
-	abstract public void onEjected();
+	/** called when the session is ended, usually by logging in elsewhere 
+	 * @param string **/
+	abstract public void onEjected(String string);
 	/** queues a chat message like /a hello\n **/
 	public void QueueChat(String message) {
 		synchronized (this) {

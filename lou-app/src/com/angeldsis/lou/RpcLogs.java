@@ -49,7 +49,7 @@ public class RpcLogs extends SQLiteOpenHelper {
 		ContentValues data = new ContentValues();
 		data.put("func", c);
 		data.put("reply_size", reply_size);
-		db.insert("pollLogs", null, data);
+		db.insert("pollLogs", null, data); // FIXME, write the insert myself?
 		db.close();
 	}
 }
