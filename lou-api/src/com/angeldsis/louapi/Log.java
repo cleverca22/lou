@@ -24,7 +24,8 @@ public class Log {
 	public static void wtf(String tag, String string, Exception e) {
 		self.wtf(tag,string,e);
 	}
-	public static void e(String TAG, String string, Exception e) {
+	public static void e2(String TAG, String string, Exception e) {
+		self.v("Logger","exception is "+e);
 		self.e(TAG, string,e);
 	}
 }
