@@ -179,32 +179,36 @@ public class ExceptionHandler {
 					BufferedReader input =  new BufferedReader(new FileReader(filePath));
 					String line = null;
 					String androidVersion = null;
-	                String phoneModel = null;
-	                while (( line = input.readLine()) != null){
-                        if (androidVersion == null) {
-                            androidVersion = line;
-                            continue;
-                        }
-                        else if (phoneModel == null) {
-                            phoneModel = line;
-                            continue;
-                        }
-                        contents.append(line);
-			            contents.append(System.getProperty("line.separator"));
-			        }
-			        input.close();
-			        String stacktrace;
-			        stacktrace = contents.toString();
-			        Log.d(TAG, "Transmitting stack trace: " + stacktrace);
-			        // Transmit stack trace with POST request
+					String phoneModel = null;
+					String revision = null;
+					while (( line = input.readLine()) != null){
+						if (androidVersion == null) {
+							androidVersion = line;
+							continue;
+						} else if (phoneModel == null) {
+							phoneModel = line;
+							continue;
+						} else if (revision == null) {
+							revision = line;
+							continue;
+						}
+						contents.append(line);
+						contents.append(System.getProperty("line.separator"));
+					}
+					input.close();
+					String stacktrace;
+					stacktrace = contents.toString();
+					Log.d(TAG, "Transmitting stack trace: " + stacktrace);
+					// Transmit stack trace with POST request
 					DefaultHttpClient httpClient = new DefaultHttpClient(); 
 					HttpPost httpPost = new HttpPost(G.URL);
 					List <NameValuePair> nvps = new ArrayList <NameValuePair>(); 
 					nvps.add(new BasicNameValuePair("package_name", G.APP_PACKAGE));
 					nvps.add(new BasicNameValuePair("package_version", version));
-                    nvps.add(new BasicNameValuePair("phone_model", phoneModel));
-                    nvps.add(new BasicNameValuePair("android_version", androidVersion));
-                    nvps.add(new BasicNameValuePair("stacktrace", stacktrace));
+					nvps.add(new BasicNameValuePair("phone_model", phoneModel));
+					nvps.add(new BasicNameValuePair("android_version", androidVersion));
+					nvps.add(new BasicNameValuePair("stacktrace", stacktrace));
+					nvps.add(new BasicNameValuePair("revision",revision));
 					httpPost.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8)); 
 					// We don't care about the response, so we just hope it went well and on with it
 					httpClient.execute(httpPost);
