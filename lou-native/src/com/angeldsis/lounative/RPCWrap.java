@@ -58,10 +58,10 @@ public class RPCWrap extends RPC {
 		core.cityChanged();
 	}
 	@Override
-	public void onEjected() {
+	public void onEjected(String reason) {
 		// TODO Auto-generated method stub
 		session.onEjected();
-		Log.e(TAG,"ejected");
+		Log.e(TAG,"ejected:"+reason);
 	}
 	@Override
 	public void cityListChanged() {

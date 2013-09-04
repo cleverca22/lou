@@ -8,6 +8,7 @@ public class LouImage {
 	int imageId,width,height;
 	Drawable image_cache;
 	LouImage(int resource,int width,int height) {
+		if (resource == -1) throw new IllegalStateException("invalid resource id");
 		imageId = resource;
 		this.width = width;
 		this.height = height;

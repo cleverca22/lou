@@ -221,8 +221,8 @@ public class SendTrade extends FragmentBase implements CitySelected, GotOrderTar
 		resources[3] = bars[3].seeker.getProgress();
 		parent.session.rpc.TradeDirect(parent.session.state.currentCity,resources,byland,targetPlayer,Coord.fromCityId(targetCity),palaceDonation,this);
 	}
-	@Override
-	public void done(int reply) {
+	@Override public void done(int reply) {
+		if (result == null) return;
 		// FIXME
 		// reply should be 0 for success
 		Log.v(TAG,"reply is "+reply);
