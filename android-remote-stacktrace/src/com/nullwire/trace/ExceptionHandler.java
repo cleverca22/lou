@@ -120,12 +120,14 @@ public class ExceptionHandler {
 	/**
 	 * Register handler for unhandled exceptions.
 	 * @param context
+	 * @param revision 
 	 * @param Url
 	 */
-	public static void register(Context context, String url) {
+	public static void register(Context context, String url, String revision) {
 		//Log.i(TAG, "Registering default exceptions handler: " + url);
 		// Use custom URL
 		G.URL = url;
+		G.revision = revision;
 		// Call the default register method
 		register(context);
 	}

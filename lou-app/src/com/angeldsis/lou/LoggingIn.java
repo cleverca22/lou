@@ -29,10 +29,14 @@ public class LoggingIn extends SessionUser {
 		}
 	}
 	@Override public void onEjected(String code) {
-		if (code.equals("GAMEOVER")) {
+		Log.v(TAG,"onEjected("+code+")");
+		if (code.equals("GAMEOVER...")) {
+			// FIXME, need to modify FragmentUser to not kick out on this dead session
 			Intent i = new Intent(this,SingleFragment.class);
 			i.putExtras(acct.toBundle());
 			i.putExtra("fragment", RestartConfirm.class);
+			startActivity(i);
+			finish();
 		} else {
 			TextView msg = new TextView(this);
 			msg.setText("Error logging in: "+code);

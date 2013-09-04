@@ -193,7 +193,7 @@ public class LouState {
 						if (t.state != Trade.Working) continue;
 						if ((t.end > now) && (t.end < (timeLeft + now)) && (t.content != null)) {
 							Log.v(TAG,name+" trade will get back in time, "+t.toString());
-							Log.v(TAG,"contents "+t.content.toString());
+							//Log.v(TAG,"contents "+t.content.toString());
 							int x;
 							for (x=0; x<t.content.size(); x++) {
 								TradeResource o = t.content.get(x);

@@ -42,4 +42,5 @@ public class G {
     // Where are the stack traces posted?
 	public static String URL						= "http://trace.nullwire.com/collect/";
 	public static String TraceVersion				= "0.3.0";
+	public static String revision;
 }

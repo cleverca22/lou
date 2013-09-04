@@ -64,6 +64,7 @@ public class ChatHistory extends SQLiteOpenHelper {
 				openTags.add(c.tag);
 			}
 		}
+		db.close();
 		// FIXME, store into caches
 	}
 	public ChatMsg getItem(String tag,int position) {

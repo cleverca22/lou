@@ -87,6 +87,7 @@ public class ServerList extends Fragment {
 				} else {
 					if (s.state.self == null) throw new IllegalStateException("unexpected null, loggingin:"+s.loggingIn);
 					t.setText(s.acct.world+" "+s.state.self.getName());
+					Log.v(TAG,"source session:"+s.acct.worldid+" "+s.state.self.getName());
 				}
 				Button b = (Button) row.findViewWithTag("button");
 				//Log.v(TAG,b.toString());
@@ -105,7 +106,6 @@ public class ServerList extends Fragment {
 				// FIXME, only set as active if its not a sub?
 				active[s.acct.pathid] = true;
 				Iterator<SubRequest> i3 = s.state.subs.iterator();
-				Log.v(TAG,"source session:"+s.acct.worldid+" "+s.state.self.getName());
 				while (i3.hasNext()) {
 					final SubRequest sr = i3.next();
 					// FIXME, remove duplicates

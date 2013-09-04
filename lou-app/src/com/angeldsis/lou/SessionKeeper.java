@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
@@ -104,7 +105,18 @@ public class SessionKeeper extends Service {
 	public static void checkCoreSetup(Context context) {
 		if (!coreSetup) {
 			Logger.init(); // allows api to print to log
-			ExceptionHandler.register(context,"http://angeldsis.com/dsisscripts/load/backtrace");
+			String revision = "unknown";
+			try {
+				InputStream is = context.getAssets().open("revision");
+				InputStreamReader isr = new InputStreamReader(is);
+				char buffer[] = new char[64];
+				isr.read(buffer, 0, 64);
+				revision = new String(buffer);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			ExceptionHandler.register(context,"http://angeldsis.com/dsisscripts/load/backtrace",revision);
 			coreSetup = true;
 		}
 	}
@@ -129,6 +141,7 @@ public class SessionKeeper extends Service {
 	@Override
 	public void onCreate() {
 		checkCoreSetup(this);
+		handler = new Handler();
 		Log.v(TAG,"onCreate");
 		if (sessions == null) sessions = new ArrayList<Session>();
 		PowerManager pm = (PowerManager) this.getSystemService(POWER_SERVICE);
@@ -143,7 +156,6 @@ public class SessionKeeper extends Service {
 		wakeSelf = PendingIntent.getService(this,0,i,0);
 		rpclogs = new RpcLogs(this);
 		config = this.getSharedPreferences("accounts", MODE_PRIVATE);
-		handler = new Handler();
 	}
 	@Override
 	public void onDestroy() {

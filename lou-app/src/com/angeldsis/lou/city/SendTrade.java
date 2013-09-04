@@ -184,6 +184,7 @@ public class SendTrade extends FragmentBase implements CitySelected, GotOrderTar
 		parent.session.rpc.GetOrderTargetInfo(parent.session.state.currentCity,x,y,this);
 	}
 	@Override public void done(OrderTargetInfo p) {
+		if (parent == null) return;
 		if (p.alliance != null) {
 			player.setText(p.player.getName()+" ("+p.alliance.name+")");
 		} else {
