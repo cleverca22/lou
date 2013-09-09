@@ -118,7 +118,8 @@ public class SendAttack extends FragmentBase implements OrderUnitsCallback, OnSe
 			// FIXME, set max properly as the user enters things
 			UnitCount[] localunits = parent.session.state.currentCity.units;
 			// FIXME, support other units
-			if ((localunits != null) && (localunits[6] != null)) {
+			if ((localunits != null) && (localunits[6] != null) &&
+					(unitcounts[6] > 0)) {
 				repeat.setMax(localunits[6].c / unitcounts[6]);
 				repeat.setProgress(localunits[6].c / unitcounts[6]);
 			}

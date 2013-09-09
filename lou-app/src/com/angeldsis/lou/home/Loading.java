@@ -96,7 +96,7 @@ public class Loading extends Fragment {
 		FragmentTransaction trans = a.getSupportFragmentManager().beginTransaction();
 		//trans.replace(R.id.main_frame, new Webview());
 		trans.replace(R.id.main_frame,new louLogin());
-		trans.commit();
+		trans.commitAllowingStateLoss();
 	}
 	public void onStop() {
 		super.onStop();

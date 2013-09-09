@@ -477,7 +477,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			HttpReply reply1 = httpUtil.postUrl(urlbase + function,raw_data);
 			if (reply1.e != null) {
 				Log.v(TAG, "exception is "+reply1.e);
-				Log.e2(TAG,"exception when doing rpc call, retrying",reply1.e);
+				Log.e(TAG,"exception when doing rpc call, retrying",reply1.e);
 				doRPC(function,request,rpcCallback,retry - 1);
 				return;
 				//throw new IllegalStateException("unexpected error",reply1.e);
@@ -528,7 +528,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 				e1.printStackTrace();
 			}
 		} catch (TimeoutError e) {
-			Log.e(TAG, function + " exception from http req, retrying "+retry+" more times");
+			Log.e(TAG, function + " exception from http req, retrying "+retry+" more times",e);
 			try {
 				doRPC(function,request,rpcCallback,retry - 1);
 			} catch (JSONException e1) {
@@ -562,7 +562,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 					rpcDone.requestDone((JSONObject) r.reply);
 					} catch (NullPointerException e) {
 						Log.e(TAG,r.reply.toString());
-						Log.e2(TAG, "internal error",e);
+						Log.e(TAG, "internal error",e);
 						RPC.this.onEjected("GETFAIL");
 					}
 					runOnUiThread(new Runnable() {

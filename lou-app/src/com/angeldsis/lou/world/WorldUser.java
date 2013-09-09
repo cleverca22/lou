@@ -5,6 +5,7 @@ import android.util.Log;
 import com.angeldsis.lou.FragmentBase;
 import com.angeldsis.lou.SessionKeeper.Session;
 import com.angeldsis.lou.SessionUser;
+import com.angeldsis.louapi.RPC;
 import com.angeldsis.louapi.data.Coord;
 import com.angeldsis.louapi.world.WorldParser;
 
@@ -19,10 +20,12 @@ public abstract class WorldUser extends FragmentBase {
 	}
 	public void onStop() {
 		Log.v(TAG,"disabling world");
-		Session s = parent.session;
-		s.rpc.worldParser.disable();
-		if (parent.session != null) parent.session.rpc.setWorldEnabled(false);
 		super.onStop();
+		Session s = parent.session;
+		if (s == null) return;
+		RPC rpc = s.rpc;
+		rpc.worldParser.disable();
+		rpc.setWorldEnabled(false);
 	}
 	public void resetFocus(int radius) {
 		WorldParser p = parent.session.rpc.worldParser;

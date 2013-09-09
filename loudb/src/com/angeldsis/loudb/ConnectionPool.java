@@ -4,6 +4,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class ConnectionPool {
+	private static final boolean keepLinks = false;
 	static ArrayList<DbLink> idle_links;
 	static ArrayList<DbLink> busy_links = new ArrayList<DbLink>();
 	static private final int min_spare = 5;
@@ -35,7 +36,17 @@ public class ConnectionPool {
 		checking = true;
 		ThreadPool.getInstance().post(checker);
 	}
-	public static void restore(DbLink link) {
+	public synchronized static void restore(DbLink link) {
+		link.used++;
+		if (link.used > 20) {
+			try {
+				link.con.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return;
+		}
 		idle_links.add(link);
 		busy_links.remove(link);
 	}

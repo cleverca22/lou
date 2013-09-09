@@ -61,8 +61,8 @@ public class ShowReport extends SessionUser implements ReportCallback {
 				setField(R.id.objType,report.objType);
 				setField(R.id.type,"type:"+report.reportHeader.generalType+" "+report.reportHeader.combatType);
 				// FIXME, handle things better
-				setupHalf(side1,report.attacker,R.string.trapped);
-				setupHalf(side2,report.defender,R.string.fortified);
+				setupHalf(side1,report.attacker,R.string.trapped,report);
+				setupHalf(side2,report.defender,R.string.fortified,report);
 				break;
 			default:
 				setField(R.id.type,"type:"+report.reportHeader.generalType+" "+report.reportHeader.combatType);
@@ -72,7 +72,7 @@ public class ShowReport extends SessionUser implements ReportCallback {
 			Log.e(TAG,"not a combat report");
 		}
 	}
-	private void setupHalf(ViewGroup side, ReportHalf half, int altered_id) {
+	private void setupHalf(ViewGroup side, ReportHalf half, int altered_id, Report report) {
 		//Log.v(TAG,"half:"+half);
 		if (half == null) {
 			((TextView)side.findViewById(R.id.player_name)).setText("half null");
@@ -86,11 +86,12 @@ public class ShowReport extends SessionUser implements ReportCallback {
 		((TextView)side.findViewById(R.id.location)).setText(String.format("C?? (%d:%d)",lowbyte,highbyte));
 		ViewGroup units = (ViewGroup) side.findViewById(R.id.units);
 		((TextView)side.findViewById(R.id.altered)).setText(altered_id);
-		setupUnits(units,half.units);
+		setupUnits(units,half.units,report);
 	}
-	private void setupUnits(ViewGroup v, UnitInfo[] units2) {
+	private void setupUnits(ViewGroup v, UnitInfo[] units2, Report report) {
 		Log.v("ShowReport","setupUnits("+v+","+units2+")");
 		int i;
+		if (units2 == null) throw new IllegalStateException("unable to parse report:"+report.debug);
 		Log.v("ShowReport","units count:"+units2.length);
 		for (i = 0; i < units2.length; i++) {
 			UnitInfo u = units2[i];

@@ -8,8 +8,8 @@ import java.util.HashMap;
 
 public class DbLink {
 	static int lastid = 0;
-	static private String user = "root", password = "fa0Ahvia",
-			url = "jdbc:mysql://loudb.ch35ondylszf.us-east-1.rds.amazonaws.com/loudb";
+	static private String user = "loudb", password = "XuAeEsTLfMasHuA9",
+			url = "jdbc:mysql://localhost/loudb";
 	Connection con = null;
 	int id;
 	DbLink() throws SQLException {
@@ -17,6 +17,7 @@ public class DbLink {
 		con = DriverManager.getConnection(url, user, password);
 	}
 	HashMap<String,PreparedStatement> statement_cache = new HashMap<String,PreparedStatement>();
+	public int used;
 	static public void init() {
 		try {
 			Class.forName("com.mysql.jdbc.Driver");

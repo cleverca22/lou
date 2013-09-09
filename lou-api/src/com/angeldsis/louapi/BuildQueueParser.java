@@ -33,14 +33,12 @@ public class BuildQueueParser {
 			int id = x.getInt("i");
 			if (data1.containsKey(id)) {
 				one = data1.get(id);
-				one.update(x);
-			}
-			else {
+			} else {
 				one = new BuildQueueData(id);
-				one.update(x);
 				data1.put(id, one);
 				data2.add(one);
 			}
+			one.update(x);
 			// temp fix to improve debug
 			x.remove("q");
 			
@@ -93,7 +91,8 @@ public class BuildQueueParser {
 				int s = o.getInt("s");
 				int m = o.getInt("m");
 				int type = o.getInt("i");
-				c.resources[type-1].set(d, b, m, s, BuildQueueParser.this.state);
+				Resource r = c.resources[type-1];
+				r.set(d, b, m, s, BuildQueueParser.this.state);
 			}
 			
 			JSONArray queueIN = x.optJSONArray("q");

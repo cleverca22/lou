@@ -9,6 +9,7 @@ public class Report {
 	public ReportHalf attacker, defender;
 	public String share,objType;
 	public ReportHeader reportHeader;
+	public String debug;
 	public static class types {
 		public static class general {
 			public static final int combat = 1, trade = 2, city = 3, alliance = 4, enlightenment = 5;
@@ -18,6 +19,7 @@ public class Report {
 		}
 	}
 	public Report(JSONObject r) {
+		debug = r.toString();
 		fame = r.optInt("f");
 		JSONArray a = r.optJSONArray("a");
 		reportHeader = new ReportHeader(r.optJSONObject("h"));

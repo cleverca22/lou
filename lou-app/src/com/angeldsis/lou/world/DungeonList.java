@@ -90,6 +90,7 @@ public class DungeonList extends WorldUser implements OnItemClickListener, OnIte
 		return vg;
 	}
 	@Override public void cellUpdated(Cell cIN) {
+		if (parent.session.rpc.worldParser == null) throw new IllegalStateException("wp is null!");
 		currentCity = parent.session.rpc.state.currentCity.location;
 		// FIXME, only scan what changed
 		ArrayList<MapItem> allItems = new ArrayList<MapItem>();
