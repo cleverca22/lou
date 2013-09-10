@@ -47,8 +47,12 @@ public class RPCWrap extends RPC {
 		callbacks.onPlayerData();
 	}
 	@Override
-	public void onEjected(String code) {
-		callbacks.onEjected(code);
+	public void onEjected(final String code) {
+		runOnUiThread(new Runnable() {
+			public void run() {
+				callbacks.onEjected(code);
+			}
+		});
 	}
 	@Override
 	public void onCityChanged() {

@@ -9,6 +9,7 @@ import com.angeldsis.lou.R;
 import com.angeldsis.lou.SessionKeeper;
 import com.angeldsis.lou.SessionKeeper.Session;
 import com.angeldsis.louapi.LouSession;
+import com.angeldsis.louapi.LouState;
 import com.angeldsis.louapi.ServerInfo;
 import com.angeldsis.louapi.data.SubRequest;
 
@@ -105,7 +106,9 @@ public class ServerList extends Fragment {
 				
 				// FIXME, only set as active if its not a sub?
 				active[s.acct.pathid] = true;
-				Iterator<SubRequest> i3 = s.state.subs.iterator();
+				LouState state = s.state;
+				ArrayList<SubRequest> subs = state.subs;
+				Iterator<SubRequest> i3 = subs.iterator();
 				while (i3.hasNext()) {
 					final SubRequest sr = i3.next();
 					// FIXME, remove duplicates

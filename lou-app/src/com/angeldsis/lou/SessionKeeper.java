@@ -624,7 +624,7 @@ public class SessionKeeper extends Service {
 				else foodWarning.setOnlyAlertOnce(false);
 				
 				Notification n = foodWarning.build();
-				n.contentView.setTextViewText(R.id.time, "test");
+				//n.contentView.setTextViewText(R.id.time, "test");
 				int id = (FOOD_WARNING | sessionid) + (c.location.toCityId() << 15);
 				mNotificationManager.notify(id, n);
 			}
