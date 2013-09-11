@@ -451,8 +451,10 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			obj.put("time", System.currentTimeMillis());
 			doRPC("GetServerInfo",obj,new RPCCallback() {
 				void requestDone(rpcreply reply) throws JSONException {
-					state.parseServerInfo((JSONObject)reply.reply);
-					rpcDone.requestDone((JSONObject) reply.reply);
+					JSONObject r = (JSONObject) reply.reply;
+					if (r == null) throw new IllegalStateException("unexpected null code:"+reply.http_code);
+					state.parseServerInfo(r);
+					rpcDone.requestDone(r);
 				}
 			},5);
 		} catch (JSONException e) {

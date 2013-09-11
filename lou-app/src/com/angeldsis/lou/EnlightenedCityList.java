@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.TreeMap;
 
+import com.angeldsis.lou.SessionKeeper.Session;
 import com.angeldsis.lou.city.SelectCity;
 import com.angeldsis.lou.city.SendTrade;
 import com.angeldsis.lou.fragments.ResourceBar;
@@ -110,6 +111,7 @@ public class EnlightenedCityList extends FragmentBase implements OnCheckedChange
 			return data.get(position);
 		}
 		public View getView(int position,View convertView,ViewGroup root) {
+			Session session = parent.session; // FIXME, to find a NPE
 			final ViewHolder holder;
 			MyTableRow row;
 			if (convertView == null) {
@@ -148,7 +150,7 @@ public class EnlightenedCityList extends FragmentBase implements OnCheckedChange
 			holder.coord.setText(coord.format());
 			holder.comment.setText(holder.city.comment);
 			
-			holder.start.setText(parent.session.state.stepToString(holder.city.endstep));
+			holder.start.setText(session.state.stepToString(holder.city.endstep));
 			
 			long needed = EnlightenedCity.res_needed[holder.city.palace_level];
 			long missing_wood = needed - (holder.city.wood + holder.city.getResourceCount(parent.session.state, 0) + holder.city.incoming_wood);

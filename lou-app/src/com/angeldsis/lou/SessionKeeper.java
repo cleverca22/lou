@@ -96,6 +96,7 @@ public class SessionKeeper extends Service {
 
 	NotificationCompat.Builder mBuilder,chatBuilder,incomingAttackBuilder,foodWarning,disconnectBuilder,elNotificationBuilder;
 	private SharedPreferences config;
+	private boolean destroyed = false;
 	public class MyBinder extends Binder {
 		public SessionKeeper getService() {
 			Log.v(TAG,"getService");
@@ -164,6 +165,7 @@ public class SessionKeeper extends Service {
 		self = null;
 		config = null;
 		handler = null;
+		destroyed = true;
 	}
 	public static SessionKeeper getInstance() {
 		return self;
@@ -538,6 +540,7 @@ public class SessionKeeper extends Service {
 			return cb != null;
 		}
 		public void logRequest(final int req, final int reply, final String func, final int nettime, final int parse1) {
+			if (destroyed) throw new IllegalStateException("logRequest ran after session destroyed");
 			handler.post(new Runnable() {
 				public void run() {
 					rpclogs.logRequest(req,reply,func,nettime,parse1);

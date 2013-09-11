@@ -77,7 +77,8 @@ public class ShowCoord extends SessionUser implements GotPublicCityInfo {
 	}
 	public void switchToCity(View v) {
 		City c = session.rpc.state.cities.get(self.toCityId());
-		session.rpc.state.changeCity(c);
+		RPCWrap rpc = session.rpc;
+		rpc.state.changeCity(c);
 		finish();
 	}
 }
