@@ -1,9 +1,15 @@
 package com.angeldsis.lou.home;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 
 import com.angeldsis.lou.AccountWrap;
+import com.angeldsis.lou.ActionbarHandler;
 import com.angeldsis.lou.LoggingIn;
 import com.angeldsis.lou.R;
 import com.angeldsis.lou.SessionKeeper;
@@ -20,6 +26,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -35,8 +42,15 @@ import android.webkit.CookieSyncManager;
 import android.widget.Button;
 import android.widget.TextView;
 
-public class ServerList extends Fragment {
+public class ServerList extends Fragment implements OnClickListener {
+	public static class Result {
+		protected int latest;
+	}
 	private static final String TAG = "ServerList";
+	boolean checked = false;
+	private AsyncTask<Void, Void, Result> desync;
+	private PackageInfo self;
+	private ViewGroup updateDiv;
 	public View onCreateView (LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		setHasOptionsMenu(true);
 		if (SessionKeeper.session2 == null) {
@@ -48,18 +62,53 @@ public class ServerList extends Fragment {
 		TextView version = (TextView)root.findViewById(R.id.app_version);
 		PackageManager pm = getActivity().getPackageManager();
 		try {
-			PackageInfo self = pm.getPackageInfo("com.angeldsis.lou", 0);
+			self = pm.getPackageInfo("com.angeldsis.lou", 0);
 			version.setText(self.versionName);
 		} catch (NameNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			version.setText("error");
 		}
+		updateDiv = (ViewGroup) root.findViewById(R.id.updateDiv);
+		Button doupdate = (Button) root.findViewById(R.id.doUpate);
+		doupdate.setOnClickListener(this);
 		return root;
 	}
 	public void onResume() {
 		super.onResume();
 		redoList();
+		if (!checked) {
+			desync = new AsyncTask<Void,Void,Result> () {
+				@Override protected Result doInBackground(Void... params) {
+					try {
+						URL url = new URL("http://klingon.angeldsis.com/apks/latestversion");
+						HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+						InputStreamReader irs = new InputStreamReader(conn.getInputStream());
+						char[] buffer = new char[100];
+						int size = irs.read(buffer);
+						buffer[size] = 0;
+						Result r = new Result();
+						r.latest = Integer.parseInt(new String(buffer).trim());
+						return r;
+					} catch (MalformedURLException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					return null;
+				}
+				protected void onPostExecute(Result r) {
+					if (r == null) return;
+					if (self.versionCode < r.latest) {
+						updateDiv.setVisibility(View.VISIBLE);
+					}
+					checked = true;
+				}
+			};
+			desync.execute();
+		}
 	}
 	private void redoList() {
 		LayoutInflater inflater = getActivity().getLayoutInflater();
@@ -190,12 +239,20 @@ public class ServerList extends Fragment {
 			android.webkit.CookieManager cookies = android.webkit.CookieManager.getInstance();
 			cookies.removeAllCookie();
 			return true;
-		case R.id.update:
+		/*case R.id.update:
 			Uri location = Uri.parse("http://andoria.angeldsis.com/apks/LouMain.apk");
 			Intent i = new Intent(Intent.ACTION_VIEW,location);
 			startActivity(i);
-			return true;
+			return true;*/
 		}
-		return false;
+		return ActionbarHandler.handleMenu(item.getItemId(), getActivity(), null, null);
+	}
+	@Override
+	public void onClick(View v) {
+		switch (v.getId()) {
+		case R.id.doUpate:
+			ActionbarHandler.handleMenu(R.id.update, getActivity(), null, null);
+			break;
+		}
 	}
 }

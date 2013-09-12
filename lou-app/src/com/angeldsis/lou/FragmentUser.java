@@ -221,7 +221,7 @@ public class FragmentUser extends FragmentActivity implements Callbacks, Session
 		return super.onCreateOptionsMenu(menu);
 	}
 	public boolean onOptionsItemSelected(MenuItem item) {
-		if (ActionbarHandler.handleMenu(item,this,acct,session)) return true;
+		if (ActionbarHandler.handleMenu(item.getItemId(),this,acct,session)) return true;
 		return super.onOptionsItemSelected(item);
 	}
 	@Override public void onPause() {

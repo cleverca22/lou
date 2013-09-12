@@ -22,11 +22,11 @@ import com.angeldsis.louapi.RPC.GetLockboxURLDone;
 
 public class ActionbarHandler {
 	private static final String TAG = "ActionbarHandler";
-	public static boolean handleMenu(MenuItem item, final Activity a,AccountWrap acct, Session session) {
+	public static boolean handleMenu(int itemid, final Activity a,AccountWrap acct, Session session) {
 		Intent i;
 		FragmentUser fu = null;
 		if (a instanceof FragmentUser) fu = (FragmentUser) a;
-		switch (item.getItemId()) {
+		switch (itemid) {
 		case R.id.mailbox:
 			if (fu != null) {
 				FragmentTransaction ft = fu.getSupportFragmentManager().beginTransaction();
@@ -136,7 +136,7 @@ public class ActionbarHandler {
 			}
 			return true;
 		case R.id.update:
-			Uri location = Uri.parse("http://andoria.angeldsis.com/apks/LouMain.apk");
+			Uri location = Uri.parse("http://klingon.angeldsis.com/apks/LouMain.apk");
 			i = new Intent(Intent.ACTION_VIEW,location);
 			a.startActivity(i);
 			return true;
