@@ -77,9 +77,9 @@ public class ExceptionHandler {
 			// Files dir for storing the stack traces
 			G.FILES_PATH = context.getFilesDir().getAbsolutePath();
 			// Device model
-            G.PHONE_MODEL = android.os.Build.MODEL;
-            // Android version
-            G.ANDROID_VERSION = android.os.Build.VERSION.RELEASE;
+			G.PHONE_MODEL = android.os.Build.MODEL;
+			// Android version
+			G.ANDROID_VERSION = android.os.Build.VERSION.RELEASE;
 		} catch (NameNotFoundException e) {
 			e.printStackTrace();
 		}

@@ -26,6 +26,7 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.ViewSwitcher;
@@ -152,6 +153,43 @@ public class Reports extends SessionUser implements ReportHeaderCallback, OnItem
 			}
 			//if (session == null) return row; // FIXME
 
+			ImageView result = (ImageView) row.findViewById(R.id.result);
+			if (h.image != null) {
+				int imageid = 0;
+				switch (h.image) {
+				case combat_defense:
+					imageid = R.drawable.combat_defense;
+					break;
+				case combat_defense_draw:
+					imageid = R.drawable.combat_defense_draw;
+					break;
+				case combat_defense_lost:
+					imageid = R.drawable.combat_defense_lost;
+					break;
+				case combat_defense_lost_defenseless:
+					imageid = R.drawable.combat_defense_lost_defenseless;
+					break;
+				case combat_defense_won:
+					imageid = R.drawable.combat_defense_won;
+					break;
+				case combat_defense_won_wiped:
+					imageid = R.drawable.combat_defense_won_wiped;
+					break;
+				case combat_defense_scout_lost_all:
+					imageid = R.drawable.combat_defense_scout_lost_all;
+					break;
+				case combat_defense_scout_lost_some:
+					imageid = R.drawable.combat_defense_scout_lost_some;
+					break;
+				case combat_defense_scout_won_wiped:
+					imageid = R.drawable.combat_defense_won_wiped;
+					break;
+				}
+				result.setImageResource(imageid);
+				result.setVisibility(View.VISIBLE);
+			} else {
+				result.setVisibility(View.GONE);
+			}
 			TextView col1 = (TextView) row.findViewById(R.id.msg);
 			col1.setText(h.toString());
 			TextView col2 = (TextView) row.findViewById(R.id.stamp);

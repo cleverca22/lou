@@ -206,6 +206,7 @@ public class LouSession {
 			}
 		};
 		xmlReader.setContentHandler(handler);
+		/*
 		FilterInputStream wrapper = new FilterInputStream(is) {
 			public int read(byte[] buffer, int offset, int count) throws IOException {
 				int size = super.read(buffer, offset, count);
@@ -213,8 +214,8 @@ public class LouSession {
 				Log.v(TAG,"sniff:"+new String(buffer,offset,size));
 				return size;
 			}
-		};
-		xmlReader.parse(new InputSource(wrapper));
+		};*/
+		xmlReader.parse(new InputSource(is)); // swap is with wrapper to debug
 		if (output.worked) {
 			this.servers = servers;
 			dataage = System.currentTimeMillis();
