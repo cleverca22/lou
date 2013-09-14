@@ -210,6 +210,10 @@ public class DungeonList extends WorldUser implements OnItemClickListener, OnIte
 		@Override public MapItem getItem(int position) {
 			return list[position];
 		}
+		public void clear() {
+			list = new MapItem[0];
+			notifyDataSetChanged();
+		}
 	}
 	private static class BaseHolder {
 		public TextView distance;
@@ -301,5 +305,9 @@ public class DungeonList extends WorldUser implements OnItemClickListener, OnIte
 	public void onNothingSelected(AdapterView<?> arg0) {
 		// TODO Auto-generated method stub
 		
+	}
+	@Override public void onPause() {
+		super.onPause();
+		adapter.clear();
 	}
 }

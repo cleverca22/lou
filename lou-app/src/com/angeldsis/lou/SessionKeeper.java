@@ -162,6 +162,12 @@ public class SessionKeeper extends Service {
 	public void onDestroy() {
 		super.onDestroy();
 		Log.v(TAG,this+" onDestroyed");
+		if (sessions != null) {
+			if (sessions.size() > 0) {
+				throw new IllegalStateException("service stopping while "
+					+sessions.size()+" sessions active!");
+			}
+		}
 		self = null;
 		config = null;
 		handler = null;
@@ -594,42 +600,44 @@ public class SessionKeeper extends Service {
 		// only notices changes when the server sends an update to any city
 		public void onFoodWarning() {
 			if (cb != null) cb.onFoodWarning();
-			Iterator<City> i = rpc.foodWarnings.warnings.values().iterator();
-			while (i.hasNext()) {
-				City c = i.next();
-				int timeLeft = c.foodEmptyTime(rpc.state);
-				if (timeLeft == 0) {
-					Log.v(TAG,"wtf, this city is in the warning list "+c.name);
-					continue;
+			synchronized (rpc.foodWarnings.warnings) {
+				Iterator<City> i = rpc.foodWarnings.warnings.values().iterator();
+				while (i.hasNext()) {
+					City c = i.next();
+					int timeLeft = c.foodEmptyTime(rpc.state);
+					if (timeLeft == 0) {
+						Log.v(TAG,"wtf, this city is in the warning list "+c.name);
+						continue;
+					}
+					if (timeLeft > (4 * 3600)) continue;
+					Log.v(TAG,"food empty time: "+timeLeft+" "+c.name);
+					
+					TaskStackBuilder stackBuilder = TaskStackBuilder.create(SessionKeeper.this);
+					//stackBuilder.addParentStack(SingleFragment.class);
+					// FIXME stackBuilder.addNextIntent(LouSessionMain.getIntent(acct, SessionKeeper.this));
+					stackBuilder.addNextIntent(FoodWarnings.getIntent(acct, SessionKeeper.this));
+					
+					PendingIntent resultPendingIntent = stackBuilder
+							.getPendingIntent(FOOD_WARNING | sessionid, PendingIntent.FLAG_UPDATE_CURRENT);
+					foodWarning.setContentIntent(resultPendingIntent)
+						.setContentTitle(String.format("W%d food warning",acct.worldid));
+
+
+					int hours = ((int)timeLeft/60/60);
+					if (hours > 0) foodWarning.setContentText(c.name +" runs out of food in "+hours+" hours");
+					else foodWarning.setContentText(c.name +" runs out of food in "+((timeLeft / 60)%60)+" minutes");
+
+					long x = System.currentTimeMillis() + (timeLeft*1000);
+					foodWarning.setWhen(x);
+					
+					if (timeLeft > 3600) foodWarning.setOnlyAlertOnce(true);
+					else foodWarning.setOnlyAlertOnce(false);
+					
+					Notification n = foodWarning.build();
+					//n.contentView.setTextViewText(R.id.time, "test");
+					int id = (FOOD_WARNING | sessionid) + (c.location.toCityId() << 15);
+					mNotificationManager.notify(id, n);
 				}
-				if (timeLeft > (4 * 3600)) continue;
-				Log.v(TAG,"food empty time: "+timeLeft+" "+c.name);
-				
-				TaskStackBuilder stackBuilder = TaskStackBuilder.create(SessionKeeper.this);
-				//stackBuilder.addParentStack(SingleFragment.class);
-				// FIXME stackBuilder.addNextIntent(LouSessionMain.getIntent(acct, SessionKeeper.this));
-				stackBuilder.addNextIntent(FoodWarnings.getIntent(acct, SessionKeeper.this));
-				
-				PendingIntent resultPendingIntent = stackBuilder
-						.getPendingIntent(FOOD_WARNING | sessionid, PendingIntent.FLAG_UPDATE_CURRENT);
-				foodWarning.setContentIntent(resultPendingIntent)
-					.setContentTitle(String.format("W%d food warning",acct.worldid));
-
-
-				int hours = ((int)timeLeft/60/60);
-				if (hours > 0) foodWarning.setContentText(c.name +" runs out of food in "+hours+" hours");
-				else foodWarning.setContentText(c.name +" runs out of food in "+((timeLeft / 60)%60)+" minutes");
-
-				long x = System.currentTimeMillis() + (timeLeft*1000);
-				foodWarning.setWhen(x);
-				
-				if (timeLeft > 3600) foodWarning.setOnlyAlertOnce(true);
-				else foodWarning.setOnlyAlertOnce(false);
-				
-				Notification n = foodWarning.build();
-				//n.contentView.setTextViewText(R.id.time, "test");
-				int id = (FOOD_WARNING | sessionid) + (c.location.toCityId() << 15);
-				mNotificationManager.notify(id, n);
 			}
 		}
 		public void logPollRequest(final String c, final int reply_size) {

@@ -136,7 +136,7 @@ public class ChatWindow extends FragmentBase {
 		return topView;
 	}
 	@Override public void onSaveInstanceState(Bundle out) {
-		out.putString("currentTab", mTabHost.getCurrentTabTag());
+		if (mTabHost != null) out.putString("currentTab", mTabHost.getCurrentTabTag());
 		super.onSaveInstanceState(out);
 	}
 	class TabMaker implements TabHost.TabContentFactory {
@@ -188,6 +188,10 @@ public class ChatWindow extends FragmentBase {
 		private int getRealCount() {
 			if (channel == null) {
 				Log.v(TAG,this.toString()+" getCount null");
+				return 0;
+			}
+			if (source == null) {
+				Log.e(TAG,"getcount source null");
 				return 0;
 			}
 			int count = source.getCount(channel.key);

@@ -113,6 +113,8 @@ public class ShrineMonitor extends FragmentBase {
 				parent.session.rpc.setWorldEnabled(false);
 				stop.setEnabled(false);
 				start.setEnabled(true);
+				if (shrines == null) return;
+				if (shrines.size() == 0) return;
 				export.setEnabled(true);
 			}
 		});

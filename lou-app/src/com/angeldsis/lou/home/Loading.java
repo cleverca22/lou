@@ -82,7 +82,7 @@ public class Loading extends Fragment {
 							
 							f.setArguments(b);
 							a.getSupportFragmentManager().beginTransaction()
-								.replace(R.id.main_frame, f).commit();
+								.replace(R.id.main_frame, f).commitAllowingStateLoss();
 						}
 					}
 				}
