@@ -182,6 +182,7 @@ public class ExceptionHandler {
 					String phoneModel = null;
 					String revision = null;
 					while (( line = input.readLine()) != null){
+						Log.v(TAG,"read raw line:"+line);
 						if (androidVersion == null) {
 							androidVersion = line;
 							continue;

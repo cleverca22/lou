@@ -212,7 +212,7 @@ public class HttpUtilImpl implements HttpUtil {
 	}
 	@Override public HttpReply postUrl(String url, byte[] raw_data) throws TimeoutError, DnsError {
 		try {
-			Log.v(TAG,"postUrl("+url+")");
+			//Log.v(TAG,"postUrl("+url+")");
 			URL login = new URL(url);
 			HttpURLConnection conn = (HttpURLConnection) login.openConnection();
 			conn.setReadTimeout(60000);
