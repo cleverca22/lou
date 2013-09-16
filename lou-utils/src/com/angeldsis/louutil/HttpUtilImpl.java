@@ -27,6 +27,7 @@ import javax.net.ssl.HttpsURLConnection;
 import com.angeldsis.louapi.DnsError;
 import com.angeldsis.louapi.HttpUtil;
 import com.angeldsis.louapi.Log;
+import com.angeldsis.louapi.LouSession.SessionState;
 import com.angeldsis.louapi.TimeoutError;
 
 public class HttpUtilImpl implements HttpUtil {
@@ -93,53 +94,46 @@ public class HttpUtilImpl implements HttpUtil {
 		}
 	}
 	public static HttpUtilImpl getInstance() {
+		Log.v(TAG,"init");
 		if (self == null) self = new HttpUtilImpl();
 		return self;
 	}
-	@Override public void restore_cookie(String cookie) {
-		String[] parts = cookie.split(";");
-		HttpCookie httpcookie1 = new HttpCookie("JSESSIONID",parts[0]);
-		httpcookie1.setDomain("www.lordofultima.com");
-		httpcookie1.setPath("/");
-		httpcookie1.setVersion(0);
-		HttpCookie httpcookie2 = null;
-		if (parts.length == 2) {
-			httpcookie2 = new HttpCookie("AWSELB",parts[1]);
-			httpcookie2.setDomain("www.lordofultima.com");
-			httpcookie2.setPath("/");
-			httpcookie2.setVersion(0);
-		}
+	@Override public void restoreState(SessionState state) {
+		HttpCookie cookie1 = new HttpCookie("JSESSIONID",state.JSESSIONID);
+		cookie1.setDomain("www.lordofultima.com");
+		cookie1.setPath("/");
+		cookie1.setVersion(0);
+		HttpCookie cookie2 = new HttpCookie("AWSELB",state.AWSELB);
+		cookie2.setDomain("www.lordofultima.com");
+		cookie2.setPath("/");
+		cookie2.setVersion(0);
 		try {
 			mCookieManager.getCookieStore().removeAll();
-			mCookieManager.getCookieStore().add(new URI("http://www.lordofultima.com/"),httpcookie1);
-			if (parts.length == 2) {
-				mCookieManager.getCookieStore().add(new URI("http://www.lordofultima.com/"),httpcookie2);
-			}
+			mCookieManager.getCookieStore().add(new URI("http://www.lordofultima.com/"),cookie1);
+			mCookieManager.getCookieStore().add(new URI("http://www.lordofultima.com/"),cookie2);
 			Log.v(TAG, "cookie restored?");
 		} catch (URISyntaxException e) {
 			// TODO Auto-generated catch block
 			Log.wtf(TAG, "hard-coded uri not valid", e);
 		}
 	}
-	@Override public String getCookieData() {
+	@Override
+	public void syncCookieState(SessionState state) {
 		List<HttpCookie> cookies;
-		String JSESSIONID = null;
-		String AWSELB = null;
 		try {
 			cookies = mCookieManager.getCookieStore().get(new URI("http://www.lordofultima.com/"));
 			int x;
 			for (x = 0; x < cookies.size(); x++) {
 				if (cookies.get(x).getName().equals("JSESSIONID")) {
-					JSESSIONID = cookies.get(x).getValue();
+					state.JSESSIONID = cookies.get(x).getValue();
 				} else if (cookies.get(x).getName().equals("AWSELB")) {
-					AWSELB = cookies.get(x).getValue();
+					state.AWSELB = cookies.get(x).getValue();
 				}
 			}
 		} catch (URISyntaxException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return JSESSIONID+";"+AWSELB;
 	}
 	@Override public void dumpCookies() {
 		CookieStore store = mCookieManager.getCookieStore();
@@ -175,7 +169,6 @@ public class HttpUtilImpl implements HttpUtil {
 	}
 	@Override public HttpReply getUrl(String url) {
 		try {
-			Log.v(TAG,"Url3:"+url);
 			URL secondurl = new URL(base,url);
 			Log.v(TAG,"Url4: "+secondurl.toString());
 			HttpURLConnection conn = (HttpURLConnection)secondurl.openConnection();

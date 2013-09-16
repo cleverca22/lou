@@ -12,6 +12,7 @@
             <fileset dir="ant-out"/>
             <zipfileset excludes="META-INF/*.SF" src="tagsoup-1.2.1.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="../swt-linux32/swt.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="../lou-api/libs/gson-2.2.2.jar"/>
             <fileset dir="build/"/>
         </jar>
     </target>
@@ -24,6 +25,7 @@
             <fileset dir="ant-out"/>
             <zipfileset excludes="META-INF/*.SF" src="tagsoup-1.2.1.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="../swt-win32/swt.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="../lou-api/libs/gson-2.2.2.jar"/>
             <fileset dir="build/"/>
         </jar>
     </target>
@@ -36,6 +38,7 @@
             <fileset dir="ant-out"/>
             <zipfileset excludes="META-INF/*.SF" src="tagsoup-1.2.1.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="../swt-win64/swt.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="../lou-api/libs/gson-2.2.2.jar"/>
             <fileset dir="build/"/>
         </jar>
     </target>

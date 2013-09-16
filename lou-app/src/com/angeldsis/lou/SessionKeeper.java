@@ -11,6 +11,7 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
+import java.util.Locale;
 
 import org.json2.JSONObject;
 
@@ -47,6 +48,7 @@ import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
@@ -84,6 +86,7 @@ public class SessionKeeper extends Service {
 	private static SessionKeeper self;
 	PendingIntent wakeSelf = null;
 	private static boolean coreSetup = false;
+	private static AsyncTask<Void, Void, Void> desyncInit;
 	
 	// constansts for notification id's
 	// worldid (86) will be added to these to keep them unique
@@ -103,7 +106,7 @@ public class SessionKeeper extends Service {
 			return SessionKeeper.this;
 		}
 	}
-	public static void checkCoreSetup(Context context) {
+	public static void checkCoreSetup(final Context context) {
 		if (!coreSetup) {
 			Logger.init(); // allows api to print to log
 			String revision = "unknown";
@@ -118,6 +121,39 @@ public class SessionKeeper extends Service {
 				e.printStackTrace();
 			}
 			ExceptionHandler.register(context,"http://angeldsis.com/dsisscripts/load/backtrace",revision);
+			desyncInit = new AsyncTask<Void,Void,Void>() {
+				@Override protected Void doInBackground(Void... params) {
+					try {
+						int i,size;
+						byte[] data = new byte[1024];
+						String state = Environment.getExternalStorageState();
+						if (Environment.MEDIA_MOUNTED.equals(state)) {
+							File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_NOTIFICATIONS);
+							if (!dir.exists()) dir.mkdirs();
+							String[] files = { "tos_klaxon.mp3" };
+							for (i=0; i<files.length; i++) {
+								File file = new File(dir,files[i]);
+								if (file.exists()) continue;
+								InputStream is = context.getAssets().open(files[i]);
+								FileOutputStream os = new FileOutputStream(file);
+								while ((size = is.read(data))>0) {
+									os.write(data, 0, size);
+								}
+								is.close();
+								os.close();
+							}
+						}
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					return null;
+				}
+				protected void onPostExecute(Void r) {
+					desyncInit = null;
+				}
+			};
+			desyncInit.execute();
 			coreSetup = true;
 		}
 	}
@@ -132,7 +168,13 @@ public class SessionKeeper extends Service {
 			fast.min = fast.max = 10000; // 10 sec, only when app is open, never when alarm is active
 		}
 	}
-	static public LouSession getSession2() {
+	static public LouSession getSession2(Context context) {
+		if (session2 == null) {
+			session2 = new LouSession(HttpUtilImpl.getInstance());
+			String cookie = context.getSharedPreferences("main",
+					Context.MODE_PRIVATE).getString("cookie", null);
+			if (cookie != null) session2.restoreState(cookie);
+		}
 		return session2; // FIXME, create on demand
 	}
 	public IBinder onBind(Intent arg0) {
@@ -301,7 +343,7 @@ public class SessionKeeper extends Service {
 									chat = new ChatHistory(SessionKeeper.this,acct.worldid,state.self.getId());
 									if (primary) {
 										Editor trans = config.edit();
-										trans.putInt(session2.currentEmail+"_w"+acct.worldid, state.self.getId());
+										trans.putInt(session2.state.currentEmail+"_w"+acct.worldid, state.self.getId());
 										trans.apply();
 									}
 									rpc.startPolling();
@@ -347,7 +389,7 @@ public class SessionKeeper extends Service {
 				ChatMsg cm = d.get(d.size()-1);
 				int id = UNREAD_MESSAGE | sessionid;
 				
-				Intent home = LouSessionMain.getIntent(acct, SessionKeeper.this);
+				// FIXME Intent home = LouSessionMain.getIntent(acct, SessionKeeper.this);
 				Intent chat = ChatWindow.getIntent(acct, cm.tag, SessionKeeper.this);
 				
 				TaskStackBuilder stackBuilder = TaskStackBuilder.create(SessionKeeper.this);
@@ -391,9 +433,10 @@ public class SessionKeeper extends Service {
 			}
 		}
 		private String getStateName(int playerid) {
-			return String.format("state_save_w%d_p%d",acct.worldid,playerid);
+			return String.format(Locale.ROOT,"state_save_w%d_p%d",acct.worldid,playerid);
 		}
 		private void saveState() {
+			Log.v(TAG,"saving state...");
 			Gson gson = new Gson();
 			FileOutputStream stateout;
 			Player self = state.self;
@@ -405,6 +448,7 @@ public class SessionKeeper extends Service {
 				writer.close();
 				File dest = SessionKeeper.this.getFileStreamPath(getStateName(self.getId()));
 				source.renameTo(dest);
+				Log.v(TAG,"state saved!");
 			} catch (ConcurrentModificationException e) {
 				source.delete();
 			} catch (FileNotFoundException e) {
@@ -731,7 +775,7 @@ public class SessionKeeper extends Service {
 			}
 		}
 		if (allow_login) {
-			final int playerid = config.getInt(session2.currentEmail+"_w"+acct.worldid, -1);
+			final int playerid = config.getInt(session2.state.currentEmail+"_w"+acct.worldid, -1);
 			desync = new AsyncTask<Void,Void,Session>() {
 				@Override protected Session doInBackground(Void... params) {
 						Session s2 = new Session(acct,lastSessionid++,playerid,true);
@@ -747,13 +791,22 @@ public class SessionKeeper extends Service {
 			desync.execute();
 		} else cb.gotSession(null); // not a login page, fail out
 	}
-	public static void checkCookie(final CookieCallback cb, final String username) {
+	public static void checkCookie(Context context, final CookieCallback cb, final String username) {
 		Log.v(TAG,"checkCookie");
-		if (session2 == null) session2 = new LouSession(HttpUtilImpl.getInstance());
+		final LouSession sess = getSession2(context);
+		if (sess.cookiesLookBad()) {
+			result fail = new result();
+			fail.worked = false;
+			cb.done(fail);
+			return;
+		}
 		AsyncTask<Object,Integer,result> task = new AsyncTask<Object,Integer,result>() {
 			@Override
 			protected result doInBackground(Object... arg0) {
-				result r = session2.check_cookie(username);
+				result r = sess.checkSessionId();
+				if (r == null) {
+					r = sess.checkCookie(username);
+				}
 				if (r == null) throw new IllegalStateException("r was null?");
 				Log.v(TAG,"r is "+r);
 				return r;

@@ -28,7 +28,7 @@ public class WorldSelect extends Shell {
 		super(display);
 		this.display = display;
 		setLayout(new GridLayout(2, false));
-		Iterator<ServerInfo> i = session.servers.iterator();
+		Iterator<ServerInfo> i = session.state.servers.iterator();
 		while (i.hasNext()) {
 			ServerInfo a = i.next();
 			if (a.worldid == LouMain.instance.auto_world) {

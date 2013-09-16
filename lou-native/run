@@ -1,2 +1,2 @@
 #!/bin/bash
-CLASSPATH=bin:../lou-api/bin/:../lou-utils/bin/:tagsoup-1.2.1.jar:../lou-api/json-org.jar:swt.jar java com.angeldsis.lounative.LouMain "$@"
+CLASSPATH=../lou-api/libs/gson-2.2.2.jar:bin:../lou-api/bin/:../lou-utils/bin/:tagsoup-1.2.1.jar:../lou-api/json-org.jar:swt.jar java -verbose com.angeldsis.lounative.LouMain "$@"

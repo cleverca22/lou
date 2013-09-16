@@ -75,27 +75,23 @@ public class DoLogin extends Shell {
 		System.out.println("starting login");
 		// FIXME, do login in a background thread, and show a fancy ui
 		result reply = session.startLogin(username,password);
-		if (reply.error) {
+		if (!reply.worked) {
 			System.out.println(reply.errmsg);
 			if (reply.e != null) reply.e.printStackTrace();
-		}
-		if (reply.worked) {
-			config.setRememberMe(HttpUtilImpl.getInstance().getCookieData());
-			config.flush();
+		} else {
+			config.setRememberMe(session.getState());
 			System.out.println("worked");
 			close();
 			dispose();
 		}
-		else {
-			config.flush();
-		}
+		config.flush();
 	}
 	protected void checkSubclass() {
 	}
 	public static boolean login(Display display, LouSession session2) throws Exception {
 		DoLogin self = new DoLogin(display,session2);
 		self.eventloop();
-		if (self.session.servers == null) return false;
+		if (self.session.state.servers == null) return false;
 		else return true;
 	}
 }

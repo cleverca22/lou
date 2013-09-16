@@ -13,6 +13,7 @@ import com.angeldsis.lou.LoggingIn;
 import com.angeldsis.lou.R;
 import com.angeldsis.lou.SessionKeeper;
 import com.angeldsis.lou.SessionKeeper.CookieCallback;
+import com.angeldsis.louapi.LouSession.SessionState;
 import com.angeldsis.louutil.HttpUtilImpl;
 
 import android.content.Context;
@@ -59,8 +60,6 @@ public class Webview extends Fragment implements CookieCallback {
 		
 		l.addView(lastUrl);
 		l.addView(v);
-		Exception e = new Exception();
-		Log.v(TAG,"new webview",e);
 		return l;
 	}
 	private static final String[] links = { "http://www.lordofultima.com/mobile/play/change",
@@ -97,17 +96,20 @@ public class Webview extends Fragment implements CookieCallback {
 						if ("JSESSIONID".equals(name)) JSESSIONID = value;
 						else if ("AWSELB".equals(name)) AWSELB = value;
 					}
-					HttpUtilImpl.getInstance().restore_cookie(JSESSIONID+";"+AWSELB);
-					Log.v(TAG,"cookies:"+HttpUtilImpl.getInstance().getCookieData());
+					SessionState state = SessionKeeper.session2.state;
+					state.AWSELB = AWSELB;
+					state.JSESSIONID = JSESSIONID;
+					HttpUtilImpl.getInstance().restoreState(state);
+					Log.v(TAG,"state:"+SessionKeeper.session2.getState());
 					SharedPreferences.Editor trans = getActivity().getSharedPreferences("main", Context.MODE_PRIVATE).edit();
-					trans.putString("cookie", JSESSIONID+";"+AWSELB);
+					trans.putString("cookie", SessionKeeper.session2.getState());
 					
 					trans.commit();
 					//db.close();
 					//loadpage = new LoadPage();
 					//loadpage.execute("http://www.lordofultima.com/game/world/change");
 					if (paused == true) throw new IllegalStateException("tried to check while paused");
-					SessionKeeper.checkCookie(Webview.this,username);
+					SessionKeeper.checkCookie(getActivity(),Webview.this,username);
 					return true;
 				}
 			//} catch (URISyntaxException e) {

@@ -25,7 +25,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -65,7 +64,6 @@ public class ServerList extends Fragment implements OnClickListener {
 			self = pm.getPackageInfo("com.angeldsis.lou", 0);
 			version.setText(self.versionName);
 		} catch (NameNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			version.setText("error");
 		}
@@ -117,7 +115,7 @@ public class ServerList extends Fragment implements OnClickListener {
 		
 		LouSession sess = SessionKeeper.session2;
 		TextView age = (TextView) root.findViewById(R.id.age);
-		age.setText(""+(System.currentTimeMillis() - sess.dataage)/1000);
+		age.setText(""+(System.currentTimeMillis() - sess.state.dataage)/1000);
 
 		ViewGroup list2 = (ViewGroup) root.findViewById(R.id.livelist);
 		list2.removeAllViews();
@@ -183,11 +181,11 @@ public class ServerList extends Fragment implements OnClickListener {
 				}
 			}
 		}
-		ArrayList<ServerInfo> accounts = sess.servers;
+		ArrayList<ServerInfo> accounts = sess.state.servers;
 		Log.v(TAG,"found "+accounts.size());
 		ViewGroup top = (ViewGroup) root.findViewById(R.id.list);
 		top.removeAllViews();
-		Iterator<ServerInfo> i = SessionKeeper.session2.servers.iterator();
+		Iterator<ServerInfo> i = SessionKeeper.session2.state.servers.iterator();
 		while (i.hasNext()) {
 			final ServerInfo a = i.next();
 			if (active[a.pathid]) {
@@ -222,7 +220,7 @@ public class ServerList extends Fragment implements OnClickListener {
 	@Override public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.refresh: {
-			SessionKeeper.session2.servers = null;
+			SessionKeeper.session2.state.servers = null;
 			FragmentTransaction trans = getActivity().getSupportFragmentManager().beginTransaction();
 			trans.replace(R.id.main_frame, new Loading());
 			trans.commit();

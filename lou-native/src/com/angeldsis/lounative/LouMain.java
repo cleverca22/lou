@@ -51,9 +51,9 @@ public class LouMain {
 		auto_world = world;
 		Config config = Config.getConfig();
 		if (config.getRememberMe() != null) {
-			HttpUtilImpl.getInstance().restore_cookie(config.getRememberMe());
+			session.restoreState(config.getRememberMe());
 			Log.v(TAG,"checking cookie");
-			result r = session.check_cookie(config.getUsername());
+			result r = session.checkCookie(config.getUsername());
 			if (r.worked == false) {
 				boolean worked = DoLogin.login(display, session);
 				if (!worked) {
@@ -67,7 +67,7 @@ public class LouMain {
 		}
 		System.out.println("done?");
 
-		System.out.println("found "+session.servers.size());
+		System.out.println("found "+session.state.servers.size());
 		WorldSelect.start(display, session);
 		while (true) {
 			if (!display.readAndDispatch()) display.sleep();

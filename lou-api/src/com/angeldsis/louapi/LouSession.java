@@ -1,6 +1,5 @@
 package com.angeldsis.louapi;
 
-import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -17,6 +16,8 @@ import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
 
 import com.angeldsis.louapi.HttpUtil.HttpReply;
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 public class LouSession {
 	public static class NewServer {
@@ -25,13 +26,35 @@ public class LouSession {
 		protected String id;
 		protected String name;
 	}
+	public static class SessionState {
+		transient public ArrayList<ServerInfo> servers;
+		public String JSESSIONID = null;
+		public String AWSELB = null;
+		public String currentEmail;
+		public String sessionId;
+		public long dataage;
+	}
+	public SessionState state;
 	static final String TAG = "LouSession";
-	public ArrayList<ServerInfo> servers;
-	public long dataage;
 	private HttpUtil httpUtil;
-	public String currentEmail;
 	public LouSession(HttpUtil httpUtil) {
 		this.httpUtil = httpUtil;
+		state = new SessionState();
+	}
+	public boolean restoreState(String cookie) {
+		Gson gson = new Gson();
+		try {
+			state = gson.fromJson(cookie, SessionState.class);
+		} catch (JsonSyntaxException e) {
+			state = new SessionState();
+		}
+		httpUtil.restoreState(state);
+		return true;
+	}
+	public String getState() {
+		httpUtil.syncCookieState(state);
+		Gson gson = new Gson();
+		return gson.toJson(state);
 	}
 	public result startLogin(String username,String password) {
 		try {
@@ -89,16 +112,16 @@ public class LouSession {
 				Log.e(TAG,"error4 "+html);
 				Log.e(TAG,"sessionid not found");
 				result r = new result();
-				r.error = true;
 				r.worked = false;
 				r.errmsg = "sessionid not found";
 				return r;
 			}
-			String sessionId = m.group(0);
-			Log.v(TAG,"sessionid "+sessionId);
+			state.sessionId = m.group(0);
+			state.dataage = System.currentTimeMillis();
+			Log.v(TAG,"sessionid "+state.sessionId);
 
 			reply2 = httpUtil.getUrl("http://prodgame.lordofultima.com/Farm/service.svc/ajaxEndpoint/1/session/"+
-						sessionId+"/worlds");
+					state.sessionId+"/worlds");
 			if (reply2.code == 200) {
 			} else {
 				Log.e(TAG,String.format("unknown error %s",reply2.code));
@@ -108,32 +131,33 @@ public class LouSession {
 			System.out.println("final code "+reply2.code);
 			final result output = new result();
 			output.worked = false;
-			parse_result(output, reply2.stream, username);
+			parse_result(output, reply2.stream);
+			if (output.worked) state.currentEmail = username;
 			return output;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			result output = new result();
 			output.errmsg = "IO error durring login";
-			output.error = true;
+			output.worked = false;
 			output.e = e;
 			return output;
 		} catch (SAXException e) {
 			// TODO Auto-generated catch block
 			result output = new result();
 			output.errmsg = "error3";
-			output.error = true;
+			output.worked = false;
 			output.e = e;
 			return output;
 		}
 	}
-	private void parse_result(final result output, InputStream is, String email) throws IOException, SAXException {
+	private void parse_result(final result output, InputStream is) throws IOException, SAXException {
 		XMLReader xmlReader = XMLReaderFactory.createXMLReader ("org.ccil.cowan.tagsoup.Parser");
 		final ArrayList<ServerInfo> servers = new ArrayList<ServerInfo>();
-		final ArrayList<NewServer> newServers = new ArrayList<NewServer>();
+		//final ArrayList<NewServer> newServers = new ArrayList<NewServer>();
 		final Pattern actioncheck = Pattern.compile("^http://prodgame(\\d+).lordofultima.com/(\\d+)/index.aspx");
 		final Pattern findid = Pattern.compile("\\d+");
 		ContentHandler handler = new DefaultHandler() {
-			NewServer newServer;
+			//NewServer newServer;
 			ServerInfo currentRow;
 			int state = -1;
 			public void startElement(String uri,String localName,String qName, Attributes attributes) throws SAXException {
@@ -217,23 +241,19 @@ public class LouSession {
 		};*/
 		xmlReader.parse(new InputSource(is)); // swap is with wrapper to debug
 		if (output.worked) {
-			this.servers = servers;
-			dataage = System.currentTimeMillis();
+			state.servers = servers;
 			//for (NewServer s : newServers) {
 			//	Log.v(TAG,String.format("%s %s %s", s.server,s.id,s.name));
 			//}
-			currentEmail = email;
 			return;
 		}
-		output.error = true;
 		output.errmsg = "logout link not found";
 		httpUtil.dumpCookies();
 		System.out.println("done");
 	}
-	public class result {
+	public static class result {
 		int code;
 		String result;
-		public boolean error;
 		public boolean worked;
 		public String errmsg;
 		
@@ -254,12 +274,12 @@ public class LouSession {
 		}
 		System.out.println(buf.toString());
 	}
-	public result check_cookie(String username) {
+	public result checkCookie(String username) {
 		try {
+			Log.v(TAG,"checking cookies");
 			HttpReply reply = httpUtil.getUrl("http://www.lordofultima.com/game/world/change");
 			if (reply.e != null) {
 				result obj = new result();
-				obj.error = true;
 				obj.worked = false;
 				obj.e = reply.e;
 				return obj;
@@ -271,7 +291,7 @@ public class LouSession {
 					result obj = new result();
 					Log.e(TAG,String.format("fail 1 %d %s",reply.code,secondurl));
 					obj.worked = false;
-					currentEmail = null;
+					state.currentEmail = null;
 					return obj;
 				} else {
 					Log.e(TAG,"unknown error: "+secondurl);
@@ -303,26 +323,13 @@ public class LouSession {
 				Log.e(TAG,"sessionid not found");
 				return null; // FIXME
 			}
-			String sessionId = m.group(0);
-			Log.v(TAG,"sessionid "+sessionId);
+			state.sessionId = m.group(0);
+			Log.v(TAG,"sessionid "+state.sessionId);
 
-			HttpReply reply2 = httpUtil.getUrl("http://prodgame.lordofultima.com/Farm/service.svc/ajaxEndpoint/1/session/"+
-						sessionId+"/worlds");
-			if (reply2.code == 200) {
-			} else {
-				Log.e(TAG,String.format("unknown error %s",reply2.code));
-				return null; // FIXME
-			}
-			
-			System.out.println("final code "+reply2.code);
-			final result output = new result();
-			output.worked = false;
-			parse_result(output, reply2.stream, username);
+			result output = checkSessionId();
+			if (output.worked) state.currentEmail = username;
 			return output;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (SAXException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -330,7 +337,37 @@ public class LouSession {
 	}
 	public void logout() {
 		httpUtil.logout();
-		currentEmail = null;
-		servers = null;
+		state = new SessionState();
+	}
+	public result checkSessionId() {
+		if (state.sessionId == null) {
+			Log.v(TAG,"checkSessionId ran with null!");
+			return null;
+		}
+		HttpReply reply2 = httpUtil.getUrl("http://prodgame.lordofultima.com/Farm/service.svc/ajaxEndpoint/1/session/"+
+				state.sessionId+"/worlds");
+		if (reply2.code == 200) {
+		} else {
+			Log.e(TAG,String.format("unknown error %s",reply2.code));
+			return null; // FIXME
+		}
+		
+		final result output = new result();
+		output.worked = false;
+		try {
+			parse_result(output, reply2.stream);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SAXException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return output;
+	}
+	// does some basic tests, to see if its even worth attempting to test the cookies
+	public boolean cookiesLookBad() {
+		if (state.JSESSIONID == null) return true;
+		return false;
 	}
 }

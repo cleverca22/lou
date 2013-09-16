@@ -7,9 +7,8 @@ import com.angeldsis.lou.SessionKeeper;
 import com.angeldsis.lou.SessionKeeper.CookieCallback;
 import com.angeldsis.lou.louLogin;
 import com.angeldsis.louapi.LouSession.result;
-import com.angeldsis.louutil.HttpUtilImpl;
-
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -23,10 +22,9 @@ import android.view.ViewGroup;
 
 public class Loading extends Fragment {
 	Boolean stopped;
-	private static final String TAG = "home.Loading";
+	private static final String TAG = "Loading";
 	@Override
 	public View onCreateView (LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		Log.v(TAG,"onCreateView");
 		ConnectivityManager cm = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo ni = cm.getActiveNetworkInfo();
 		if ((ni == null) || !ni.isConnected()) {
@@ -41,8 +39,9 @@ public class Loading extends Fragment {
 			return null;
 		}
 		stopped = false;
-		if ((SessionKeeper.session2 != null) && (SessionKeeper.session2.servers != null) &&
-				(SessionKeeper.session2.servers.size() > 0)) {
+		if ((SessionKeeper.getSession2(getActivity()).state != null) 
+				&& (SessionKeeper.session2.state.servers != null)
+				&& (SessionKeeper.session2.state.servers.size() > 0)) {
 			Log.v(TAG,"session already setup");
 			FragmentTransaction trans = getActivity().getSupportFragmentManager().beginTransaction();
 			trans.replace(R.id.main_frame, new ServerList());
@@ -50,44 +49,41 @@ public class Loading extends Fragment {
 			Log.v(TAG,"returning null");
 			return null;
 		}
-		String cookie = container.getContext().getSharedPreferences("main",
-				Context.MODE_PRIVATE).getString("cookie", null);
-		if (cookie != null) { // restore cookie, check if its valid
-			Log.v(TAG,"restoring cookie");
-			HttpUtilImpl.getInstance().restore_cookie(cookie);
-			SessionKeeper.checkCookie(new CookieCallback() {
-				public void done(result r) {
-					FragmentActivity a = getActivity();
-					if (a == null) return;
-					if (r.worked) {
-						Log.v(TAG,"cookie checked "+SessionKeeper.session2.servers.size());
-						if (!stopped) {
-							a.getSupportFragmentManager().beginTransaction()
-								.replace(R.id.main_frame, new ServerList()).commit();
-						} else {
-							Log.v(TAG,"fragment stopped, cant update ui");
-						}
+		SessionKeeper.checkCookie(getActivity(),new CookieCallback() {
+			public void done(result r) {
+				FragmentActivity a = getActivity();
+				if (a == null) return;
+				if (r.worked) {
+					Log.v(TAG,"cookie good");
+					if (!stopped) {
+						SharedPreferences.Editor trans = getActivity().getSharedPreferences("main", Context.MODE_PRIVATE).edit();
+						trans.putString("cookie", SessionKeeper.session2.getState());
+						
+						trans.commit();
+						a.getSupportFragmentManager().beginTransaction()
+							.replace(R.id.main_frame, new ServerList()).commit();
+					} else {
+						Log.v(TAG,"fragment stopped, cant update ui");
 					}
-					else {
-						if (r.e == null) {
-							Log.e(TAG,"cookie check failed");
-							Loading.this.openLogin();
-						} else {
-							Log.e(TAG,"error",r.e);
-							Fragment f = new ShowError();
-							Bundle b = new Bundle();
-							
-							if (r.e instanceof UnknownHostException) b.putString("message", "dns error");
-							else b.putString("message", "unknown error");
-							
-							f.setArguments(b);
-							a.getSupportFragmentManager().beginTransaction()
-								.replace(R.id.main_frame, f).commitAllowingStateLoss();
-						}
+				} else {
+					if (r.e == null) {
+						Log.e(TAG,"cookie check failed");
+						Loading.this.openLogin();
+					} else {
+						Log.e(TAG,"error",r.e);
+						Fragment f = new ShowError();
+						Bundle b = new Bundle();
+						
+						if (r.e instanceof UnknownHostException) b.putString("message", "dns error");
+						else b.putString("message", "unknown error");
+						
+						f.setArguments(b);
+						a.getSupportFragmentManager().beginTransaction()
+							.replace(R.id.main_frame, f).commitAllowingStateLoss();
 					}
 				}
-			},getActivity().getSharedPreferences("main",Context.MODE_PRIVATE).getString("email", null));
-		} else openLogin();
+			}
+		},getActivity().getSharedPreferences("main",Context.MODE_PRIVATE).getString("email", null));
 
 		return inflater.inflate(R.layout.loading, container,false);
 	}
