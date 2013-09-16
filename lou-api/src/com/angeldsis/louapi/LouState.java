@@ -186,6 +186,7 @@ public class LouState {
 			if (trade_in != null) { // move this check once the other FIXME's are fixed, they will conflict
 				//boolean repeat = true; FIXME loop over to find more items that can cover it after the first
 				//while (repeat) {
+					int x;
 					incoming = 0;
 					Iterator<Trade> i = trade_in.iterator();
 					while (i.hasNext()) {
@@ -194,8 +195,7 @@ public class LouState {
 						if ((t.end > now) && (t.end < (timeLeft + now)) && (t.content != null)) {
 							Log.v(TAG,name+" trade will get back in time, "+t.toString());
 							//Log.v(TAG,"contents "+t.content.toString());
-							int x;
-							for (x=0; x<t.content.size(); x++) {
+							for (x=0; x<t.content.size(); x++) { // FIXME, remove the loop
 								TradeResource o = t.content.get(x);
 								if (o.type == 3) { // food
 									incoming += o.count;
@@ -204,6 +204,13 @@ public class LouState {
 						} else if (t.end < now) {
 							Log.v(TAG,"trade already done "+name+" "+t.toString());
 							Log.v(TAG,""+now);
+							for (x=0; x<t.content.size(); x++) {
+								TradeResource o = t.content.get(x);
+								if (o.type == 3) {
+									resources[3].base += o.count;
+								}
+							}
+							i.remove();
 						}
 					}
 					// FIXME, add incoming raids, plunders, and assaults
