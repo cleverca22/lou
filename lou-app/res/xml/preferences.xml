@@ -2,6 +2,7 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
     <CheckBoxPreference android:key="monitor_alliance_attacks" android:title="@string/monitor_alliance_att" android:defaultValue="false"/>
     <ListPreference android:key="theme" android:entries="@array/themes" android:entryValues="@array/theme_names" android:title="@string/theme" android:defaultValue="holo"/>
+    <RingtonePreference android:showDefault="true" android:ringtoneType="notification" android:title="@string/incoming_attack_sound" android:key="incoming" android:showSilent="true"/>
     
 
 </PreferenceScreen>

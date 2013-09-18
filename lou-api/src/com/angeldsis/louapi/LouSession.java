@@ -1,5 +1,6 @@
 package com.angeldsis.louapi;
 
+import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -119,32 +120,15 @@ public class LouSession {
 			state.sessionId = m.group(0);
 			state.dataage = System.currentTimeMillis();
 			Log.v(TAG,"sessionid "+state.sessionId);
-
-			reply2 = httpUtil.getUrl("http://prodgame.lordofultima.com/Farm/service.svc/ajaxEndpoint/1/session/"+
-					state.sessionId+"/worlds");
-			if (reply2.code == 200) {
-			} else {
-				Log.e(TAG,String.format("unknown error %s",reply2.code));
-				return null; // FIXME
-			}
 			
-			System.out.println("final code "+reply2.code);
-			final result output = new result();
-			output.worked = false;
-			parse_result(output, reply2.stream);
+			result output = checkSessionId();
+			
 			if (output.worked) state.currentEmail = username;
 			return output;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			result output = new result();
 			output.errmsg = "IO error durring login";
-			output.worked = false;
-			output.e = e;
-			return output;
-		} catch (SAXException e) {
-			// TODO Auto-generated catch block
-			result output = new result();
-			output.errmsg = "error3";
 			output.worked = false;
 			output.e = e;
 			return output;

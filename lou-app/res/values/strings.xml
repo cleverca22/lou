@@ -88,4 +88,5 @@
     <string name="raid_dungeon">Raid Dungeon</string>
     <string name="other_reports">Other Reports</string>
     <string name="select_all_filters">Select all filters</string>
+    <string name="incoming_attack_sound">Incoming Attack Sound</string>
 </resources>

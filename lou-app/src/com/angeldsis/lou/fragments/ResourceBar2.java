@@ -25,8 +25,12 @@ public class ResourceBar2 extends FragmentBase {
 	Handler handler = new Handler();
 	Runnable ticker = new Runnable() {
 		@Override public void run() {
-			ResourceBar2.this.update();
 			handler.removeCallbacks(ticker);
+			if (parent == null) {
+				Log.v(TAG,"parent is null!");
+				return;
+			}
+			ResourceBar2.this.update();
 			handler.postDelayed(ticker, 2000);
 		}
 	};
@@ -82,10 +86,6 @@ public class ResourceBar2 extends FragmentBase {
 		if (lastCity == null) c = parent.session.state.currentCity;
 		else c = lastCity;
 		int x;
-		if (parent == null) {
-			Log.v("ResourceBar2","parent is null!");
-			return;
-		}
 		LouState state = parent.session.state;
 		for (x = 0; x < 4; x++) {
 			Resource r = c.resources[x];

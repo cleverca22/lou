@@ -45,6 +45,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Bundle;
@@ -523,7 +524,6 @@ public class SessionKeeper extends Service {
 				if (a.targetIsMe) msg += ", you are the target";
 				long end = rpc.state.stepToMilis(a.end);
 				incomingAttackBuilder.setContentText(msg)
-					.setDefaults(Notification.DEFAULT_SOUND)
 					.setWhen(end);
 				//long start = rpc.state.stepToMilis(a.start);
 				
@@ -537,6 +537,16 @@ public class SessionKeeper extends Service {
 				PendingIntent resultPendingIntent = stackBuilder
 						.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT, options);
 				incomingAttackBuilder.setContentIntent(resultPendingIntent);
+				
+				SharedPreferences p = getSharedPreferences("com.angeldsis.lou_preferences",MODE_PRIVATE);
+				String uri = p.getString("incoming", null);
+				if (uri != null) {
+					Uri sound = Uri.parse(uri);
+					incomingAttackBuilder.setSound(sound);
+				} else {
+					// FIXME, find a way to set the default sound?, then let null be silent
+					incomingAttackBuilder.setDefaults(Notification.DEFAULT_SOUND);
+				}
 				
 				Notification n = incomingAttackBuilder.build();
 				int id = (INCOMING_ATTACK | sessionid) + (a.id << 15);
@@ -804,7 +814,7 @@ public class SessionKeeper extends Service {
 			@Override
 			protected result doInBackground(Object... arg0) {
 				result r = sess.checkSessionId();
-				if (r == null) {
+				if ((r == null) || (!r.worked)) {
 					r = sess.checkCookie(username);
 				}
 				if (r == null) throw new IllegalStateException("r was null?");

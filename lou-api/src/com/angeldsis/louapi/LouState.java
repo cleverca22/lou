@@ -49,6 +49,7 @@ public class LouState {
 	private JSONArray config; // FIXME, use a map?
 	public CityGroup[] groups;
 	public States accountState;
+	public int title;
 	
 	public enum States {
 		NEW, VALID
@@ -327,6 +328,9 @@ public class LouState {
 				if (change != 0) Log.v(TAG,"void resource "+type+" changed by "+change);
 				voidResources[type-5] = count;
 			}
+		}
+		if (d.has("t")) {
+			title = d.getInt("t");
 		}
 	}
 	public void setTime(long refTime2, int stepTime, int diff, int serverOffset) {

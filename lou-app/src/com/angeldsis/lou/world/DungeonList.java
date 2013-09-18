@@ -67,13 +67,15 @@ public class DungeonList extends WorldUser implements OnItemClickListener, OnIte
 			if (i instanceof Boss) {
 				Boss b = (Boss) i;
 				if (parent.session.state.recentBosses.contains(b.location)) return false;
-				//if (b.bossLevel > 5) return false; // FIXME, use TA rank
+				if (b.bossLevel > (targetBossLevel + 1)) return false;
+				if (b.bossLevel < (targetBossLevel - 1)) return false;
 				return true;
 			}
 			return false;
 		}
 	};
 	Filter filter = dungeonFilter;
+	private int targetBossLevel;
 	public void onCreate(Bundle sis) {
 		super.onCreate(sis);
 		params = new MyTableRow.LayoutParameters();
@@ -264,6 +266,29 @@ public class DungeonList extends WorldUser implements OnItemClickListener, OnIte
 	@Override public void session_ready() {
 		super.session_ready();
 		onCityChanged();
+		
+		int retVal = 1;
+		int title = parent.session.state.title;
+		
+		if (title >= 10) retVal = 9;
+		else if (title >= 8) retVal = 5;
+		else if (title >= 6) retVal = 4;
+		// old merc code, might be broken
+		else if (8 < (title-1)) {
+			retVal = title > 5 ? (6+1) : 6;
+		} else if (7 < (title-1)) {
+			retVal = title > 5 ? (5+1) : 5;
+		} else if (6 < (title-1)) {
+			retVal = title > 5 ? (4+1) : 4;
+		} else if (5 < (title-1)) {
+			retVal = title > 5 ? (3+1) : 3;
+		} else if (3 < (title-1)) {
+			retVal = title > 5 ? (2+1) : 2;
+		} else if (2 < (title-1)) {
+			retVal = title > 5 ? (1+1) : 1;
+		}
+		Log.v(TAG,String.format("title:%d retVal:%d",title,retVal));
+		targetBossLevel = retVal;
 	}
 	@Override public void onCityChanged() {
 		if (filter == bossFilter) super.resetFocus(4);
