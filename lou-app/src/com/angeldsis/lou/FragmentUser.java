@@ -141,8 +141,9 @@ public class FragmentUser extends FragmentActivity implements Callbacks, Session
 		while (i.hasNext()) i.next().cellUpdated(c);
 	}
 	@Override public void onBuildQueueUpdate() {}
-	@Override
-	public void onSubListChanged() {
+	@Override public void onSubListChanged() {
+		Iterator<FragmentBase> i = hooks.iterator();
+		while (i.hasNext()) i.next().onSubListChanged();
 	}
 	@Override public void onReportCountUpdate() {
 		Iterator<FragmentBase> i = hooks.iterator();

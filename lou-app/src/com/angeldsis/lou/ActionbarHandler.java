@@ -7,8 +7,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
-import android.view.MenuItem;
-
 import com.angeldsis.lou.SessionKeeper.Session;
 import com.angeldsis.lou.allianceforum.AllianceForumList;
 import com.angeldsis.lou.city.SendTrade;
@@ -69,9 +67,17 @@ public class ActionbarHandler {
 			}
 			return true;
 		case R.id.subs:
-			i = new Intent(a,Options.class);
-			i.putExtras(acct.toBundle());
-			a.startActivity(i);
+			if (fu != null) {
+				fu.getSupportFragmentManager().beginTransaction()
+					.replace(R.id.main_frame, new Options())
+					.addToBackStack(null).commit();
+			} else {
+				Bundle options = acct.toBundle();
+				options.putSerializable("fragment", Options.class);
+				i = new Intent(a,SingleFragment.class);
+				i.putExtras(options);
+				a.startActivity(i);
+			}
 			return true;
 		case R.id.options:
 			i = new Intent(a,Settings.class);

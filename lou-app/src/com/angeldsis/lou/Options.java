@@ -7,6 +7,7 @@ import com.angeldsis.louapi.data.SubRequest.Role;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -14,29 +15,30 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.ViewFlipper;
 
-public class Options extends SessionUser implements SubRequestDone, OnClickListener {
+public class Options extends FragmentBase implements SubRequestDone, OnClickListener {
 	private static final String TAG = "Options";
 	SubRequest subOffer;
 	private TextView subname,subname2;
 	ViewFlipper flipper;
-	@Override public void onCreate(Bundle sis) {
-		super.onCreate(sis);
-		setContentView(R.layout.options);
-		findViewById(R.id.sendSub).setOnClickListener(this);
-		findViewById(R.id.clearSub).setOnClickListener(this);
-		subname = (TextView) findViewById(R.id.subName);
-		subname2 = (TextView) findViewById(R.id.subName2);
-		flipper = (ViewFlipper) findViewById(R.id.flipper);
+	private ViewGroup list;
+	@Override public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle sis) {
+		ViewGroup root = (ViewGroup) inflater.inflate(R.layout.options,parent,false);
+		root.findViewById(R.id.sendSub).setOnClickListener(this);
+		root.findViewById(R.id.clearSub).setOnClickListener(this);
+		subname = (TextView) root.findViewById(R.id.subName);
+		subname2 = (TextView) root.findViewById(R.id.subName2);
+		flipper = (ViewFlipper) root.findViewById(R.id.flipper);
+		list = (ViewGroup) root.findViewById(R.id.list);
+		return root;
 	}
 	@Override public void session_ready() {
 		onSubListChanged();
 	}
 	@Override
 	public void onSubListChanged() {
-		ViewGroup list = (ViewGroup) findViewById(R.id.list);
 		list.removeAllViews();
 		subOffer = null;
-		for (SubRequest s : session.rpc.state.subs) {
+		for (SubRequest s : parent.session.rpc.state.subs) {
 			Log.v(TAG,s.toString());
 			if (s.role == Role.giver) {
 				subOffer = s;
@@ -44,7 +46,7 @@ public class Options extends SessionUser implements SubRequestDone, OnClickListe
 				flipper.setDisplayedChild(1);
 			}
 			if (s.state != 2) continue;
-			Button b = new Button(this);
+			Button b = new Button(getActivity());
 			b.setText(s.giver.getName());
 			b.setOnClickListener(new clicker(s));
 			list.addView(b);
@@ -58,7 +60,7 @@ public class Options extends SessionUser implements SubRequestDone, OnClickListe
 		}
 		@Override
 		public void onClick(View v) {
-			session.rpc.CreateSubstitutionSession(s,Options.this);
+			parent.session.rpc.CreateSubstitutionSession(s,Options.this);
 		}
 	}
 	@Override
@@ -69,10 +71,10 @@ public class Options extends SessionUser implements SubRequestDone, OnClickListe
 	public void onClick(View v) {
 		switch (v.getId()) {
 		case R.id.sendSub:
-			session.rpc.SubstitutionCreateReq(subname.getText().toString());
+			parent.session.rpc.SubstitutionCreateReq(subname.getText().toString());
 			break;
 		case R.id.clearSub:
-			session.rpc.SubstitutionCancelReq(subOffer);
+			parent.session.rpc.SubstitutionCancelReq(subOffer);
 			break;
 		}
 	}

@@ -10,6 +10,8 @@ public class Report {
 	public String share,objType;
 	public ReportHeader reportHeader;
 	public String debug;
+	private int voidRes;
+	private String defenderShare;
 	public static class types {
 		public static class general {
 			public static final int combat = 1, trade = 2, city = 3, alliance = 4, enlightenment = 5;
@@ -20,7 +22,6 @@ public class Report {
 	}
 	public Report(JSONObject r) {
 		debug = r.toString();
-		fame = r.optInt("f");
 		JSONArray a = r.optJSONArray("a");
 		reportHeader = new ReportHeader(r.optJSONObject("h"));
 		try {
@@ -42,17 +43,27 @@ public class Report {
 		JSONObject defenderData = a.optJSONObject(1);
 		if (defenderData != null) defender = new ReportHalf(defenderData);
 		//Log.v("Report",(new Date(reportHeader.timestamp)).toString());
-		int si = r.optInt("si");
-		int cs = r.optInt("cs");
-		int v = r.optInt("v");
+		
+		int attackPower = r.optInt("ap");
+
+		int targetCityStateMask = r.optInt("cs");
 		oldClaimPower = r.optInt("cpo");
 		claimPower = r.optInt("cp");
-		JSONArray structures = r.optJSONArray("s");
-		int ap = r.optInt("ap");
+
+		fame = r.optInt("f");
+
+		int o = r.optInt("o"); // owner, same as o in ReportHeader
+		
 		JSONArray resources = r.optJSONArray("r");
 		JSONArray rs = r.optJSONArray("rs");
 		int rcc = r.optInt("rcc");
+		
+		int si = r.optInt("si");
 		share = r.optString("sid");
+		defenderShare = r.optString("sidd");
+		JSONArray structures = r.optJSONArray("s");
+
+		voidRes = r.optInt("v");
 	}
 	public class ReportHalf {
 		public UnitInfo[] units;

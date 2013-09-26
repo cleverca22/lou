@@ -115,8 +115,8 @@ public class SessionKeeper extends Service {
 				InputStream is = context.getAssets().open("revision");
 				InputStreamReader isr = new InputStreamReader(is);
 				char buffer[] = new char[64];
-				isr.read(buffer, 0, 64);
-				revision = new String(buffer);
+				int size = isr.read(buffer, 0, 64);
+				revision = new String(buffer,0,size).trim();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

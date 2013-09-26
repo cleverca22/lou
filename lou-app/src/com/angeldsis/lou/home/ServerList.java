@@ -14,8 +14,11 @@ import com.angeldsis.lou.LoggingIn;
 import com.angeldsis.lou.R;
 import com.angeldsis.lou.SessionKeeper;
 import com.angeldsis.lou.SessionKeeper.Session;
+import com.angeldsis.louapi.Account;
 import com.angeldsis.louapi.LouSession;
 import com.angeldsis.louapi.LouState;
+import com.angeldsis.louapi.RPC;
+import com.angeldsis.louapi.RPC.SubRequestDone;
 import com.angeldsis.louapi.ServerInfo;
 import com.angeldsis.louapi.data.SubRequest;
 
@@ -108,10 +111,39 @@ public class ServerList extends Fragment implements OnClickListener {
 			desync.execute();
 		}
 	}
+	// FIXME, find a better solution?
+	private static class Active {
+		public Active(Session s) {
+			// FIXME, detect if its a sub or not
+			pathid = s.acct.pathid;
+			playerid = s.state.self.getId();
+		}
+		int pathid;
+		int playerid;
+		/**
+		 * checks the array to see if it matches pathid/playerid
+		 * @param active
+		 * @param pathid
+		 * @param playerid -1 means to match any non-sub account
+		 * @return
+		 */
+		public static boolean contains(ArrayList<Active> active, int pathid, int playerid) {
+			Iterator<Active> i = active.iterator();
+			while (i.hasNext()) {
+				Active a = i.next();
+				if (a.pathid == pathid) {
+					// FIXME, check to see if its non-sub
+					if (playerid == -1) return true;
+					else if (playerid == a.playerid) return true;
+				}
+			}
+			return false;
+		}
+	}
 	private void redoList() {
 		LayoutInflater inflater = getActivity().getLayoutInflater();
 		ViewGroup root = (ViewGroup) getView();
-		boolean active[] = new boolean[300];
+		ArrayList<Active> active = new ArrayList<Active>();
 		
 		LouSession sess = SessionKeeper.session2;
 		TextView age = (TextView) root.findViewById(R.id.age);
@@ -119,13 +151,12 @@ public class ServerList extends Fragment implements OnClickListener {
 
 		ViewGroup list2 = (ViewGroup) root.findViewById(R.id.livelist);
 		list2.removeAllViews();
-		ViewGroup subs_list = (ViewGroup) root.findViewById(R.id.subs_list);
-		subs_list.removeAllViews();
 		SessionKeeper k = SessionKeeper.getInstance();
 		if (k != null) {
 			//Log.v(TAG,"found keeper");
 			Iterator<Session> i2 = k.sessions.iterator();
 			//Log.v(TAG,"list:"+k.sessions.size());
+			// for each active session
 			while (i2.hasNext()) {
 				final Session s = i2.next();
 				ViewGroup row = (ViewGroup) inflater.inflate(R.layout.one_server, list2,false);
@@ -135,7 +166,7 @@ public class ServerList extends Fragment implements OnClickListener {
 				} else {
 					if (s.state.self == null) throw new IllegalStateException("unexpected null, loggingin:"+s.loggingIn);
 					t.setText(s.acct.world+" "+s.state.self.getName());
-					Log.v(TAG,"source session:"+s.acct.worldid+" "+s.state.self.getName());
+					Log.v(TAG,"source worldid:"+s.acct.worldid+" "+s.state.self.getName()+"("+s.state.self.getId()+")");
 				}
 				Button b = (Button) row.findViewWithTag("button");
 				//Log.v(TAG,b.toString());
@@ -151,34 +182,7 @@ public class ServerList extends Fragment implements OnClickListener {
 				});
 				list2.addView(row);
 				
-				// FIXME, only set as active if its not a sub?
-				active[s.acct.pathid] = true;
-				LouState state = s.state;
-				ArrayList<SubRequest> subs = state.subs;
-				Iterator<SubRequest> i3 = subs.iterator();
-				while (i3.hasNext()) {
-					final SubRequest sr = i3.next();
-					// FIXME, remove duplicates
-					Log.v(TAG,"sr data id:"+sr.id+" "+(sr.role == SubRequest.Role.giver ? "giver":"receiver")+" state:"+sr.state);
-					if (sr.state != 2) continue;
-					if (sr.role != SubRequest.Role.receiver) continue;
-					ViewGroup row3 = (ViewGroup) inflater.inflate(R.layout.one_server, subs_list, false);
-					t = (TextView) row3.findViewWithTag("server_name");
-					t.setText("sub for "+sr.giver.getName()+" on "+s.acct.world);
-					b = (Button) row3.findViewWithTag("button");
-					b.setOnClickListener(new OnClickListener() {
-						@Override public void onClick(View v) {
-							Bundle args = new Bundle();
-							args.putInt("id", s.sessionid);
-							args.putInt("sub_id",sr.id);
-							FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
-							SubstituteLogin fragment = new SubstituteLogin();
-							fragment.setArguments(args);
-							ft.replace(R.id.main_frame, fragment).commit();
-						}
-					});
-					subs_list.addView(row3);
-				}
+				active.add(new Active(s));
 			}
 		}
 		ArrayList<ServerInfo> accounts = sess.state.servers;
@@ -188,7 +192,9 @@ public class ServerList extends Fragment implements OnClickListener {
 		Iterator<ServerInfo> i = SessionKeeper.session2.state.servers.iterator();
 		while (i.hasNext()) {
 			final ServerInfo a = i.next();
-			if (active[a.pathid]) {
+			
+			// FIXME, provide the real playerid?
+			if (Active.contains(active,a.pathid,-1)) {
 			} else if (a.offline) {
 				ViewGroup row = (ViewGroup) inflater.inflate(R.layout.offline_server, top,false);
 				TextView t = (TextView) row.findViewById(R.id.servername);
@@ -211,6 +217,66 @@ public class ServerList extends Fragment implements OnClickListener {
 				});
 				top.addView(row);
 			}
+		}
+		if (k != null) {
+			showSubRequests(active,inflater);
+		}
+	}
+	private void showSubRequests(ArrayList<Active> active, LayoutInflater inflater) {
+		TextView t;
+		Button b;
+		ViewGroup root = (ViewGroup) getView();
+		ViewGroup subs_list = (ViewGroup) root.findViewById(R.id.subs_list);
+		subs_list.removeAllViews();
+		SessionKeeper k = SessionKeeper.getInstance();
+		Iterator<Session> i2 = k.sessions.iterator();
+		while (i2.hasNext()) {
+			final Session s = i2.next();
+			LouState state = s.state;
+			ArrayList<SubRequest> subs = state.subs;
+			Iterator<SubRequest> i3 = subs.iterator();
+			// for each sub within this session
+			while (i3.hasNext()) {
+				final SubRequest sr = i3.next();
+				// FIXME, remove duplicates
+				Log.v(TAG,"sr data id:"+sr.id+" "+(sr.role == SubRequest.Role.giver ? "giver":"receiver")+" state:"+sr.state);
+				if (sr.state != 2) continue;
+				if (sr.role != SubRequest.Role.receiver) continue;
+				Log.v(TAG,"looking for:"+sr.giver.getId());
+				if (Active.contains(active, s.acct.pathid, sr.giver.getId())) {
+					Log.v(TAG,"session open already");
+					continue;
+				}
+				ViewGroup row3 = (ViewGroup) inflater.inflate(R.layout.one_server, subs_list, false);
+				t = (TextView) row3.findViewWithTag("server_name");
+				t.setText("sub for "+sr.giver.getName()+" on "+s.acct.world);
+				b = (Button) row3.findViewWithTag("button");
+				b.setOnClickListener(new OnClickListener() {
+					@Override public void onClick(View v) {
+						GetSubSession gss = new GetSubSession(s,sr);
+						gss.fire();
+					}
+				});
+				subs_list.addView(row3);
+			}
+		}
+	}
+	private class GetSubSession implements SubRequestDone {
+		RPC rpc;
+		private SubRequest sr;
+		public GetSubSession(Session s, SubRequest sr) {
+			rpc = s.rpc;
+			this.sr = sr;
+		}
+		public void fire() {
+			rpc.CreateSubstitutionSession(sr, this);
+		}
+		@Override public void allDone(Account acct2) {
+			Log.v(TAG,"got sessionid");
+			Intent login = new Intent(getActivity(), LoggingIn.class);
+			login.putExtras(((AccountWrap) acct2).toBundle());
+			
+			startActivity(login);
 		}
 	}
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
