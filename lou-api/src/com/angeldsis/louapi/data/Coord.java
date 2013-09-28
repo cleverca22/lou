@@ -13,6 +13,9 @@ public class Coord {
 	public String format() {
 		return String.format("%d:%d", x,y);
 	}
+	public String format2() {
+		return String.format("C%d%d %d:%d", y/100,x/100,x,y);
+	}
 	public String getContinent() {
 		return String.format("C%d%d",y/100,x/100);
 	}
