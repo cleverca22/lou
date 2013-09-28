@@ -182,13 +182,13 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			}
 		});
 	}
-	public void SubstitutionAcceptReq(final int subid, final int playerid) {
+	public void SubstitutionAcceptReq(final SubRequest sr) {
 		post(new Runnable() {
 			public void run() {
 				try {
 					JSONObject obj = new JSONObject();
-					obj.put("id", subid);
-					obj.put("pid", playerid);
+					obj.put("id", sr.id);
+					obj.put("pid", sr.giver.getId());
 					doRPC("SubstitutionAcceptReq",obj,new RPCCallback() {
 						public void requestDone(rpcreply r) {
 							Log.v(TAG,r.reply.toString());
@@ -238,6 +238,7 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 			}
 		});
 	}
+	// FIXME dup?
 	public void SubstitutionCancelReq(final SubRequest s) {
 		post(new Runnable() {
 			public void run() {
@@ -251,7 +252,6 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 						}
 					},5);
 				} catch (JSONException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -325,7 +325,6 @@ public abstract class RPC extends Thread implements WorldCallbacks {
 						@Override
 						void requestDone(rpcreply r) throws JSONException,
 								Exception {
-							Log.v(TAG,((JSONObject)r.reply).toString(1));
 							final Report rr = new Report((JSONObject) r.reply);
 							runOnUiThread(new Runnable() {
 								@Override public void run() {
