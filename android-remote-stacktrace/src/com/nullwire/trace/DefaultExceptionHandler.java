@@ -52,7 +52,7 @@ public class DefaultExceptionHandler implements UncaughtExceptionHandler {
 	{
 		defaultExceptionHandler = pDefaultExceptionHandler;
 	}
-	 
+	
 	// Default exception handler
 	public void uncaughtException(Thread t, Throwable e) {
 		// Here you should have a more robust, permanent record of problems

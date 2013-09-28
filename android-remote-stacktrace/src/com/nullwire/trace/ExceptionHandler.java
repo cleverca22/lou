@@ -182,7 +182,6 @@ public class ExceptionHandler {
 					String phoneModel = null;
 					String revision = null;
 					while (( line = input.readLine()) != null){
-						Log.v(TAG,"read raw line:"+line);
 						if (androidVersion == null) {
 							androidVersion = line;
 							continue;
@@ -199,7 +198,6 @@ public class ExceptionHandler {
 					input.close();
 					String stacktrace;
 					stacktrace = contents.toString();
-					Log.d(TAG, "Transmitting stack trace: " + stacktrace);
 					// Transmit stack trace with POST request
 					DefaultHttpClient httpClient = new DefaultHttpClient(); 
 					HttpPost httpPost = new HttpPost(G.URL);
