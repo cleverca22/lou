@@ -2,15 +2,11 @@ package com.angeldsis.lou;
 
 import java.util.ArrayList;
 
-import android.os.Handler;
-import android.util.Log;
-
 import com.angeldsis.louapi.Account;
 import com.angeldsis.louapi.ChatMsg;
 import com.angeldsis.louapi.IncomingAttack;
 import com.angeldsis.louapi.LouState;
 import com.angeldsis.louapi.LouVisData;
-import com.angeldsis.louapi.MailBoxFolder;
 import com.angeldsis.louapi.RPC;
 import com.angeldsis.louapi.Timeout;
 import com.angeldsis.louapi.world.WorldParser.Cell;

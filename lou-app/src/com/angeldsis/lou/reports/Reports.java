@@ -9,6 +9,7 @@ import org.json2.JSONException;
 import org.json2.JSONObject;
 import org.json2.JSONTokener;
 
+import com.angeldsis.lou.AndroidEnums;
 import com.angeldsis.lou.R;
 import com.angeldsis.lou.SessionUser;
 import com.angeldsis.louapi.RPC.ReportHeaderCallback;
@@ -155,36 +156,8 @@ public class Reports extends SessionUser implements ReportHeaderCallback, OnItem
 
 			ImageView result = (ImageView) row.findViewById(R.id.result);
 			if (h.image != null) {
-				int imageid = 0;
-				switch (h.image) {
-				case combat_defense:
-					imageid = R.drawable.combat_defense;
-					break;
-				case combat_defense_draw:
-					imageid = R.drawable.combat_defense_draw;
-					break;
-				case combat_defense_lost:
-					imageid = R.drawable.combat_defense_lost;
-					break;
-				case combat_defense_lost_defenseless:
-					imageid = R.drawable.combat_defense_lost_defenseless;
-					break;
-				case combat_defense_won:
-					imageid = R.drawable.combat_defense_won;
-					break;
-				case combat_defense_won_wiped:
-					imageid = R.drawable.combat_defense_won_wiped;
-					break;
-				case combat_defense_scout_lost_all:
-					imageid = R.drawable.combat_defense_scout_lost_all;
-					break;
-				case combat_defense_scout_lost_some:
-					imageid = R.drawable.combat_defense_scout_lost_some;
-					break;
-				case combat_defense_scout_won_wiped:
-					imageid = R.drawable.combat_defense_won_wiped;
-					break;
-				}
+				int imageid = AndroidEnums.getReportIcon(h);
+
 				result.setImageResource(imageid);
 				result.setVisibility(View.VISIBLE);
 			} else {

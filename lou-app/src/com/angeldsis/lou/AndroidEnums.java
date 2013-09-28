@@ -1,5 +1,7 @@
 package com.angeldsis.lou;
 
+import com.angeldsis.louapi.ReportHeader;
+
 public class AndroidEnums {
 	private static final int[] units = {0,R.drawable.icon_units_cityguard,R.drawable.icon_units_ballista,
 		R.drawable.icon_units_ranger,R.drawable.icon_units_guardian,R.drawable.icon_units_templar,
@@ -125,5 +127,28 @@ public class AndroidEnums {
 		}
 		// beyond level 0
 		return null;
+	}
+	public static int getReportIcon(ReportHeader h) {
+		switch (h.image) {
+		case combat_defense:
+			return R.drawable.combat_defense;
+		case combat_defense_draw:
+			return R.drawable.combat_defense_draw;
+		case combat_defense_lost:
+			return R.drawable.combat_defense_lost;
+		case combat_defense_lost_defenseless:
+			return R.drawable.combat_defense_lost_defenseless;
+		case combat_defense_won:
+			return R.drawable.combat_defense_won;
+		case combat_defense_won_wiped:
+			return R.drawable.combat_defense_won_wiped;
+		case combat_defense_scout_lost_all:
+			return R.drawable.combat_defense_scout_lost_all;
+		case combat_defense_scout_lost_some:
+			return R.drawable.combat_defense_scout_lost_some;
+		case combat_defense_scout_won_wiped:
+			return R.drawable.combat_defense_won_wiped;
+		}
+		return 0;
 	}
 }

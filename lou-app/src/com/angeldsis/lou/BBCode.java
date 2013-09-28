@@ -126,7 +126,6 @@ public class BBCode {
 			this.context = context2;
 		}
 		@Override public void onClick(View v) {
-			Log.v(TAG,"report clicked "+shareid);
 			Bundle args = context.getAcct().toBundle();
 			args.putString("shareid",shareid);
 			Intent i = new Intent(context.getActivity(),ShowReport.class);

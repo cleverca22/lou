@@ -94,7 +94,6 @@ public class HttpUtilImpl implements HttpUtil {
 		}
 	}
 	public static HttpUtilImpl getInstance() {
-		Log.v(TAG,"init");
 		if (self == null) self = new HttpUtilImpl();
 		return self;
 	}

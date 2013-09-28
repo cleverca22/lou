@@ -10,18 +10,16 @@
 
         <TextView
             android:id="@+id/player_name"
-            android:layout_width="wrap_content"
+            android:layout_width="0dip"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="player name"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
         <TextView
-            android:id="@+id/textView2"
+            android:id="@+id/alliance_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="right"
-            android:text="alliance name"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
     </LinearLayout>
@@ -34,19 +32,18 @@
             android:id="@+id/city"
             android:layout_width="100dp"
             android:layout_height="wrap_content"
-            android:text="city name"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
         <TextView
             android:id="@+id/location"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="city location"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/attackerInfo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical" >
@@ -78,36 +75,33 @@
             android:layout_height="match_parent"
             android:orientation="vertical" >
 
-            <LinearLayout
+            <View
                 android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:orientation="vertical" >
-            </LinearLayout>
+                android:layout_height="48dp" />
 
             <TextView
                 android:id="@+id/textView7"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="ordered"
+                android:text="@string/ordered"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
 
             <TextView
                 android:id="@+id/altered"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="neutralized"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="lost"
+                android:text="@string/lost"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="survived"
+                android:text="@string/survived"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
 
         </LinearLayout>

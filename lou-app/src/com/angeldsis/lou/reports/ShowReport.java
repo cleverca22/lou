@@ -2,13 +2,20 @@ package com.angeldsis.lou.reports;
 
 import java.util.Date;
 
+import android.annotation.TargetApi;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.angeldsis.lou.AndroidEnums;
 import com.angeldsis.lou.R;
@@ -18,18 +25,27 @@ import com.angeldsis.louapi.Report;
 import com.angeldsis.louapi.Report.ReportHalf;
 import com.angeldsis.louapi.Report.UnitInfo;
 
-public class ShowReport extends SessionUser implements ReportCallback {
+public class ShowReport extends SessionUser implements ReportCallback, OnClickListener {
 	private static final String TAG = "ShowReport";
-	ViewGroup side1,side2;
+	private ViewGroup sides;
+	//ViewGroup side1,side2;
+	TextView subject;
+	ImageView outcome;
 	@Override public void onCreate(Bundle sis) {
 		super.onCreate(sis);
 		setContentView(R.layout.show_report);
-		ViewGroup sides = (ViewGroup) findViewById(R.id.sides);
+		sides = (ViewGroup) findViewById(R.id.sides);
+		subject = (TextView) findViewById(R.id.subject);
+		outcome = (ImageView) findViewById(R.id.outcome);
+		findViewById(R.id.share).setOnClickListener(this);
 		LayoutInflater i = getLayoutInflater();
-		side1 = (ViewGroup) i.inflate(R.layout.report_half, sides,false);
-		side2 = (ViewGroup) i.inflate(R.layout.report_half, sides,false);
-		sides.addView(side1);
-		sides.addView(side2);
+	}
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	private void copyReport(CharSequence charSequence) {
+		ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+		ClipData clip = ClipData.newPlainText("Shared report",charSequence);
+		clipboard.setPrimaryClip(clip);
+		Toast.makeText(this, "Share string copied", Toast.LENGTH_SHORT).show();
 	}
 	@Override public void session_ready() {
 		Intent msg = getIntent();
@@ -46,6 +62,7 @@ public class ShowReport extends SessionUser implements ReportCallback {
 	}
 	@Override
 	public void done(Report report) {
+		sides.removeAllViews();
 		if (report.reportHeader.generalType == Report.types.general.combat) {
 			switch (report.reportHeader.combatType) {
 			case Report.types.combat.siege:
@@ -56,13 +73,19 @@ public class ShowReport extends SessionUser implements ReportCallback {
 			case Report.types.combat.assault:
 			case Report.types.combat.raidBoss:
 				Log.v("ShowReport",report.toString());
-				setField(R.id.share,report.share);
+				subject.setText(report.reportHeader.toString()); // FIXME, adjust the formating
+				if (report.reportHeader.image != null) {
+					outcome.setImageResource(AndroidEnums.getReportIcon(report.reportHeader));
+				}
+				setField(R.id.share,"Share report: "+report.formatShareString());
+				
+				// FIXME, it shows in local right now, but clearly says the timezone
 				setField(R.id.when,(new Date(report.reportHeader.timestamp)).toString());
 				setField(R.id.objType,report.objType);
 				setField(R.id.type,"type:"+report.reportHeader.generalType+" "+report.reportHeader.combatType);
 				// FIXME, handle things better
-				setupHalf(side1,report.attacker,R.string.trapped,report);
-				setupHalf(side2,report.defender,R.string.fortified,report);
+				setupSection(report.attacker,true);
+				setupSection(report.defender,false);
 				break;
 			default:
 				setField(R.id.type,"type:"+report.reportHeader.generalType+" "+report.reportHeader.combatType);
@@ -72,26 +95,34 @@ public class ShowReport extends SessionUser implements ReportCallback {
 			Log.e(TAG,"not a combat report");
 		}
 	}
-	private void setupHalf(ViewGroup side, ReportHalf half, int altered_id, Report report) {
+	private void setupSection(ReportHalf half, boolean attacker) {
+		int altered_id;
+		LayoutInflater i = getLayoutInflater();
+		ViewGroup side = (ViewGroup) i.inflate(R.layout.report_half, sides,false);
+		View info = side.findViewById(R.id.attackerInfo);
+		if (attacker) {
+			altered_id = R.string.trapped;
+		} else {
+			info.setVisibility(View.GONE);
+			altered_id = R.string.fortified;
+		}
+		sides.addView(side);
 		//Log.v(TAG,"half:"+half);
 		if (half == null) {
 			((TextView)side.findViewById(R.id.player_name)).setText("half null");
 			return;
 		}
 		((TextView)side.findViewById(R.id.player_name)).setText(half.player);
+		((TextView)side.findViewById(R.id.alliance_name)).setText(half.alliance);
 		((TextView)side.findViewById(R.id.city)).setText(half.cityname);
-		int both = half.coord;
-		int lowbyte = 0xffff & both;
-		int highbyte = (0xffff0000 & both) >> 16;
-		((TextView)side.findViewById(R.id.location)).setText(String.format("C?? (%d:%d)",lowbyte,highbyte));
+		((TextView)side.findViewById(R.id.location)).setText(half.coord.format2());
 		ViewGroup units = (ViewGroup) side.findViewById(R.id.units);
 		((TextView)side.findViewById(R.id.altered)).setText(altered_id);
-		setupUnits(units,half.units,report);
+		if (half.units != null) setupUnits(units,half.units);
 	}
-	private void setupUnits(ViewGroup v, UnitInfo[] units2, Report report) {
-		Log.v("ShowReport","setupUnits("+v+","+units2+")");
+	private void setupUnits(ViewGroup v, UnitInfo[] units2) {
+		Log.v(TAG,"setupUnits("+v+","+units2+")");
 		int i;
-		if (units2 == null) throw new IllegalStateException("unable to parse report:"+report.debug);
 		Log.v("ShowReport","units count:"+units2.length);
 		for (i = 0; i < units2.length; i++) {
 			UnitInfo u = units2[i];
@@ -113,5 +144,12 @@ public class ShowReport extends SessionUser implements ReportCallback {
 	}
 	private void setField(int id,String value) {
 		((TextView)findViewById(id)).setText(value);
+	}
+	@Override
+	public void onClick(View v) {
+		switch (v.getId()) {
+		case R.id.share:
+			if (Build.VERSION.SDK_INT > 11) copyReport(((TextView)v).getText());
+		}
 	}
 }
