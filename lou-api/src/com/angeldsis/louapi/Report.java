@@ -4,7 +4,10 @@ import org.json2.JSONArray;
 import org.json2.JSONException;
 import org.json2.JSONObject;
 
+import com.angeldsis.louapi.data.Coord;
+
 public class Report {
+	private static final String TAG = "Report";
 	public int fame,claimPower,oldClaimPower;
 	public ReportHalf attacker, defender;
 	public String share,objType;
@@ -25,7 +28,7 @@ public class Report {
 		JSONArray a = r.optJSONArray("a");
 		reportHeader = new ReportHeader(r.optJSONObject("h"));
 		try {
-			Log.v("Report",r.toString(1));
+			Log.v(TAG,r.toString(1));
 		} catch (JSONException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -39,6 +42,7 @@ public class Report {
 			e.printStackTrace();
 		}
 		// FIXME, a contains WAY WAY more then 2 when supporting troops are present
+		Log.v(TAG,"a size:"+a.length());
 		attacker = new ReportHalf(a.optJSONObject(0));
 		JSONObject defenderData = a.optJSONObject(1);
 		if (defenderData != null) defender = new ReportHalf(defenderData);
@@ -68,7 +72,8 @@ public class Report {
 	public class ReportHalf {
 		public UnitInfo[] units;
 		public String player,cityname;
-		public int coord;
+		public Coord coord;
+		public String alliance;
 		public ReportHalf(JSONObject h) {
 			JSONArray u = h.optJSONArray("u");
 			int i;
@@ -87,11 +92,11 @@ public class Report {
 				JSONObject c = c1.optJSONObject(0);
 				if (c != null) {
 					cityname = c.optString("n");
-					coord = c.optInt("i");
+					coord = Coord.fromCityId(c.optInt("i"));
 				} else Log.v("Report", h.toString());
 			} else Log.v("Report",h.toString());
 			int p = h.optInt("p");
-			String alliance = h.optString("a");
+			alliance = h.optString("a");
 			player = h.optString("pn");
 			// ??? "m": [{"v": 6,"t":84},{"v":1,"t":105}]
 		}
@@ -110,5 +115,8 @@ public class Report {
 			ordered = u.optInt("o");
 			survived = u.optInt("l");
 		}
+	}
+	public String formatShareString() {
+		return String.format("%s-%s-%s-%s",share.substring(0, 4),share.substring(4, 8),share.substring(8, 12),share.substring(12, 16));
 	}
 }
