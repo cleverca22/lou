@@ -10,6 +10,8 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
@@ -26,7 +28,7 @@ import com.angeldsis.louapi.RPC.TradeDirectDone;
 import com.angeldsis.louapi.data.Coord;
 import com.angeldsis.louapi.data.OrderTargetInfo;
 
-public class SendTrade extends FragmentBase implements CitySelected, GotOrderTargetInfo, TradeDirectDone, OnClickListener {
+public class SendTrade extends FragmentBase implements CitySelected, GotOrderTargetInfo, TradeDirectDone, OnClickListener, OnCheckedChangeListener {
 	private static final String TAG = "SendTrade";
 	CheckBox byLand;
 	TextView player,city,time;
@@ -63,6 +65,7 @@ public class SendTrade extends FragmentBase implements CitySelected, GotOrderTar
 		time = (TextView) root.findViewById(R.id.time);
 		send_res = (Button) root.findViewById(R.id.send_res);
 		send_res.setOnClickListener(this);
+		palace.setOnCheckedChangeListener(this);
 		bars = new Bar[4];
 		bars[0] = new Bar(root,0,R.id.setWood,R.id.showWood,R.id.maxWood);
 		bars[1] = new Bar(root,1,R.id.setStone,R.id.showStone,R.id.maxStone);
@@ -276,11 +279,14 @@ public class SendTrade extends FragmentBase implements CitySelected, GotOrderTar
 		Coord c = Coord.fromCityId(targetCity);
 		this.selected(c.x,c.y); // FIXME, reuse data from GetOrderTargetInfo
 	}
-	public void palaceChanged(View v) {
-		palaceDonation = palace.isChecked();
-	}
 	@Override
 	public void onClick(View arg0) {
 		sendTrade(arg0);
+	}
+	@Override
+	public void onCheckedChanged(CompoundButton view, boolean isChecked) {
+		if (view.getId() == R.id.palace) {
+			palaceDonation = palace.isChecked();
+		}
 	}
 }

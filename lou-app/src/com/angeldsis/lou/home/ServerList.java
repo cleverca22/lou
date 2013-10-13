@@ -82,7 +82,7 @@ public class ServerList extends Fragment implements OnClickListener {
 			desync = new AsyncTask<Void,Void,Result> () {
 				@Override protected Result doInBackground(Void... params) {
 					try {
-						URL url = new URL("http://klingon.angeldsis.com/apks/latestversion");
+						URL url = new URL(String.format("http://klingon.angeldsis.com/apks/latestversion?version=%d",self.versionCode));
 						HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 						InputStreamReader irs = new InputStreamReader(conn.getInputStream());
 						char[] buffer = new char[100];
