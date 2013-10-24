@@ -96,7 +96,7 @@ public class Webview extends Fragment implements CookieCallback {
 						if ("JSESSIONID".equals(name)) JSESSIONID = value;
 						else if ("AWSELB".equals(name)) AWSELB = value;
 					}
-					SessionState state = SessionKeeper.session2.state;
+					SessionState state = SessionKeeper.getSession2(getActivity()).state;
 					state.AWSELB = AWSELB;
 					state.JSESSIONID = JSESSIONID;
 					HttpUtilImpl.getInstance().restoreState(state);

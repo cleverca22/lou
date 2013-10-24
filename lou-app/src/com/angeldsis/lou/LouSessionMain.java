@@ -122,6 +122,10 @@ public class LouSessionMain extends FragmentBase implements OnItemClickListener,
 	@Override public void session_ready() {
 		Log.v(TAG,"session_ready");
 		session = parent.session;
+		if (parent == null) {
+			Log.wtf(TAG, "parent null in session ready");
+			return;
+		}
 		if (parent.session.alive == false) {
 			Log.wtf(TAG, "session not alive in session_ready");
 			parent.onEjected("WTF");

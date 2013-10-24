@@ -88,6 +88,7 @@ public class SessionKeeper extends Service {
 	PendingIntent wakeSelf = null;
 	private static boolean coreSetup = false;
 	private static AsyncTask<Void, Void, Void> desyncInit;
+	String reason;
 	
 	// constansts for notification id's
 	// worldid (86) will be added to these to keep them unique
@@ -200,6 +201,7 @@ public class SessionKeeper extends Service {
 		wakeSelf = PendingIntent.getService(this,0,i,0);
 		rpclogs = new RpcLogs(this);
 		config = this.getSharedPreferences("accounts", MODE_PRIVATE);
+		reason = "wtf";
 	}
 	@Override
 	public void onDestroy() {
@@ -600,8 +602,8 @@ public class SessionKeeper extends Service {
 			return cb != null;
 		}
 		public void logRequest(final int req, final int reply, final String func, final int nettime, final int parse1) {
-			if (destroyed) throw new IllegalStateException("logRequest ran after session destroyed");
-			handler.post(new Runnable() {
+			if (destroyed) throw new IllegalStateException("logRequest ran after session destroyed:"+reason);
+			runOnUiThread(new Runnable() {
 				public void run() {
 					rpclogs.logRequest(req,reply,func,nettime,parse1);
 				}
@@ -695,7 +697,7 @@ public class SessionKeeper extends Service {
 			}
 		}
 		public void logPollRequest(final String c, final int reply_size) {
-			handler.post(new Runnable() {
+			runOnUiThread(new Runnable() {
 				public void run() {
 					// FIXME, does sqlite inserts on MAIN thread!
 					// this is a hack to avoid concurrent inserts from multiple threads, throwing exceptions
@@ -854,6 +856,7 @@ public class SessionKeeper extends Service {
 		// FIXME, check service idle time incase it was in the middle of starting up
 		if (sessions.size() == 0) {
 			Log.v(TAG,"stopping self");
+			reason = " no more sessions";
 			stopSelf();
 		}
 		synchronized (this) {

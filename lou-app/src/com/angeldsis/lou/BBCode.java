@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.app.FragmentTransaction;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.ClickableSpan;
@@ -32,9 +33,20 @@ public class BBCode {
 			Bundle args = c.getAcct().toBundle();
 			args.putInt("x",x);
 			args.putInt("y",y);
-			Intent i = new Intent(c.getActivity(),ShowCoord.class);
-			i.putExtras(args);
-			c.getActivity().startActivity(i);
+			if (c.getActivity() instanceof FragmentUser) {
+				ShowCoord fragment = new ShowCoord();
+				fragment.setArguments(args);
+				FragmentUser fu = (FragmentUser) c.getActivity();
+				FragmentTransaction ft = fu.getSupportFragmentManager().beginTransaction();
+				ft.addToBackStack(null);
+				ft.replace(R.id.main_frame, fragment);
+				ft.commit();
+			} else {
+				Intent i = new Intent(c.getActivity(),SingleFragment.class);
+				args.putSerializable("fragment", ShowCoord.class);
+				i.putExtras(args);
+				c.getActivity().startActivity(i);
+			}
 		}
 	}
 	static private final String TAG = "BBCode";

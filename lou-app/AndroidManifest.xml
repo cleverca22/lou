@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="com.angeldsis.lou"
-      android:versionCode="2221"
-      android:versionName="0.22.21">
+      android:versionCode="2222"
+      android:versionName="0.22.22">
     <uses-sdk android:minSdkVersion="9" android:targetSdkVersion="18"/>
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -32,7 +32,6 @@
         <activity android:name=".allianceforum.ShowForum"></activity>
         <activity android:name=".allianceforum.ShowPosts"></activity>
         <activity android:name=".allianceforum.NewThread"></activity>
-        <activity android:name="com.angeldsis.lou.ShowCoord"></activity>
         <activity android:name="BuildQueueOverview"></activity>
         <activity android:name="FragmentUser"></activity>
         <activity android:name="SingleFragment"></activity>

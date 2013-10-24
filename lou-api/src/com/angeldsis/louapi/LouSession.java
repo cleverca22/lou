@@ -1,6 +1,5 @@
 package com.angeldsis.louapi;
 
-import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
