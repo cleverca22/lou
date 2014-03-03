@@ -58,10 +58,10 @@
         <input message="please enter the keystore pw:" addproperty="password"/>
     </target>
     <target name="release" depends="sign">
-        <copy file="lou-linux32.jar" tofile="/var/wwwlou/java/lou-linux32.jar" overwrite="true"/>
-        <copy file="lou-win32.jar" tofile="/var/wwwlou/java/lou-win32.jar" overwrite="true"/>
-        <copy file="lou-win64.jar" tofile="/var/wwwlou/java/lou-win64.jar" overwrite="true"/>
-        <copy file="lou.jnlp" tofile="/var/wwwlou/java/lou.jnlp" overwrite="true"/>
+        <copy file="lou-linux32.jar" tofile="/var/wwwloudb/java/lou-linux32.jar" overwrite="true"/>
+        <copy file="lou-win32.jar" tofile="/var/wwwloudb/java/lou-win32.jar" overwrite="true"/>
+        <copy file="lou-win64.jar" tofile="/var/wwwloudb/java/lou-win64.jar" overwrite="true"/>
+        <copy file="lou.jnlp" tofile="/var/wwwloudb/java/lou.jnlp" overwrite="true"/>
     </target>
     <target name="sign" depends="all,getPassword">
         <property file="props"/>

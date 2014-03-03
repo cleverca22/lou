@@ -1,2 +1,2 @@
 #!/bin/bash
-ssh -t wiki.angeldsis.com 'cd lou/lou-native;git pull;ant release'
+ssh -t klingon.angeldsis.com 'cd lou/lou-native;git pull;ant release'
